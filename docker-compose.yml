@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Frontend:/app
+    working_dir: /app
+    command: npm start
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=petmatch;User=root;Password=petmatch;TreatTinyAsBoolean=true;
+    depends_on:
+      - db
+    volumes:
+      - ./Backend:/app
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: petmatch
+      MYSQL_DATABASE: petmatch
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./Backend/init-db:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:
