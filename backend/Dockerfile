@@ -1,32 +1,42 @@
-# Use the official .NET SDK image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM php:8.2-fpm
 
-# Set working directory in the container
-WORKDIR /src
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    unzip \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# First copy just the project file to optimize restore caching
-COPY ["BackendApi/BackendApi.csproj", "BackendApi/"]
+# Instalar Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Restore dependencies
-RUN dotnet restore "BackendApi/BackendApi.csproj"
+# Establecer directorio de trabajo
+WORKDIR /var/www/symfony
 
-# Copy the rest of the files
-COPY . .
+# Copiar archivos de composer primero (para cache)
+COPY symfony/composer*.json ./
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Build and publish the app
-RUN dotnet publish "BackendApi/BackendApi.csproj" -c Release -o /app/publish
+# Copiar el resto del código
+COPY symfony/ .
 
-# Use the .NET Runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# Instalar dependencias de Composer
+RUN composer install
 
-# Set working directory
-WORKDIR /app
+# Permisos
+RUN chown -R www-data:www-data /var/www/symfony
+RUN chmod -R 755 /var/www/symfony
 
-# Copy published files from build stage
-COPY --from=build /app/publish .
+# Crear directorios necesarios
+RUN mkdir -p var/cache var/log
+RUN chown -R www-data:www-data var/
 
-# Expose port 5000
-EXPOSE 5000
+# Exponer puerto
+EXPOSE 8000
 
-# Command to start the API
-ENTRYPOINT ["dotnet", "BackendApi.dll"]
+# Comando para iniciar el servidor de desarrollo de Symfony
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
