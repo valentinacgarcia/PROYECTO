@@ -21,9 +21,11 @@ class UserController extends AbstractController
         $data = array_map(fn(User $user) => [
             'id' => $user->getId(),
             'name' => $user->getName(),
+            'last_name'=> $user->getLastName(),
             'email' => $user->getEmail(),
             'phone' => $user->getPhone(),
             'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
+            'adress' => $user->getAdress(),
         ], $users);
 
         return $this->json($data);
@@ -41,9 +43,11 @@ class UserController extends AbstractController
         $data = [
             'id' => $user->getId(),
             'name' => $user->getName(),
+            'last_name'=> $user->getLastName(),
             'email' => $user->getEmail(),
             'phone' => $user->getPhone(),
             'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
+            'adress' => $user->getAdress(),
         ];
 
         return $this->json($data);
@@ -60,9 +64,12 @@ class UserController extends AbstractController
 
         $user = new User();
         $user->setName($data['name']);
+        $user->seLastLName($data['last_name']);
         $user->setEmail($data['email']);
         $user->setPhone($data['phone'] ?? null);
         $user->setPassword($data['password']); 
+        $user->setAdress($data['adress']); 
+        
 
         $em->persist($user);
         $em->flush();
@@ -82,8 +89,10 @@ class UserController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $user->setName($data['name'] ?? $user->getName());
+        $user->setLastName($data['last_name'] ?? $user->getLastName());
         $user->setEmail($data['email'] ?? $user->getEmail());
         $user->setPhone($data['phone'] ?? $user->getPhone());
+        $user->setAdress($data['adress'] ?? $user->getAdress());
 
         $em->flush();
 
