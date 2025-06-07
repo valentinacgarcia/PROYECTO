@@ -70,11 +70,42 @@ const RegisterForm = () => {
       setFormError("Debes aceptar los términos y condiciones.");
       return;
     }
+    
 
-    setFormError("");
-    //setSubmittedData(formData);
-    console.log("Formulario válido:", formData);
-    navigate('/login')
+    //setFormError("");
+    //console.log("Formulario válido:", formData);
+    //navigate('/login')
+
+    //Metodo de conexion con el back
+
+    fetch('http://localhost:8000/user/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        email: formData.email,
+        telefono: formData.telefono,
+        direccion: formData.direccion,
+        password: formData.contraseña, // importante: el backend espera "password"
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error al registrar usuario');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Registro exitoso:', data);
+        navigate('/login');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        setFormError('Hubo un problema al registrar. Intente más tarde.');
+      });
   };
 
   return (
@@ -96,8 +127,8 @@ const RegisterForm = () => {
         <input type="text" name="email" placeholder="ejemplo@correo.com" value={formData.email} onChange={handleChange} autoComplete="off" />
 
         <label htmlFor="Direccion">Direccion</label>
-        <input type="text" name="direccion" placeholder="Ingrese su direccion" value={formData.contraseña} onChange={handleChange}/>
-        
+        <input type="text" name="direccion" placeholder="Ingrese su direccion" value={formData.direccion} onChange={handleChange}/>
+
         <label htmlFor="telefono">Teléfono</label>
         <input type="tel" name="telefono" placeholder='Ej: 1183489432'value={formData.telefono} onChange={handleChange}/>
         

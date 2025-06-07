@@ -92,17 +92,6 @@ const Datos = () => {
           />
         </label>
 
-        <label>
-          Contraseña:
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
-        </label>
-
         <div className="botones">
           {!editMode ? (
             <button type="button" className="edit-button" onClick={handleEditClick}>
