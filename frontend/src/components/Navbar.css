@@ -25,9 +25,9 @@
 
 .navbar-center {
   display:flex;
+  text-align: center;
   gap: 30px;
   padding: 0;
-  margin-right: 900px;
 }
 
 .nav-item {
@@ -76,6 +76,8 @@
 .perfil-dropdown {
   position: absolute;
   top: 100%;
+  display: flex;
+  flex-direction: column;
   right: 0;
   background-color: #fbf7f4;
   border: 1px solid #ccc;
@@ -91,8 +93,15 @@
   padding: 8px 12px;
   cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.2s;
 }
 
 .perfil-dropdown span:hover {
   background-color: #eee;
+}
+
+.dropdown-separator {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 8px 0;
 }

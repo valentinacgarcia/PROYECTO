@@ -44,6 +44,7 @@ const RegisterForm = () => {
       !formData.nombre.trim() ||
       !formData.apellido.trim() ||
       !formData.email.trim() ||
+      !formData.direccion.trim() ||
       !formData.telefono.trim() ||
       !formData.contraseña.trim() ||
       !formData.confirmarContraseña.trim()
@@ -96,7 +97,7 @@ const RegisterForm = () => {
         <input type="text" name="email" placeholder="ejemplo@correo.com" value={formData.email} onChange={handleChange} autoComplete="off" />
 
         <label htmlFor="Direccion">Direccion</label>
-        <input type="text" name="direccion" placeholder="Ingrese su direccion" value={formData.contraseña} onChange={handleChange}/>
+        <input type="text" name="direccion" placeholder="Ingrese su direccion" value={formData.direccion} onChange={handleChange}/>
         
         <label htmlFor="telefono">Teléfono</label>
         <input type="tel" name="telefono" placeholder='Ej: 1183489432'value={formData.telefono} onChange={handleChange}/>
