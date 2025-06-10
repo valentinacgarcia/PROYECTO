@@ -84,11 +84,11 @@ const RegisterForm = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        nombre: formData.nombre,
-        apellido: formData.apellido,
+        name: formData.nombre,
+        last_name: formData.apellido,
         email: formData.email,
-        telefono: formData.telefono,
-        direccion: formData.direccion,
+        phone: formData.telefono,
+        address: formData.direccion,
         password: formData.contraseña, // importante: el backend espera "password"
       }),
     })
