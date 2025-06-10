@@ -64,11 +64,11 @@ class UserController extends AbstractController
 
         $user = new User();
         $user->setName($data['name']);
-        $user->seLastLName($data['last_name']);
+        $user->setLastName($data['last_name']);
         $user->setEmail($data['email']);
         $user->setPhone($data['phone'] ?? null);
         $user->setPassword($data['password']); 
-        $user->setAdress($data['adress']); 
+        $user->setAddress($data['address']); 
         
 
         $em->persist($user);
@@ -92,7 +92,7 @@ class UserController extends AbstractController
         $user->setLastName($data['last_name'] ?? $user->getLastName());
         $user->setEmail($data['email'] ?? $user->getEmail());
         $user->setPhone($data['phone'] ?? $user->getPhone());
-        $user->setAdress($data['adress'] ?? $user->getAdress());
+        $user->setAdress($data['address'] ?? $user->getAddress());
 
         $em->flush();
 
