@@ -92,7 +92,7 @@ class UserController extends AbstractController
         $user->setLastName($data['last_name'] ?? $user->getLastName());
         $user->setEmail($data['email'] ?? $user->getEmail());
         $user->setPhone($data['phone'] ?? $user->getPhone());
-        $user->setAdress($data['address'] ?? $user->getAddress());
+        $user->setAddress($data['address'] ?? $user->getAddress());
 
         $em->flush();
 
