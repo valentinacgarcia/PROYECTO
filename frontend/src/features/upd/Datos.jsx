@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './Datos.css';
+import profilePhoto from '../../assets/foto1.jpg';
 
 const Datos = () => {
   const [formData, setFormData] = useState({
-    nombre: 'Juan',
-    apellido: 'Pérez',
-    email: 'juan@example.com',
-    telefono: '123456789',
+    nombre: 'Gaspar',
+    apellido: 'Iglesias',
+    email: 'gaspariglesias93@gmail.com',
+    telefono: '351 5966824',
     direccion: 'Calle Falsa 123',
     password: '********',
   });
@@ -35,6 +36,10 @@ const Datos = () => {
 
   return (
     <div className="datos-container">
+      <div className="profile-photo-container">
+        <img src={profilePhoto} alt="Foto de perfil" className="profile-photo" />
+      </div>
+
       <h2>Mis Datos</h2>
       <form className="datos-form">
         <label>
@@ -92,25 +97,40 @@ const Datos = () => {
           />
         </label>
 
-        <div className="botones">
-          {!editMode ? (
-            <button type="button" className="edit-button" onClick={handleEditClick}>
-              Editar
-            </button>
-          ) : (
-            <>
-              <button type="button" className="save-button" onClick={handleSaveClick}>
-                Guardar
-              </button>
-              <button type="button" className="cancel-button" onClick={handleCancelClick}>
-                Cancelar
-              </button>
-            </>
-          )}
-        </div>
-      </form>
-    </div>
+        <label>
+          Contraseña:
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={!editMode}
+          />
+        </label>
+
+<div className="botones">
+  {!editMode ? (
+    <>
+      <button type="button" className="edit-button" onClick={handleEditClick}>
+        Editar
+      </button>
+    </>
+  ) : (
+    <>
+      <button type="button" className="save-button" onClick={handleSaveClick}>
+        Guardar
+      </button>
+      <button type="button" className="cancel-button" onClick={handleCancelClick}>
+        Cancelar
+      </button>
+    </>
+  )}
+      </div>
+
+    </form>  
+
+  </div> 
   );
-};
+};   
 
 export default Datos;

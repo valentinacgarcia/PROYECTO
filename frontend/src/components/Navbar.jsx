@@ -41,7 +41,9 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
       </div>
 
       <div className="navbar-center">
+        <span className="nav-item">Inicio</span>
         <span className="nav-item">Adopta</span>
+        <span className="nav-item">Da en adopción</span>
         <span className="nav-item">Servicios</span>
         <span className="nav-item">Nosotros</span>
       </div>
@@ -60,6 +62,8 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
             {menuOpen && (
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Datos</span>
+                <span onClick={() => console.log('Eliminar cuenta')}>Eliminar cuenta</span>
+                <hr className="dropdown-separator" />
                 <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
             )}

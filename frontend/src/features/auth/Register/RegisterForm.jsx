@@ -44,6 +44,7 @@ const RegisterForm = () => {
       !formData.nombre.trim() ||
       !formData.apellido.trim() ||
       !formData.email.trim() ||
+      !formData.direccion.trim() ||
       !formData.telefono.trim() ||
       !formData.contraseña.trim() ||
       !formData.confirmarContraseña.trim()
@@ -70,42 +71,11 @@ const RegisterForm = () => {
       setFormError("Debes aceptar los términos y condiciones.");
       return;
     }
-    
 
-    //setFormError("");
-    //console.log("Formulario válido:", formData);
-    //navigate('/login')
-
-    //Metodo de conexion con el back
-
-    fetch('http://localhost:8000/user/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formData.nombre,
-        last_name: formData.apellido,
-        email: formData.email,
-        phone: formData.telefono,
-        address: formData.direccion,
-        password: formData.contraseña, // importante: el backend espera "password"
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error al registrar usuario');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Registro exitoso:', data);
-        navigate('/login');
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        setFormError('Hubo un problema al registrar. Intente más tarde.');
-      });
+    setFormError("");
+    //setSubmittedData(formData);
+    console.log("Formulario válido:", formData);
+    navigate('/login')
   };
 
   return (
@@ -128,7 +98,7 @@ const RegisterForm = () => {
 
         <label htmlFor="Direccion">Direccion</label>
         <input type="text" name="direccion" placeholder="Ingrese su direccion" value={formData.direccion} onChange={handleChange}/>
-
+        
         <label htmlFor="telefono">Teléfono</label>
         <input type="tel" name="telefono" placeholder='Ej: 1183489432'value={formData.telefono} onChange={handleChange}/>
         
