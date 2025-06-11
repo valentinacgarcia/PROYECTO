@@ -1,0 +1,10 @@
+# config/packages/nelmio_cors.yaml
+nelmio_cors:
+    defaults:
+        allow_origin: ['*']
+        allow_headers: ['Content-Type', 'Authorization']
+        allow_methods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE']
+        max_age: 3600
+    paths:
+        '^/':
+            allow_origin: ['*']
