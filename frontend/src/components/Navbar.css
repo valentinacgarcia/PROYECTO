@@ -25,9 +25,9 @@
 
 .navbar-center {
   display:flex;
-  text-align: center;
   gap: 30px;
   padding: 0;
+  margin-right: 900px;
 }
 
 .nav-item {
