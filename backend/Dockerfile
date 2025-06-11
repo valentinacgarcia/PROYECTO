@@ -1,32 +1,36 @@
-# Use the official .NET SDK image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM php:8.2-fpm
 
-# Set working directory in the container
-WORKDIR /src
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    unzip \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# First copy just the project file to optimize restore caching
-COPY ["BackendApi/BackendApi.csproj", "BackendApi/"]
+# Instala Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Restore dependencies
-RUN dotnet restore "BackendApi/BackendApi.csproj"
+WORKDIR /var/www/symfony
 
-# Copy the rest of the files
-COPY . .
+# Copia el proyecto Symfony completo
+COPY symfony/ .
 
-# Build and publish the app
-RUN dotnet publish "BackendApi/BackendApi.csproj" -c Release -o /app/publish
+# Instala dependencias de Composer
+RUN composer install --no-dev --optimize-autoloader
 
-# Use the .NET Runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# Permisos
+RUN chown -R www-data:www-data /var/www/symfony
+RUN chmod -R 755 /var/www/symfony
 
-# Set working directory
-WORKDIR /app
+# Cache/logs
+RUN mkdir -p var/cache var/log
+RUN chown -R www-data:www-data var/
 
-# Copy published files from build stage
-COPY --from=build /app/publish .
+# Expone el puerto
+EXPOSE 8000
 
-# Expose port 5000
-EXPOSE 5000
-
-# Command to start the API
-ENTRYPOINT ["dotnet", "BackendApi.dll"]
+# Arranca el servidor
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]

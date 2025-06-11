@@ -1,0 +1,8 @@
+{
+    "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^3.0"
+    },
+    "require": {
+        "doctrine/doctrine-migrations-bundle": "^3.2"
+    }
+}
