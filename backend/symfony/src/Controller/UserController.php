@@ -47,7 +47,7 @@ class UserController extends AbstractController
             'email' => $user->getEmail(),
             'phone' => $user->getPhone(),
             'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
-            'adress' => $user->getAdress(),
+            'address' => $user->getAddress(),
         ];
 
         return $this->json($data);
@@ -96,7 +96,7 @@ class UserController extends AbstractController
 
         $em->flush();
 
-        return $this->json(['message' => 'Userio editado con exito']);
+        return $this->json(['message' => 'Usuario editado con exito']);
     }
 
     #[Route('/delete/{id}', name: 'user_delete', methods: ['DELETE'])]
