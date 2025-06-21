@@ -260,7 +260,7 @@
     </service>
     <service id="argument_resolver.service" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver">
       <tag priority="-50" name="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver">controller.argument_value_resolver</tag>
-      <argument type="service" id=".service_locator.GG7bN3F"/>
+      <argument type="service" id=".service_locator.CyZx890"/>
     </service>
     <service id="argument_resolver.default" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver">
       <tag priority="-100" name="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver">controller.argument_value_resolver</tag>
@@ -1464,7 +1464,7 @@
     </service>
     <service id="argument_resolver.not_tagged_controller" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\NotTaggedControllerValueResolver">
       <tag name="controller.argument_value_resolver" priority="-200"/>
-      <argument type="service" id=".service_locator.GG7bN3F"/>
+      <argument type="service" id=".service_locator.CyZx890"/>
     </service>
     <service id="routing.resolver" class="Symfony\Component\Config\Loader\LoaderResolver">
       <call method="addLoader">
@@ -3889,6 +3889,12 @@
       <argument type="service" id="service_container"/>
       <factory service=".service_locator.OzEre6h" method="withContext"/>
     </service>
+    <service id=".service_locator.OzEre6h.App\Controller\UserController::sesion()" class="Symfony\Component\DependencyInjection\ServiceLocator">
+      <tag name="container.service_locator_context" id="App\Controller\UserController::sesion()"/>
+      <argument>App\Controller\UserController::sesion()</argument>
+      <argument type="service" id="service_container"/>
+      <factory service=".service_locator.OzEre6h" method="withContext"/>
+    </service>
     <service id=".service_locator.Kq27LHM" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
@@ -3920,7 +3926,7 @@
       <argument type="service" id="service_container"/>
       <factory service=".service_locator.OA38qqg" method="withContext"/>
     </service>
-    <service id=".service_locator.GG7bN3F" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.CyZx890" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="kernel::registerContainerConfiguration" type="service_closure" id=".service_locator.zHyJIs5.kernel::registerContainerConfiguration()"/>
@@ -3929,6 +3935,7 @@
         <argument key="App\Kernel::loadRoutes" type="service_closure" id=".service_locator.zHyJIs5.kernel::loadRoutes()"/>
         <argument key="App\Controller\UserController::list" type="service_closure" id=".service_locator.OzEre6h.App\Controller\UserController::list()"/>
         <argument key="App\Controller\UserController::detail" type="service_closure" id=".service_locator.OzEre6h.App\Controller\UserController::detail()"/>
+        <argument key="App\Controller\UserController::sesion" type="service_closure" id=".service_locator.OzEre6h.App\Controller\UserController::sesion()"/>
         <argument key="App\Controller\UserController::create" type="service_closure" id=".service_locator.Kq27LHM.App\Controller\UserController::create()"/>
         <argument key="App\Controller\UserController::edit" type="service_closure" id=".service_locator.OA38qqg.App\Controller\UserController::edit()"/>
         <argument key="App\Controller\UserController::delete" type="service_closure" id=".service_locator.OA38qqg.App\Controller\UserController::delete()"/>
@@ -3936,6 +3943,7 @@
         <argument key="kernel:loadRoutes" type="service_closure" id=".service_locator.zHyJIs5.kernel::loadRoutes()"/>
         <argument key="App\Controller\UserController:list" type="service_closure" id=".service_locator.OzEre6h.App\Controller\UserController::list()"/>
         <argument key="App\Controller\UserController:detail" type="service_closure" id=".service_locator.OzEre6h.App\Controller\UserController::detail()"/>
+        <argument key="App\Controller\UserController:sesion" type="service_closure" id=".service_locator.OzEre6h.App\Controller\UserController::sesion()"/>
         <argument key="App\Controller\UserController:create" type="service_closure" id=".service_locator.Kq27LHM.App\Controller\UserController::create()"/>
         <argument key="App\Controller\UserController:edit" type="service_closure" id=".service_locator.OA38qqg.App\Controller\UserController::edit()"/>
         <argument key="App\Controller\UserController:delete" type="service_closure" id=".service_locator.OA38qqg.App\Controller\UserController::delete()"/>
@@ -5026,7 +5034,7 @@
     <service id="security.firewall.context_locator" alias=".service_locator.bsoXAxw"/>
     <service id="Symfony\Component\Security\Core\User\UserCheckerInterface" alias="security.user_checker"/>
     <service id="container.env_var_processors_locator" alias=".service_locator.pRu6x_4" public="true"/>
-    <service id="argument_resolver.controller_locator" alias=".service_locator.GG7bN3F"/>
+    <service id="argument_resolver.controller_locator" alias=".service_locator.CyZx890"/>
     <service id="doctrine.id_generator_locator" alias=".service_locator.BxSdgVt"/>
     <service id="Psr\Log\LoggerInterface" alias="logger"/>
     <service id="event_dispatcher" alias="debug.event_dispatcher" public="true"/>

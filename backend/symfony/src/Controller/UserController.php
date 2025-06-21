@@ -52,6 +52,32 @@ class UserController extends AbstractController
 
         return $this->json($data);
     }
+    #[Route('/sesion/{id}', name: 'user_sesion', methods: ['GET'])]
+    public function sesion(UserRepository $userRepository, int $id, Request $request): JsonResponse
+    {
+        $dataSesion = json_decode($request->getContent(), true);
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return $this->json(['error' => 'Usuario Inexistente'], 404);
+        }
+
+        if($user->getEmail() != $dataSesion['email'] or $user->getPassword() != $dataSesion['password']){
+            return $this->json(['error' => 'Credenciales no validas'], 409);
+        }
+
+        $data = [
+            'id' => $user->getId(),
+            'name' => $user->getName(),
+            'last_name'=> $user->getLastName(),
+            'email' => $user->getEmail(),
+            'phone' => $user->getPhone(),
+            'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
+            'address' => $user->getAddress(),
+        ];
+
+        return $this->json($data,200);
+    }
 
     #[Route('/create', name: 'user_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
