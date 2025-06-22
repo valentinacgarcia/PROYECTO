@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './LoginForm.css';
 import logo from '../../../assets/logo.png';
 
-const LoginForm = ({onLogin}) => {
+const LoginForm = ({ onLogin }) => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -21,7 +21,7 @@ const LoginForm = ({onLogin}) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validación básica
@@ -36,12 +36,39 @@ const LoginForm = ({onLogin}) => {
     }
 
     setFormError('');
-    // Aquí iría la llamada al backend para autenticación
-    console.log('Intentando iniciar sesión con:', formData);
-    onLogin();
 
-    // Si todo ok, redirigir
-    navigate('/Home'); 
+    try {
+      const response = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.contraseña, // importante: backend espera "password"
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setFormError('Email o contraseña incorrectos.');
+        } else {
+          setFormError('Error al intentar iniciar sesión. Intente más tarde.');
+        }
+        return;
+      }
+
+      const userData = await response.json();
+
+      // Guardar usuario en localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      if (onLogin) onLogin(); // Llama al callback si se pasa desde props
+      navigate('/Home');
+
+    } catch (error) {
+      console.error('Error en login:', error);
+      setFormError('No se pudo conectar al servidor.');
+    }
   };
 
   return (
@@ -73,7 +100,7 @@ const LoginForm = ({onLogin}) => {
         <button type="submit">Entrar</button>
 
         <p className="switch-form">
-        <Link to="/forgot-password" className="link">¿Olvidaste tu contraseña?</Link>    
+          <Link to="/forgot-password" className="link">¿Olvidaste tu contraseña?</Link>
         </p>
 
         <p className="switch-form">

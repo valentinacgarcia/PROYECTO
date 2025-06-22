@@ -29,6 +29,40 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
     navigate('/datos');
   };
 
+  //Metodo para borrar el usuario loggeado
+  const handleDeleteAccount = () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('No se encontró usuario logueado.');
+      return;
+    }
+
+    if (!window.confirm('¿Estás seguro que querés eliminar tu cuenta? Esta acción es irreversible.')) {
+      return;
+    }
+
+    fetch(`http://localhost:8000/user/${user.id}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error al eliminar la cuenta');
+        }
+        return response.json();
+      })
+      .then(() => {
+        // Limpio localStorage y estado de sesión
+        localStorage.removeItem('user');
+        handleLogout(); // Para actualizar estado en el padre y UI
+        navigate('/login');
+      })
+      .catch((error) => {
+        console.error(error);
+        alert('Hubo un error al eliminar la cuenta. Intente más tarde.');
+      });
+  };
+
+
   const handleHomeClick = () => {
     navigate ('/home');
   }
@@ -62,7 +96,7 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
             {menuOpen && (
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Datos</span>
-                <span onClick={() => console.log('Eliminar cuenta')}>Eliminar cuenta</span>
+                <span onClick={handleDeleteAccount}>Eliminar cuenta</span>
                 <hr className="dropdown-separator" />
                 <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
