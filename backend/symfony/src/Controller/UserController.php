@@ -52,7 +52,7 @@ class UserController extends AbstractController
 
         return $this->json($data);
     }
-    #[Route('/sesion/{id}', name: 'user_sesion', methods: ['GET'])]
+    #[Route('/sesion/{id}', name: 'user_sesion', methods: ['POST'])]
     public function sesion(UserRepository $userRepository, int $id, Request $request): JsonResponse
     {
         $dataSesion = json_decode($request->getContent(), true);
