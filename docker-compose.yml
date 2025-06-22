@@ -13,10 +13,15 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: mysql://user:userpassword@mysql:3306/dbname  # ← ESTE CAMBIO
+      DATABASE_URL: mysql://user:userpassword@mysql:3306/dbname
       APP_ENV: dev
+      MINIO_ENDPOINT: http://localhost:9001
+      MINIO_KEY: petmatch
+      MINIO_SECRET: petmatch
+      MINIO_BUCKET: mascotas
     depends_on:
       - mysql
+      - minio
     networks:
       - app-network
     command: php -S 0.0.0.0:8000 -t public/
@@ -53,8 +58,25 @@ services:
     networks:
       - app-network
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: petmatch
+      MINIO_ROOT_PASSWORD: petmatch
+    ports:
+      - "9000:9000"  # API S3 compatible
+      - "9001:9001"  # Consola web
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - app-network
+
 volumes:
   mysql-data:
+  minio-data:
 
 networks:
   app-network:

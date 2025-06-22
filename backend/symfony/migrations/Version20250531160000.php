@@ -7,9 +7,6 @@ namespace DoctrineMigrations;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
-/**
- * Migration to add last_name and address to users, modify pets constraints
- */
 final class Version20250531160000 extends AbstractMigration
 {
     public function getDescription(): string
@@ -19,37 +16,37 @@ final class Version20250531160000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        // Agregar columnas a users (sin IF NOT EXISTS)
+        $this->addSql('ALTER TABLE users ADD last_name VARCHAR(100) DEFAULT NULL');
+        $this->addSql('ALTER TABLE users ADD address VARCHAR(255) DEFAULT NULL');
+
         // Modificar tabla pets
         $this->addSql('ALTER TABLE pets 
-            CHANGE gender gender VARCHAR(10) NOT NULL, 
-            CHANGE species species VARCHAR(50) NOT NULL, 
-            CHANGE breed breed VARCHAR(100) NOT NULL, 
-            CHANGE size size VARCHAR(10) NOT NULL, 
-            CHANGE color color VARCHAR(50) NOT NULL, 
-            CHANGE is_adopted is_adopted TINYINT(1) NOT NULL, 
-            CHANGE created_at created_at DATETIME NOT NULL, 
-            CHANGE owner_id owner_id INT DEFAULT NULL');
-
-        // Agregar columnas a users (usando ADD COLUMN IF NOT EXISTS para MySQL 8.0+)
-        // O simplemente ADD COLUMN para versiones anteriores
-        $this->addSql('ALTER TABLE users 
-            ADD COLUMN last_name VARCHAR(100) DEFAULT NULL, 
-            ADD COLUMN address VARCHAR(255) DEFAULT NULL');
+            MODIFY gender VARCHAR(10) NOT NULL, 
+            MODIFY species VARCHAR(50) NOT NULL, 
+            MODIFY breed VARCHAR(100) NOT NULL, 
+            MODIFY size VARCHAR(10) NOT NULL, 
+            MODIFY color VARCHAR(50) NOT NULL, 
+            MODIFY is_adopted TINYINT(1) NOT NULL, 
+            MODIFY created_at DATETIME NOT NULL, 
+            MODIFY owner_id INT DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
-        // Revertir cambios
+        // Revertir cambios en pets
         $this->addSql('ALTER TABLE pets 
-            CHANGE gender gender VARCHAR(10) DEFAULT NULL, 
-            CHANGE species species VARCHAR(50) DEFAULT NULL, 
-            CHANGE breed breed VARCHAR(100) DEFAULT NULL, 
-            CHANGE size size VARCHAR(10) DEFAULT NULL, 
-            CHANGE color color VARCHAR(50) DEFAULT NULL, 
-            CHANGE is_adopted is_adopted TINYINT(1) DEFAULT NULL, 
-            CHANGE created_at created_at DATETIME DEFAULT NULL, 
-            CHANGE owner_id owner_id INT NOT NULL');
+            MODIFY gender VARCHAR(10) DEFAULT NULL, 
+            MODIFY species VARCHAR(50) DEFAULT NULL, 
+            MODIFY breed VARCHAR(100) DEFAULT NULL, 
+            MODIFY size VARCHAR(10) DEFAULT NULL, 
+            MODIFY color VARCHAR(50) DEFAULT NULL, 
+            MODIFY is_adopted TINYINT(1) DEFAULT NULL, 
+            MODIFY created_at DATETIME DEFAULT NULL, 
+            MODIFY owner_id INT NOT NULL');
 
-        $this->addSql('ALTER TABLE users DROP COLUMN last_name, DROP COLUMN address');
+        // Eliminar columnas de users (sin IF EXISTS)
+        $this->addSql('ALTER TABLE users DROP COLUMN last_name');
+        $this->addSql('ALTER TABLE users DROP COLUMN address');
     }
 }
