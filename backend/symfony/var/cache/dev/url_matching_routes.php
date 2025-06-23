@@ -10,6 +10,7 @@ return [
     [ // $staticRoutes
         '/pet/create' => [[['_route' => 'pet_create', '_controller' => 'App\\Controller\\PetController::create'], null, ['POST' => 0], null, false, false, null]],
         '/user/list' => [[['_route' => 'user_list', '_controller' => 'App\\Controller\\UserController::list'], null, ['GET' => 0], null, false, false, null]],
+        '/user/sesion' => [[['_route' => 'user_login', '_controller' => 'App\\Controller\\UserController::login'], null, ['POST' => 0], null, false, false, null]],
         '/user/create' => [[['_route' => 'user_create', '_controller' => 'App\\Controller\\UserController::create'], null, ['POST' => 0], null, false, false, null]],
     ],
     [ // $regexpList
@@ -28,8 +29,7 @@ return [
                         .'|tail/([^/]++)(*:166)'
                         .'|lete/([^/]++)(*:187)'
                     .')'
-                    .'|sesion/([^/]++)(*:211)'
-                    .'|edit/([^/]++)(*:232)'
+                    .'|edit/([^/]++)(*:209)'
                 .')'
             .')/?$}sDu',
     ],
@@ -41,8 +41,7 @@ return [
         130 => [[['_route' => 'pet_edit', '_controller' => 'App\\Controller\\PetController::edit'], ['id'], ['PUT' => 0, 'POST' => 1], null, false, true, null]],
         166 => [[['_route' => 'user_detail', '_controller' => 'App\\Controller\\UserController::detail'], ['id'], ['GET' => 0], null, false, true, null]],
         187 => [[['_route' => 'user_delete', '_controller' => 'App\\Controller\\UserController::delete'], ['id'], ['DELETE' => 0], null, false, true, null]],
-        211 => [[['_route' => 'user_sesion', '_controller' => 'App\\Controller\\UserController::sesion'], ['id'], ['GET' => 0], null, false, true, null]],
-        232 => [
+        209 => [
             [['_route' => 'user_edit', '_controller' => 'App\\Controller\\UserController::edit'], ['id'], ['PUT' => 0], null, false, true, null],
             [null, null, null, null, false, false, 0],
         ],

@@ -1,17 +1,20 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Navbar.css';
-import logo from '../assets/logo.png'; 
+import logo from '../assets/logo.png';
 
-
-const Navbar = ({isLoggedIn, handleLogout}) => {
+const Navbar = ({ isLoggedIn, handleLogout }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [isLoggedIn]);
-  
+
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -29,46 +32,49 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
     navigate('/datos');
   };
 
-  //Metodo para borrar el usuario loggeado
+  const handleHomeClick = () => {
+    navigate('/home');
+  };
+
   const handleDeleteAccount = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
-      alert('No se encontró usuario logueado.');
+      setDeleteError('No se encontró usuario logueado.');
       return;
     }
 
-    if (!window.confirm('¿Estás seguro que querés eliminar tu cuenta? Esta acción es irreversible.')) {
-      return;
-    }
+    setLoadingDelete(true);
+    setDeleteError(null);
+    setDeleteMessage(null);
 
-    fetch(`http://localhost:8000/user/${user.id}`, {
+    fetch(`http://localhost:8000/user/delete/${user.id}`, {
       method: 'DELETE',
     })
       .then((response) => {
+        setLoadingDelete(false);
         if (!response.ok) {
           throw new Error('Error al eliminar la cuenta');
         }
         return response.json();
       })
       .then(() => {
-        // Limpio localStorage y estado de sesión
         localStorage.removeItem('user');
-        handleLogout(); // Para actualizar estado en el padre y UI
-        navigate('/login');
+        handleLogout();
+        setDeleteMessage('Cuenta eliminada con éxito. Redirigiendo...');
+        setTimeout(() => {
+          navigate('/home');
+          setConfirmDelete(false);
+        }, 2000);
       })
       .catch((error) => {
+        setLoadingDelete(false);
+        setDeleteError('Hubo un error al eliminar la cuenta. Intente más tarde.');
         console.error(error);
-        alert('Hubo un error al eliminar la cuenta. Intente más tarde.');
       });
   };
 
-
-  const handleHomeClick = () => {
-    navigate ('/home');
-  }
-
   return (
-    <nav className="navbar" >
+    <nav className="navbar">
       <div className="navbar-left" onClick={handleHomeClick} style={{ cursor: 'pointer' }}>
         <img src={logo} alt="Logo" className="logo" />
         <span className="brand-name">PetMatch</span>
@@ -85,8 +91,12 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
       <div className="navbar-right">
         {!isLoggedIn ? (
           <>
-            <button className="nav-button" onClick={handleLoginClick}>Iniciar sesión</button>
-            <button className="nav-button register" onClick={handleRegisterClick}>Registrarse</button>
+            <button className="nav-button" onClick={handleLoginClick}>
+              Iniciar sesión
+            </button>
+            <button className="nav-button register" onClick={handleRegisterClick}>
+              Registrarse
+            </button>
           </>
         ) : (
           <div className="perfil-container">
@@ -96,7 +106,15 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
             {menuOpen && (
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Datos</span>
-                <span onClick={handleDeleteAccount}>Eliminar cuenta</span>
+                <span
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setConfirmDelete(true);
+                  }}
+                  style={{ color: 'red', fontWeight: 'bold' }}
+                >
+                  Eliminar cuenta
+                </span>
                 <hr className="dropdown-separator" />
                 <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
@@ -104,6 +122,34 @@ const Navbar = ({isLoggedIn, handleLogout}) => {
           </div>
         )}
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      {confirmDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>¿Eliminar cuenta?</h3>
+            <p>Esta acción es irreversible. ¿Estás seguro?</p>
+            {deleteError && <p className="modal-error">{deleteError}</p>}
+            {deleteMessage && <p className="modal-success">{deleteMessage}</p>}
+            <div className="modal-buttons">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={loadingDelete}
+                className="modal-button delete"
+              >
+                {loadingDelete ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={loadingDelete}
+                className="modal-button cancel"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
