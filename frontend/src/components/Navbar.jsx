@@ -32,6 +32,11 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     navigate('/datos');
   };
 
+  const handleRegistrarMascota = () => {
+    setMenuOpen(false);
+    navigate('/registrar-mascota')
+  }
+
   const handleHomeClick = () => {
     navigate('/home');
   };
@@ -105,13 +110,13 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
             </button>
             {menuOpen && (
               <div className="perfil-dropdown">
-                <span onClick={handleDatosClick}>Datos</span>
-                <span
-                  onClick={() => {
+                <span onClick={handleDatosClick}>Mis datos</span>
+                <span onClick={handleRegistrarMascota}>Mis mascotas</span>
+                <span onClick={() => {
                     setMenuOpen(false);
                     setConfirmDelete(true);
                   }}
-                  style={{ color: 'red', fontWeight: 'bold' }}
+                  style={{fontWeight: 'bold' }}
                 >
                   Eliminar cuenta
                 </span>

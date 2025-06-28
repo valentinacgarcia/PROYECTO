@@ -1,0 +1,60 @@
+.mis-mascotas-container {
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: 80px auto 40px;
+  background-color: #fbf7f4;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mascotas-titulo {
+  text-align: center;
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.mensaje-vacio {
+  text-align: center;
+  color: #777;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.lista-mascotas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.tarjeta-mascota {
+  background-color: #fbf7f4;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  color: #333;
+  transition: transform 0.2s ease;
+}
+
+.tarjeta-mascota:hover {
+  transform: scale(1.02);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.boton-nueva-mascota {
+  display: block;
+  margin: 0 auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.boton-nueva-mascota:hover {
+  background-color: #428e6a;
+}

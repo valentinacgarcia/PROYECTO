@@ -9,7 +9,6 @@ const Datos = () => {
     email: '',
     telefono: '',
     direccion: '',
-    password: '',
   });
 
   const [editMode, setEditMode] = useState(false);
@@ -23,8 +22,7 @@ const Datos = () => {
         apellido: user.last_name || '',
         email: user.email || '',
         telefono: user.phone || '',
-        direccion: user.address || '',
-        password: '', // Por seguridad no cargamos la contraseña
+        direccion: user.address || '', // Por seguridad no cargamos la contraseña
       });
     }
   }, []);
@@ -54,7 +52,6 @@ const Datos = () => {
         email: user.email || '',
         telefono: user.phone || '',
         direccion: user.address || '',
-        password: '',
       });
     }
   };
@@ -87,7 +84,6 @@ const Datos = () => {
         email: formData.email,
         phone: formData.telefono,
         address: formData.direccion,
-        // password: formData.password, // si permitís cambiar contraseña
       }),
     })
       .then((response) => {
@@ -107,7 +103,6 @@ const Datos = () => {
           email: updatedUser.email || '',
           telefono: updatedUser.phone || '',
           direccion: updatedUser.address || '',
-          password: '', // contraseña no se maneja aquí
         });
       })
       .catch((error) => {
@@ -176,18 +171,6 @@ const Datos = () => {
             value={formData.direccion}
             onChange={handleChange}
             disabled={!editMode}
-          />
-        </label>
-
-        <label>
-          Contraseña:
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={!editMode}
-            placeholder="Ingrese nueva contraseña si desea cambiar"
           />
         </label>
 
