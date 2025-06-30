@@ -52,18 +52,30 @@ class UserController extends AbstractController
 
         return $this->json($data);
     }
-    #[Route('/sesion/{id}', name: 'user_sesion', methods: ['POST'])]
-    public function sesion(UserRepository $userRepository, int $id, Request $request): JsonResponse
+    
+    #[Route('/sesion', name: 'user_login', methods: ['POST'])]
+    public function login(UserRepository $userRepository, Request $request): JsonResponse
     {
         $dataSesion = json_decode($request->getContent(), true);
-        $user = $userRepository->find($id);
+
+        $email = $dataSesion['email'] ?? null;
+        $password = $dataSesion['password'] ?? null;
+
+        if (!$email || !$password) {
+            return $this->json(['error' => 'Faltan credenciales'], 400);
+        }
+
+        // Buscar usuario por email
+        $user = $userRepository->findOneBy(['email' => $email]);
 
         if (!$user) {
             return $this->json(['error' => 'Usuario Inexistente'], 404);
         }
 
-        if($user->getEmail() != $dataSesion['email'] or $user->getPassword() != $dataSesion['password']){
-            return $this->json(['error' => 'Credenciales no validas'], 409);
+        // Aquí deberías comparar la contraseña con el hash guardado en la base
+        // Pero asumiendo contraseña en texto plano (no recomendado)
+        if ($user->getPassword() !== $password) {
+            return $this->json(['error' => 'Credenciales no válidas'], 401);
         }
 
         $data = [
@@ -76,7 +88,7 @@ class UserController extends AbstractController
             'address' => $user->getAddress(),
         ];
 
-        return $this->json($data,200);
+        return $this->json($data, 200);
     }
 
     #[Route('/create', name: 'user_create', methods: ['POST'])]
@@ -122,7 +134,17 @@ class UserController extends AbstractController
 
         $em->flush();
 
-        return $this->json(['message' => 'Usuario editado con exito']);
+        $dataResponse = [
+            'id' => $user->getId(),
+            'name' => $user->getName(),
+            'last_name' => $user->getLastName(),
+            'email' => $user->getEmail(),
+            'phone' => $user->getPhone(),
+            'address' => $user->getAddress(),
+            'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
+        ];
+
+        return $this->json($dataResponse, 200);
     }
 
     #[Route('/delete/{id}', name: 'user_delete', methods: ['DELETE'])]

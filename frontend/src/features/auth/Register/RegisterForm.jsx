@@ -13,6 +13,7 @@ const RegisterForm = () => {
     email: "",
     telefono: "",
     contraseña: "",
+    direccion: "",
     confirmarContraseña: "",
     terminos: false,
   });
