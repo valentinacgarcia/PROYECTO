@@ -10,19 +10,20 @@ const MisMascotas = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) return;
 
-    // Llamada al backend para obtener mascotas del usuario
-    /* fetch(`http://localhost:8000/mascotas/${user.id}`)
+    fetch(`http://localhost:8000/pet/list/${user.id}`)
       .then((res) => res.json())
-      .then((data) => {
-        setMascotas(data);
-      })
+      .then((data) => setMascotas(data))
       .catch((err) => {
         console.error('Error al cargar mascotas:', err);
-      }); */
-  }, []); 
+      });
+  }, []);
 
   const handleNuevaMascota = () => {
     navigate('/registrar-mascota/nueva');
+  };
+
+  const handleVerDetalles = (id) => {
+    navigate(`/mis-mascotas/${id}`);
   };
 
   return (
@@ -34,11 +35,13 @@ const MisMascotas = () => {
       ) : (
         <div className="lista-mascotas">
           {mascotas.map((mascota) => (
-            <div key={mascota.id} className="tarjeta-mascota">
-              <h3>{mascota.nombre}</h3>
-              <p><strong>Tipo:</strong> {mascota.tipo}</p>
-              <p><strong>Edad:</strong> {mascota.edad}</p>
-              <p><strong>Tamaño:</strong> {mascota.tamaño}</p>
+            <div key={mascota.id} className="tarjeta-mascota" onClick={() => navigate(`/mis-mascotas/${mascota.id}`)}>
+              <img
+                src={`http://localhost:9000/mascotas/${mascota.photos[0]?.url}`} // O ruta de tu backend si usás proxy
+                alt={mascota.name}
+                className="foto-mascota"
+              />
+              <h3>{mascota.name}</h3>
             </div>
           ))}
         </div>

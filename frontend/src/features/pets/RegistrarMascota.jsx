@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './RegistrarMascota.css';
 import perro from '../../assets/perro.png';
 import gato from '../../assets/gato.png';
 import logo from '../../assets/logo.png';
+
 
 const RegistroMascota = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +27,8 @@ const RegistroMascota = () => {
 
   const [error, setError] = useState('');
   const [mostrarOpcionales, setMostrarOpcionales] = useState(false);
+  const [registroExitoso, setRegistroExitoso] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -62,21 +66,78 @@ const RegistroMascota = () => {
     setFormData((prev) => ({ ...prev, tamaño }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    //Validacion campos obligatorios
     if (
       !formData.tipo ||
       !formData.nombre ||
       !formData.sexo ||
       (!formData.fechaNacimiento && !formData.fechaRescate) ||
       !formData.tamaño ||
-      !formData.foto
+      !formData.foto 
     ) {
       setError('Por favor, complete todos los campos obligatorios.');
       return;
     }
     setError('');
-    console.log('Mascota registrada:', formData);
+    
+    const usuario = JSON.parse(localStorage.getItem('user'));
+    const ownerId = usuario?.id;
+
+    if (!ownerId) {
+    setError('No se encontró el usuario logueado.');
+    return;
+    }
+
+    // Calcular edad aproximada en años y meses
+    const fechaBase = new Date(formData.esFechaRescate ? formData.fechaRescate : formData.fechaNacimiento);
+    const hoy = new Date();
+    let ageYears = hoy.getFullYear() - fechaBase.getFullYear();
+    let ageMonths = hoy.getMonth() - fechaBase.getMonth();
+    if (ageMonths < 0) {
+      ageYears -= 1;
+      ageMonths += 12;
+    }
+
+    const data = new FormData();
+    data.append('owner_id', ownerId);
+    data.append('type', formData.tipo); 
+    data.append('name', formData.nombre);
+    data.append('gender', formData.sexo);
+    data.append('age_years', ageYears);
+    data.append('age_months', ageMonths);
+    data.append('size', formData.tamaño);
+    data.append('is_purebred', formData.raza !== '' && formData.raza !== 'no-raza');
+    data.append('breed', formData.raza || '');
+    data.append('colors', JSON.stringify(formData.coloresPelaje));
+    data.append('fur_length', formData.largoPelo);
+    data.append('sterilized', formData.castrado);
+    data.append('vaccinated', formData.vacunasAlDia);
+    data.append('compatibility', JSON.stringify(formData.compatibilidad));
+    data.append('description', formData.descripcion);
+    data.append('location', ''); //mando string vacio pq todavia no se carga la ubicacion
+
+    data.append('photos[]', formData.foto);
+
+    try {
+  const response = await fetch('http://localhost:8000/pet/create', {
+    method: 'POST',
+    body: data,
+  });
+
+  if (!response.ok) {
+    throw new Error('Error al registrar la mascota');
+  }
+
+  const result = await response.json();
+  console.log('Mascota registrada:', result);
+  setRegistroExitoso(true); // Mostrar modal
+} catch (err) {
+  console.error(err);
+  setError('Hubo un error al registrar la mascota.');
+}
   };
 
   return (
@@ -272,6 +333,16 @@ const RegistroMascota = () => {
           Registrar Mascota
         </button>
       </form>
+
+      {registroExitoso && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Mascota registrada con éxito 🐾</h3>
+            <p>Tu mascota fue registrada correctamente.</p>
+            <button className="boton-aceptar" onClick={() => navigate('/registrar-mascota')}>Aceptar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

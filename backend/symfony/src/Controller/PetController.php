@@ -200,7 +200,7 @@ class PetController extends AbstractController
         $s3 = new S3Client([
             'version' => 'latest',
             'region' => 'us-east-1',
-            'endpoint' => 'http://localhost:9001',
+            'endpoint' => 'http://minio:9000',
             'use_path_style_endpoint' => true,
             'credentials' => [
                 'key' => $_ENV['MINIO_KEY'] ?? 'petmatch',
@@ -227,7 +227,7 @@ class PetController extends AbstractController
         $s3 = new S3Client([
             'version' => 'latest',
             'region' => 'us-east-1',
-            'endpoint' => 'http://localhost:9001',
+            'endpoint' => 'http://localhost:9000',
             'use_path_style_endpoint' => true,
             'credentials' => [
                 'key' => $_ENV['MINIO_KEY'] ?? 'petmatch',
