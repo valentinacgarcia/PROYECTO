@@ -15,7 +15,7 @@ services:
     environment:
       DATABASE_URL: mysql://user:userpassword@mysql:3306/dbname
       APP_ENV: dev
-      MINIO_ENDPOINT: http://localhost:9001
+      MINIO_ENDPOINT: http://minio:9000  # Corregido: usar minio:9000 desde el contenedor
       MINIO_KEY: petmatch
       MINIO_SECRET: petmatch
       MINIO_BUCKET: mascotas
@@ -66,14 +66,28 @@ services:
       MINIO_ROOT_USER: petmatch
       MINIO_ROOT_PASSWORD: petmatch
     ports:
-      - "9000:9000"  # API S3 compatible
-      - "9001:9001"  # Consola web
+      - "9000:9000"
+      - "9001:9001"
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
+      - ./minio/policies:/policies
     networks:
       - app-network
 
+  minio-init:
+    image: minio/mc
+    container_name: minio-init
+    depends_on:
+      - minio
+    volumes:
+      - ./minio/init.sh:/init.sh
+      - ./minio/policies:/policies
+    networks:
+      - app-network
+    entrypoint: /bin/sh
+    command: -c "chmod +x /init.sh && /init.sh"
+    
 volumes:
   mysql-data:
   minio-data:
