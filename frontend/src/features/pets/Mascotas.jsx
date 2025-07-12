@@ -37,11 +37,16 @@ const MisMascotas = () => {
           {mascotas.map((mascota) => (
             <div key={mascota.id} className="tarjeta-mascota" onClick={() => navigate(`/mis-mascotas/${mascota.id}`)}>
               <img
-                src={`http://localhost:9000/mascotas/${mascota.photos[0]?.url}`} // O ruta de tu backend si usás proxy
+                src={mascota.photos[0]} 
                 alt={mascota.name}
                 className="foto-mascota"
               />
-              <h3>{mascota.name}</h3>
+              <div className="info-mascota">
+                <h3>
+                  {mascota.type === 'Perro' ? '🐶 ' : '🐱 '}
+                  {mascota.name}{' '}
+                </h3>
+              </div>
             </div>
           ))}
         </div>

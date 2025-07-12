@@ -15,7 +15,7 @@ const RegistroMascota = () => {
     fechaRescate: '',
     tamaño: '',
     esFechaRescate: false,
-    foto: null,
+    fotos: [],
     raza: '',
     coloresPelaje: [],
     largoPelo: '',
@@ -32,8 +32,21 @@ const RegistroMascota = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+
     if (type === 'file') {
-      setFormData((prev) => ({ ...prev, foto: files[0] }));
+      const selectedFiles = Array.from(files);
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+      const invalidFiles = selectedFiles.filter(file => !allowedTypes.includes(file.type));
+      
+      if (invalidFiles.length > 0) {
+        setError('Solo se permiten archivos PNG y JPG.');
+        setFormData((prev) => ({ ...prev, fotos: [] })); // Limpiar fotos si hay inválidas
+        e.target.value = ''; // Limpiar el input de archivo
+        return;
+      }
+
+      setError(''); // Limpiar error si todo está bien
+      setFormData((prev) => ({ ...prev, fotos: selectedFiles }));
     } else if (type === 'checkbox' && name === 'coloresPelaje') {
       if (checked) {
         setFormData((prev) => ({
@@ -76,7 +89,7 @@ const RegistroMascota = () => {
       !formData.sexo ||
       (!formData.fechaNacimiento && !formData.fechaRescate) ||
       !formData.tamaño ||
-      !formData.foto 
+      !formData.fotos.length === 0 
     ) {
       setError('Por favor, complete todos los campos obligatorios.');
       return;
@@ -119,25 +132,34 @@ const RegistroMascota = () => {
     data.append('description', formData.descripcion);
     data.append('location', ''); //mando string vacio pq todavia no se carga la ubicacion
 
-    data.append('photos[]', formData.foto);
+    if (Array.isArray(formData.fotos)) {
+      formData.fotos.forEach((foto) => {
+        data.append('photos[]', foto);
+      });
+    } else {
+      console.warn("formData.fotos no es un array. Subiendo como una sola foto si existe.");
+      if (formData.fotos) { 
+        data.append('photos[]', formData.fotos);
+      }
+    }
 
     try {
-  const response = await fetch('http://localhost:8000/pet/create', {
-    method: 'POST',
-    body: data,
-  });
+      const response = await fetch('http://localhost:8000/pet/create', {
+        method: 'POST',
+        body: data,
+      });
 
-  if (!response.ok) {
-    throw new Error('Error al registrar la mascota');
-  }
+      if (!response.ok) {
+        throw new Error('Error al registrar la mascota');
+      }
 
-  const result = await response.json();
-  console.log('Mascota registrada:', result);
-  setRegistroExitoso(true); // Mostrar modal
-} catch (err) {
-  console.error(err);
-  setError('Hubo un error al registrar la mascota.');
-}
+      const result = await response.json();
+      console.log('Mascota registrada:', result);
+      setRegistroExitoso(true); // Mostrar modal
+    } catch (err) {
+      console.error(err);
+      setError('Hubo un error al registrar la mascota.');
+    }
   };
 
   return (
@@ -151,15 +173,15 @@ const RegistroMascota = () => {
         <label>Tipo de mascota *</label>
         <div className="icon-selector">
           <div
-            className={`icon-option ${formData.tipo === 'perro' ? 'selected' : ''}`}
-            onClick={() => handleTipoSelect('perro')}
+            className={`icon-option ${formData.tipo === 'Perro' ? 'selected' : ''}`}
+            onClick={() => handleTipoSelect('Perro')}
           >
             <img src={perro} alt="Perro" />
             <span>Perro</span>
           </div>
           <div
-            className={`icon-option ${formData.tipo === 'gato' ? 'selected' : ''}`}
-            onClick={() => handleTipoSelect('gato')}
+            className={`icon-option ${formData.tipo === 'Gato' ? 'selected' : ''}`}
+            onClick={() => handleTipoSelect('Gato')}
           >
             <img src={gato} alt="Gato" />
             <span>Gato</span>
@@ -177,7 +199,7 @@ const RegistroMascota = () => {
 
         <label>Sexo *</label>
         <div className="chip-selector">
-          {['macho', 'hembra', 'no se'].map((sexo) => (
+          {['Macho', 'Hembra', 'No se'].map((sexo) => (
             <span
               key={sexo}
               className={`sexo-chip ${formData.sexo === sexo ? 'activo' : ''}`}
@@ -209,7 +231,7 @@ const RegistroMascota = () => {
 
         <label>Tamaño *</label>
         <div className="chip-selector">
-          {['pequeño', 'mediano', 'grande'].map((tam) => (
+          {['Pequeño', 'Mediano', 'Grande'].map((tam) => (
             <span
               key={tam}
               className={`tamano-chip ${formData.tamaño === tam ? 'activo' : ''}`}
@@ -221,8 +243,19 @@ const RegistroMascota = () => {
         </div>
 
         <label>Foto de la mascota *</label>
-        <input type="file" accept="image/*" onChange={handleInputChange} />
-
+        <input type="file" accept=".png, .jpg, .jpeg" multiple onChange={handleInputChange} />
+        
+        {formData.fotos.length > 0 && (
+            <div style={{ marginTop: '10px' }}>
+                <strong>Archivos seleccionados:</strong>
+                <ul>
+                    {formData.fotos.map((file, index) => (
+                        <li key={index}>{file.name}</li>
+                    ))}
+                </ul>
+            </div>
+        )}  
+      
         <button
           type="button"
           className="btn-toggle-opcionales"
@@ -260,7 +293,7 @@ const RegistroMascota = () => {
 
             <label>Largo del pelo</label>
             <div className="chip-selector">
-              {['corto', 'medio', 'largo'].map((largo) => (
+              {['Corto', 'Medio', 'Largo'].map((largo) => (
                 <span
                   key={largo}
                   className={`largo-chip ${formData.largoPelo === largo ? 'activo' : ''}`}
@@ -282,7 +315,7 @@ const RegistroMascota = () => {
 
             <label>¿Está castrado/a?</label>
             <div className="chip-selector">
-              {['sí', 'no', 'no sé'].map((opcion) => (
+              {['Sí', 'No', 'No sé'].map((opcion) => (
                 <span
                   key={opcion}
                   className={`castrado-chip ${formData.castrado === opcion ? 'activo' : ''}`}
@@ -295,7 +328,7 @@ const RegistroMascota = () => {
 
             <label>¿Tiene vacunas al día?</label>
             <div className="chip-selector">
-              {['sí', 'no', 'no sé'].map((opcion) => (
+              {['Sí', 'No', 'No sé'].map((opcion) => (
                 <span
                   key={opcion}
                   className={`vacunas-chip ${formData.vacunasAlDia === opcion ? 'activo' : ''}`}
@@ -308,7 +341,7 @@ const RegistroMascota = () => {
 
             <label>Compatibilidad con otros</label>
             <div className="chip-selector multiple">
-              {['niños', 'perros', 'gatos'].map((comp) => (
+              {['Niños', 'Perros', 'Gatos'].map((comp) => (
                 <span
                   key={comp}
                   className={`compat-chip ${formData.compatibilidad?.includes(comp) ? 'activo' : ''}`}

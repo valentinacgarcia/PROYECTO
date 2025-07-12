@@ -55,6 +55,7 @@
   height: 140px;
   object-fit: cover;
   border-radius: 12px;
+  margin: auto; 
 }
 
 .tarjeta-mascota h3 {
@@ -65,7 +66,7 @@
 
 .boton-nueva-mascota {
   display: block;
-  margin-top: 10px;
+  margin: 20px auto;
   padding: 12px 24px;
   font-size: 16px;
   background-color: #53a57d;
@@ -74,8 +75,23 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  
 }
 
 .boton-nueva-mascota:hover {
   background-color: #428e6a;
+}
+
+.info-mascota {
+  padding: 10px;
+}
+
+.info-mascota h3 {
+  margin: 8px 0 4px;
+  font-size: 1.1rem;
+}
+
+.info-mascota p {
+  margin: 0;
+  color: #666;
 }
