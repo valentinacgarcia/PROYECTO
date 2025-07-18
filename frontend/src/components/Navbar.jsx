@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Navbar.css';
 import logo from '../assets/logo.png';
 
@@ -47,17 +48,9 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     setDeleteError(null);
     setDeleteMessage(null);
 
-    fetch(`http://localhost:8000/user/delete/${user.id}`, {
-      method: 'DELETE',
-    })
-      .then((response) => {
-        setLoadingDelete(false);
-        if (!response.ok) {
-          throw new Error('Error al eliminar la cuenta');
-        }
-        return response.json();
-      })
+    axios.delete(`http://localhost:8000/user/delete/${user.id}`)
       .then(() => {
+        setLoadingDelete(false);
         localStorage.removeItem('user');
         handleLogout();
         setDeleteMessage('Cuenta eliminada con éxito. Redirigiendo...');
