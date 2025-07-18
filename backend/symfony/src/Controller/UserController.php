@@ -25,7 +25,7 @@ class UserController extends AbstractController
             'email' => $user->getEmail(),
             'phone' => $user->getPhone(),
             'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
-            'adress' => $user->getAdress(),
+            'address' => $user->getAddress(),
         ], $users);
 
         return $this->json($data);

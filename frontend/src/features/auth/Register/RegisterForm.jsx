@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './RegisterForm.css'; 
 import logo from '../../../assets/logo.png';
 
@@ -79,28 +80,16 @@ const RegisterForm = () => {
 
     //Metodo de conexion con el back
 
-    fetch('http://localhost:8000/user/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formData.nombre,
-        last_name: formData.apellido,
-        email: formData.email,
-        phone: formData.telefono,
-        address: formData.direccion,
-        password: formData.contraseña, // importante: el backend espera "password"
-      }),
+    axios.post('http://localhost:8000/user/create', {
+      name: formData.nombre,
+      last_name: formData.apellido,
+      email: formData.email,
+      phone: formData.telefono,
+      address: formData.direccion,
+      password: formData.contraseña, // importante: el backend espera "password"
     })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error al registrar usuario');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Registro exitoso:', data);
+        console.log('Registro exitoso:', response.data);
         navigate('/login');
       })
       .catch((error) => {

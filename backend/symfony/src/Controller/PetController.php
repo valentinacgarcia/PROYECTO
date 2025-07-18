@@ -145,7 +145,6 @@ class PetController extends AbstractController
         return $this->json(['message' => 'Mascota editada con éxito']);
     }
 
-
     #[Route('/delete/{id}', name: 'pet_delete', methods: ['DELETE'])]
     public function delete(PetRepository $petRepository, EntityManagerInterface $em, int $id): JsonResponse
     {
@@ -165,7 +164,11 @@ class PetController extends AbstractController
     {
         $photos = [];
         foreach ($pet->getPhotos() as $photo) {
+            // Opción 1: Usar presigned URLs (más seguro)
             $photos[] = $this->getPresignedUrl($photo->getUrl());
+            
+            // Opción 2: Usar URLs públicas directas (si el bucket es público)
+            // $photos[] = $this->getPublicUrl($photo->getUrl());
         }
 
         return [
@@ -200,7 +203,7 @@ class PetController extends AbstractController
         $s3 = new S3Client([
             'version' => 'latest',
             'region' => 'us-east-1',
-            'endpoint' => 'http://minio:9000',
+            'endpoint' => $_ENV['MINIO_ENDPOINT'] ?? 'http://minio:9000', // ✅ Cambio principal
             'use_path_style_endpoint' => true,
             'credentials' => [
                 'key' => $_ENV['MINIO_KEY'] ?? 'petmatch',
@@ -208,7 +211,7 @@ class PetController extends AbstractController
             ],
         ]);
 
-        // Subir sin ACL (bucket privado)
+        // Subir archivo
         $s3->putObject([
             'Bucket' => $bucket,
             'Key' => $key,
@@ -227,11 +230,11 @@ class PetController extends AbstractController
         $s3 = new S3Client([
             'version' => 'latest',
             'region' => 'us-east-1',
-            'endpoint' => 'http://localhost:9000',
+            'endpoint' => 'http://localhost:9000', // ✅ Usar localhost directamente
             'use_path_style_endpoint' => true,
             'credentials' => [
-                'key' => $_ENV['MINIO_KEY'] ?? 'petmatch',
-                'secret' => $_ENV['MINIO_SECRET'] ?? 'petmatch',
+                'key' => 'petmatch',
+                'secret' => 'petmatch',
             ],
         ]);
 
@@ -241,8 +244,17 @@ class PetController extends AbstractController
         ]);
 
         $request = $s3->createPresignedRequest($cmd, '+20 minutes');
+        $presignedUrl = (string) $request->getUri();
 
-        return (string) $request->getUri();
+        return $presignedUrl; // ✅ Sin reemplazar
     }
 
+    /**
+     * Método alternativo para URLs públicas directas
+     * (solo funciona si el bucket tiene política pública)
+     */
+    private function getPublicUrl(string $key): string
+    {
+        return "http://localhost:9000/mascotas/{$key}";
+    }
 }

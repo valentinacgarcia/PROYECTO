@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './LoginForm.css';
 import logo from '../../../assets/logo.png';
 
@@ -38,27 +39,12 @@ const LoginForm = ({ onLogin }) => {
     setFormError('');
 
     try {
-      const response = await fetch('http://localhost:8000/user/sesion', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.contraseña, // importante: backend espera "password"
-        }),
+      const response = await axios.post('http://localhost:8000/user/sesion', {
+        email: formData.email,
+        password: formData.contraseña, // importante: backend espera "password"
       });
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          setFormError('Email o contraseña incorrectos.');
-        } else {
-          setFormError('Error al intentar iniciar sesión. Intente más tarde.');
-        }
-        return;
-      }
-
-      const userData = await response.json();
+      const userData = response.data;
 
       // Guardar usuario en localStorage
       localStorage.setItem('user', JSON.stringify(userData));
@@ -67,7 +53,21 @@ const LoginForm = ({ onLogin }) => {
 
     } catch (error) {
       console.error('Error en login:', error);
-      setFormError('No se pudo conectar al servidor.');
+      
+      if (error.response) {
+        // El servidor respondió con un código de error
+        if (error.response.status === 401) {
+          setFormError('Email o contraseña incorrectos.');
+        } else {
+          setFormError('Error al intentar iniciar sesión. Intente más tarde.');
+        }
+      } else if (error.request) {
+        // No hubo respuesta del servidor
+        setFormError('No se pudo conectar al servidor.');
+      } else {
+        // Error en la configuración de la request
+        setFormError('Error inesperado. Intente más tarde.');
+      }
     }
   };
 

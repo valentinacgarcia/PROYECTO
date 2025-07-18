@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './Datos.css';
 import profilePhoto from '../../assets/foto1.jpg';
 
@@ -37,13 +38,13 @@ const Datos = () => {
   };
 
   const validateEmail = (email) => {
-  const re = /\S+@\S+\.\S+/;
-  return re.test(email);
-};
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+  };
 
   const handleCancelClick = () => {
     setEditMode(false);
-    // Opcional: Resetear datos a los que están en localStorage si se cancela
+    // Resetear datos a los que están en localStorage si se cancela
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
       setFormData({
@@ -55,8 +56,6 @@ const Datos = () => {
       });
     }
   };
-
-
 
   const handleSaveClick = () => {
     setEditMode(false);
@@ -73,42 +72,33 @@ const Datos = () => {
       return;
     }
 
-    fetch(`http://localhost:8000/user/edit/${user.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formData.nombre,
-        last_name: formData.apellido,
-        email: formData.email,
-        phone: formData.telefono,
-        address: formData.direccion,
-      }),
+    axios.put(`http://localhost:8000/user/edit/${user.id}`, {
+      name: formData.nombre,
+      last_name: formData.apellido,
+      email: formData.email,
+      phone: formData.telefono,
+      address: formData.direccion,
+      // password: formData.password, // si permitís cambiar contraseña
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error al actualizar datos');
-        }
-        return response.json();
-      })
-      .then((updatedUser) => {
-        // Actualizar localStorage con el usuario actualizado
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        alert('Datos actualizados con éxito');
-        // También podés actualizar formData si querés sincronizar la UI
-        setFormData({
-          nombre: updatedUser.name || '',
-          apellido: updatedUser.last_name || '',
-          email: updatedUser.email || '',
-          telefono: updatedUser.phone || '',
-          direccion: updatedUser.address || '',
-        });
-      })
-      .catch((error) => {
-        console.error('Error al actualizar:', error);
-        alert('Hubo un error al actualizar los datos.');
+    .then(response => {
+      const updatedUser = response.data;
+      // Actualizar localStorage con el usuario actualizado
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      alert('Datos actualizados con éxito');
+      // Actualizar formData para sincronizar la UI
+      setFormData({
+        nombre: updatedUser.name || '',
+        apellido: updatedUser.last_name || '',
+        email: updatedUser.email || '',
+        telefono: updatedUser.phone || '',
+        direccion: updatedUser.address || '',
+        password: '', // contraseña no se maneja aquí
       });
+    })
+    .catch(error => {
+      console.error('Error al actualizar:', error);
+      alert('Hubo un error al actualizar los datos.');
+    });
   };
 
   return (
