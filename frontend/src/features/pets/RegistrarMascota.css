@@ -1,0 +1,295 @@
+/* Contenedor principal */
+.registro-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 20px;
+}
+
+/* Formulario */
+.registro-mascota-form {
+  width: 400px;
+  max-width: 95%;
+  background-color: #fbf7f4;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 60px auto;
+}
+
+/* Logo */
+.form-logo {
+  width: 100px;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+/* Título */
+.form-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2f2f2f;
+  margin-bottom: 10px;
+}
+
+/* Mensaje de error */
+.form-error {
+  background-color: #ffe6e6;
+  color: #b00020;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Labels */
+.registro-mascota-form label {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
+  margin-top: 5px;
+  transition: border-color 0.2s ease;
+}
+
+/* Focus visible */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #53a57d;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(83, 165, 125, 0.2);
+}
+
+/* Chips */
+.chip-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tipo-chip,
+.sexo-chip,
+.tamano-chip,
+.largo-chip,
+.castrado-chip,
+.vacunas-chip,
+.compat-chip {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border-radius: 30px;
+  border: 1px solid #53a57d;
+  color: #53a57d;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.tipo-chip.activo,
+.sexo-chip.activo,
+.tamano-chip.activo,
+.largo-chip.activo,
+.castrado-chip.activo,
+.vacunas-chip.activo,
+.compat-chip.activo {
+  background-color: #53a57d;
+  color: #fff;
+  border-color: #53a57d;
+}
+
+/* Hover chips */
+.tipo-chip:hover,
+.sexo-chip:hover,
+.tamano-chip:hover,
+.largo-chip:hover,
+.castrado-chip:hover,
+.vacunas-chip:hover,
+.compat-chip:hover {
+  background-color: #3d7a57;
+  color: white;
+}
+
+/* Checkbox fecha */
+.checkbox-fecha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+.checkbox-fecha input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #53a57d;
+  cursor: pointer;
+}
+
+.checkbox-fecha label {
+  user-select: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+/* Selector de iconos */
+.icon-selector {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.icon-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48%;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.icon-option.selected {
+  border-color: #53a57d;
+  background-color: #e6f4ec;
+}
+
+.icon-option img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 5px;
+}
+
+/* Botón enviar */
+.btn-submit {
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  padding: 14px 0;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.25s ease;
+}
+
+.btn-submit:hover {
+  background-color: #3d7a57;
+}
+
+/* Botón mostrar opcionales */
+.btn-toggle-opcionales {
+  background-color: transparent;
+  border: none;
+  color: #53a57d;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.btn-toggle-opcionales:hover {
+  color: #3d7a57;
+}
+
+/* Opcionales */
+.opcional-section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.opcional-section label {
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #333;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #53a57d;
+  cursor: pointer;
+}
+
+/* Compat chips ajustes */
+.compat-chip {
+  flex: unset;
+  padding: 8px 14px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .icon-selector {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .icon-option {
+    width: 100%;
+  }
+
+  .chip-selector {
+    flex-direction: column;
+  }
+
+  .registro-mascota-form {
+    padding: 20px;
+  }
+}
+
+.boton-aceptar {
+  display: block;
+  margin: 0 auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}

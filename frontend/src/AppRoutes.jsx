@@ -6,6 +6,9 @@ import LoginForm from './features/auth/Login/LoginForm';
 import Home from './features/dashboard/Home';
 import Datos from './features/upd/Datos';
 import Navbar from './components/Navbar';
+import MisMascotas from './features/pets/Mascotas';
+import RegistrarMascota from './features/pets/RegistrarMascota';
+import DatosMascota from './features/pets/DatosMascota';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -27,7 +30,10 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/datos" element={<Datos />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/registrar-mascota" element={<MisMascotas />} />
+        <Route path="/registrar-mascota/nueva" element={<RegistrarMascota />} />
         <Route path="/login" element={<LoginForm onLogin={handleLoginSimulado} />} />
+        <Route path="/mis-mascotas/:id" element={<DatosMascota />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </>

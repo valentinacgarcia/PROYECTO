@@ -1,0 +1,97 @@
+.mis-mascotas-container {
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: 80px auto 40px;
+  background-color: #fbf7f4;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mascotas-titulo {
+  text-align: center;
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.mensaje-vacio {
+  text-align: center;
+  color: #777;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.lista-mascotas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.tarjeta-mascota {
+  width: 180px;
+  height: 220px;
+  background-color: #ffffff;
+  border: 2px solid #eee;
+  border-radius: 16px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tarjeta-mascota:hover {
+  transform: scale(1.02);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.foto-mascota {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: auto; 
+}
+
+.tarjeta-mascota h3 {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.boton-nueva-mascota {
+  display: block;
+  margin: 20px auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+}
+
+.boton-nueva-mascota:hover {
+  background-color: #428e6a;
+}
+
+.info-mascota {
+  padding: 10px;
+}
+
+.info-mascota h3 {
+  margin: 8px 0 4px;
+  font-size: 1.1rem;
+}
+
+.info-mascota p {
+  margin: 0;
+  color: #666;
+}

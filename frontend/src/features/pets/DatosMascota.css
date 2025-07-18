@@ -1,0 +1,402 @@
+.datos-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #fbf7f4;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.contenido-principal-horizontal { 
+  display: flex;
+  gap: 30px;
+  width: 100%; 
+}
+
+.foto-col {
+  flex: 0 0 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-photo-container {
+    position: relative; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px; 
+    background-color: #fbf7f4; 
+    border-radius: 8px;
+    overflow: hidden; 
+}
+
+.profile-photo {
+    width: 300px;
+    height: 300px; 
+    object-fit: contain; 
+    border-radius: 8px;
+}
+
+.b-derecha {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.titulo-principal {
+  margin: 0 0 20px 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+  width: 100%;
+}
+
+.datos-columns {
+  display: flex;
+  gap: 40px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.columna {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* El resto igual que antes para labels, inputs, chips, etc. */
+
+.profile-photo-container img.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Formulario */
+label {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: #fff;
+  color: #222;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input[disabled],
+textarea[disabled] {
+  background-color: #eee;
+}
+
+/* Chips y selectores visuales */
+.chip-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip-selector span,
+.icon-option {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  user-select: none;
+}
+
+.chip-selector span.activo,
+.icon-option.selected {
+  background-color: #4a8a62;
+  color: white;
+  border-color: #4a8a62;
+}
+
+/* Iconos tipo mascota */
+.icon-selector {
+  display: flex;
+  gap: 20px;
+}
+
+.icon-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+}
+
+.icon-option img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Checkbox grupo colores */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 0px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.modal-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.boton-aceptar {
+  display: block;
+  margin: 0 auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.boton-aceptar:hover {
+  background-color: #3d8f6a;
+}
+
+/* Botones finales */
+.botones-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  width: 100%;
+  gap: 20px;
+}
+
+.botones-edicion {
+  display: flex;
+  gap: 12px;
+}
+
+.boton-eliminar {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.boton-eliminar button {
+  width: 100%;
+  height: 100%;
+  background-color: #e11d48;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.boton-eliminar button:hover {
+  background-color: #b91c1c;
+}
+
+.editar-button {
+  padding: 10px 20px;
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.editar-button:hover {
+  background-color: #3e8e65;
+}
+
+.editar-button.cancelar {
+  background-color: #777;
+}
+
+.editar-button.cancelar:hover {
+  background-color: #555;
+}
+
+.editar-button.eliminar {
+  background-color: #e11d48;
+}
+
+.editar-button.eliminar:hover {
+  background-color: #b91c1c;
+}
+
+/* Otros */
+.form-error {
+  color: #e11d48;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.checkbox-fecha {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.seccion-titulo {
+  font-size: 18px;
+  color: #4a8a62;
+  margin: 20px 0 10px;
+  border-bottom: 2px solid #4a8a62;
+  padding-bottom: 4px;
+}
+
+.photo-gallery-edit {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 10px; 
+    justify-content: center; 
+    align-items: flex-start;
+    padding: 15px; 
+    width: 100%;
+    max-height: 400px; 
+    overflow-y: auto; 
+}
+
+.photo-item-edit {
+    position: relative;
+    width: 100px; 
+    height: 100px; 
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* Evita que las miniaturas se encojan */
+}
+
+.profile-photo-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Recorta la imagen para que cubra el espacio */
+}
+
+.remove-photo-button {
+    position: absolute;
+    top: -5px; 
+    right: -5px; 
+    background-color: #e11d48; 
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 10; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.remove-photo-button:hover {
+    background-color: #b91c1c; 
+}
+
+.add-photo-button {
+    background-color: #53a57d; 
+    color: white;
+    border: 2px dashed #ccc; 
+    border-radius: 8px;
+    width: 100px; 
+    height: 100px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+.add-photo-button:hover {
+    background-color: #3e8e65;
+    border-color: #3e8e65;
+}
+
+.add-photo-button svg {
+    font-size: 2em; 
+    margin-bottom: 5px;
+}
+
+.no-photos-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    width: 100%; 
+}
