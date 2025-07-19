@@ -1,0 +1,332 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #fbf7f4; /* Usando el color fbf7f4 como fondo general */
+  color: #333; /* Mantener texto oscuro para legibilidad */
+}
+
+.petmatch-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff; /* Fondo blanco para el contenedor principal, si es deseado */
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.main-content {
+  display: flex;
+  gap: 30px;
+}
+
+.sidebar {
+  flex: 0 0 280px;
+  padding: 20px;
+  background-color: #fbf7f4;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.find-match-card {
+  background: linear-gradient(135deg, #53a57d, #6db890);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Estilo para la imagen del perro dentro de la tarjeta "Encuentra tu mascota ideal" */
+.card-dog-image {
+  position: absolute;
+  top: -20px; 
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px; 
+  height: 120px;
+  border-radius: 50%; 
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.6); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+
+.find-match-card h2 {
+  font-size: 1.6em;
+  margin-bottom: 5px; 
+}
+
+.find-match-card p {
+  font-size: 0.9em;
+  opacity: 0.9;
+  margin-bottom: 20px;
+}
+
+.start-button {
+  background-color: #fff;
+  color: #53a57d;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.start-button:hover {
+  background-color: #eee;
+}
+
+.play-icon {
+  font-size: 1em;
+}
+
+.filter-section {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.filter-section h3 {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.filter-section select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* SVG para la flecha personalizada en el select */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2353A57D%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%00-13.2-6.2H18.2c-4.1%200-7.9%201.5-10.9%204.6a17.6%2017.6%200%200%00-4.6%2010.9c0%204.1%201.5%207.9%204.6%2010.9l128%20127.9c3.2%203.2%207%204.6%2010.9%204.6s7.7-1.4%2010.9-4.6l128-127.9c3.2-3.2%204.6-7%204.6-10.9s-1.4-7.7-4.6-10.9z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+}
+
+.filter-section label {
+  display: block;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #666;
+}
+
+.filter-section input[type="radio"] {
+  margin-right: 8px;
+  accent-color: #53a57d; 
+}
+
+/* CONTENEDOR PRINCIPAL DE LA GRILLA DE MASCOTAS Y PAGINACIÓN */
+.pet-list-and-pagination {
+  flex: 1; 
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+}
+
+/* GRID DE MASCOTAS */
+.pet-grid {
+  flex: 1; 
+  width: 100%; 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+  gap: 20px; 
+  margin-bottom: 30px;
+}
+
+/* ESTILOS DE LAS TARJETAS DE MASCOTAS */
+.pet-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column; /* Contenido de la tarjeta en columna */
+}
+
+.pet-card:hover {
+  transform: translateY(-5px); /* Efecto de elevación al pasar el mouse */
+}
+
+/* ESTILOS SKELETON (CARGA) */
+.skeleton-image,
+.skeleton-line {
+  background-color: #e6e6e6;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #e6e6e6;
+  }
+  50% {
+    background-color: #f5f5f5;
+  }
+  100% {
+    background-color: #e6e6e6;
+  }
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 200px;
+  margin-bottom: 15px;
+}
+
+.skeleton-line {
+  height: 1em;
+  margin-bottom: 8px;
+}
+
+.skeleton-line-lg {
+  width: 80%;
+  height: 1.2em;
+}
+
+.skeleton-line-sm {
+  width: 60%;
+}
+
+.skeleton-line-xs {
+  width: 40%;
+}
+
+/* OCULTAR CONTENIDO REAL CUANDO EL SKELETON ESTÁ ACTIVO */
+.pet-info {
+  padding: 15px;
+}
+
+.pet-card.skeleton .pet-image,
+.pet-card.skeleton .pet-info h2,
+.pet-card.skeleton .pet-info p {
+  display: none;
+}
+
+.pet-card.skeleton .skeleton-image,
+.pet-card.skeleton .skeleton-line {
+  display: block;
+}
+
+/* ESTILOS DE LA INFORMACIÓN DE LA MASCOTA */
+.pet-info h2 {
+  font-size: 1.2em;
+  margin-top: 0;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #333;
+}
+
+.gender-icon {
+  font-size: 1.1em;
+}
+
+.gender-icon.male {
+  color: #53a57d; /* Color verde para el icono masculino */
+}
+
+.gender-icon.female {
+  color: #e07297; /* Color rosado para el icono femenino */
+}
+
+.pet-info p {
+  font-size: 0.9em;
+  color: #777;
+  margin-bottom: 5px;
+}
+
+.pet-info .region {
+  font-size: 0.85em;
+  color: #999;
+}
+
+/* SECCIÓN DE PAGINACIÓN */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px 0;
+  gap: 8px; 
+}
+
+/* ESTILOS PARA TODOS LOS BOTONES DE PAGINACIÓN (ANTERIOR, SIGUIENTE, NÚMEROS) */
+.pagination-button {
+  background-color: transparent; 
+  color: #555; 
+  border: none; 
+  padding: 8px 12px; 
+  border-radius: 5px; 
+  font-size: 0.95em;
+  transition: all 0.3s ease; 
+  align-items: center;
+  justify-content: center;
+  min-width: 38px; 
+  height: 38px; 
+}
+
+/* EFECTO HOVER para TODOS los botones de paginación (excepto deshabilitados y activos) */
+.pagination-button:hover:not(:disabled):not(.active) {
+  background-color: #f0f0f0; 
+  color: #53a57d;  
+}
+
+/* ESTADO ACTIVO para TODOS los botones de paginación (la página actual) */
+.pagination-button.active {
+  background-color: #53a57d; 
+  color: white; 
+  font-weight: bold; 
+  cursor: default;
+  box-shadow: 0 2px 5px rgba(83, 165, 125, 0.3); 
+}
+
+
+.pagination-button:disabled {
+  opacity: 0.6; 
+  cursor: not-allowed;
+  background-color: transparent; 
+  color: #aaa; 
+  border-color: transparent; 
+}
+
+.pagination-ellipsis {
+  padding: 0 5px;
+  color: #777;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.pagination-arrow {
+  font-size: 1em;
+  margin: 0 4px;
+  color: #53a57d; 
+}
+
+.pagination-button:disabled .pagination-arrow {
+    color: #ccc;
+}

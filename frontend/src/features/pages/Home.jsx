@@ -8,6 +8,7 @@ import peluqueriaImg from '../../assets/peluqueria_sv.jpg';
 import paseadoresImg from '../../assets/paseadores.png';
 import cuidadoresImg from '../../assets/cuidadores.png';
 import adiestradoresImg from '../../assets/adiestradores.jpg';
+import { useNavigate } from 'react-router-dom';
 
 
 // Flechas de para las slide de servicios
@@ -34,7 +35,6 @@ const NextArrow = (props) => {
   );
 };
 
-
 const Home = () => {
   const servicios = [
     { id: 1, nombre: 'Veterinaria', imagen: veterinariaImg },
@@ -43,6 +43,13 @@ const Home = () => {
     { id: 4, nombre: 'Cuidadores', imagen: cuidadoresImg },
     { id: 5, nombre: 'Adiestradores', imagen: adiestradoresImg },
   ];
+
+  //Hook
+  const navigate = useNavigate();
+
+  const HandleClickAdoptar = () => {
+  navigate('/panel_adopcion');
+}
 
   const sliderSettings = {
     dots: true,
@@ -80,7 +87,7 @@ const Home = () => {
           <p className="home-subtitle">Adopta, ofrece hogar o contrata servicios</p>
 
           <div className="home-buttons">
-            <button className="home-button primary" onClick={() => console.log('Ir a adoptar')}>
+            <button className="home-button primary" onClick={HandleClickAdoptar}>
               Adoptar
             </button>
             <button

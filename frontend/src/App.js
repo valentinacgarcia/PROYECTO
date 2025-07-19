@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
 
 function App() {
+  console.log('✅ App.jsx recargado');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
