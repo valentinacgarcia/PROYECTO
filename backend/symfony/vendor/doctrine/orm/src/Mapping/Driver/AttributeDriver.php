@@ -684,6 +684,7 @@ class AttributeDriver implements MappingDriver
     {
         $mapping = [
             'name' => $joinColumn->name,
+            'deferrable' => $joinColumn->deferrable,
             'unique' => $joinColumn->unique,
             'nullable' => $joinColumn->nullable,
             'onDelete' => $joinColumn->onDelete,
@@ -709,6 +710,7 @@ class AttributeDriver implements MappingDriver
      *                   length: int,
      *                   unique: bool,
      *                   nullable: bool,
+     *                   index: bool,
      *                   precision: int,
      *                   enumType?: class-string,
      *                   options?: mixed[],
@@ -725,6 +727,7 @@ class AttributeDriver implements MappingDriver
             'length'    => $column->length,
             'unique'    => $column->unique,
             'nullable'  => $column->nullable,
+            'index'     => $column->index,
             'precision' => $column->precision,
         ];
 

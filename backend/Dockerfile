@@ -13,6 +13,12 @@ RUN apt-get update && apt-get install -y \
 # Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Creamos un comando simulado para evitar el error
+RUN echo '#!/bin/sh\n' > /usr/local/bin/symfony-cmd && chmod +x /usr/local/bin/symfony-cmd
+
+# Habilitamos plugins aunque Composer se ejecute como root
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 WORKDIR /var/www/symfony
 
 # Copia el proyecto Symfony completo

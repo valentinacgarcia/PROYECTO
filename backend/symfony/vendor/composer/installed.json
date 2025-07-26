@@ -1243,17 +1243,17 @@
         },
         {
             "name": "doctrine/orm",
-            "version": "3.3.3",
-            "version_normalized": "3.3.3.0",
+            "version": "3.5.0",
+            "version_normalized": "3.5.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/orm.git",
-                "reference": "1f1891d3e20ef9881e81c2f32c53e9dc88dfc9a7"
+                "reference": "6deec3655ba3e8f15280aac11e264225854d2369"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/orm/zipball/1f1891d3e20ef9881e81c2f32c53e9dc88dfc9a7",
-                "reference": "1f1891d3e20ef9881e81c2f32c53e9dc88dfc9a7",
+                "url": "https://api.github.com/repos/doctrine/orm/zipball/6deec3655ba3e8f15280aac11e264225854d2369",
+                "reference": "6deec3655ba3e8f15280aac11e264225854d2369",
                 "shasum": ""
             },
             "require": {
@@ -1288,7 +1288,7 @@
                 "ext-dom": "Provides support for XSD validation for XML mapping files",
                 "symfony/cache": "Provides cache support for Setup Tool with doctrine/cache 2.0"
             },
-            "time": "2025-05-02T17:42:51+00:00",
+            "time": "2025-07-01T17:40:53+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -1330,7 +1330,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/orm/issues",
-                "source": "https://github.com/doctrine/orm/tree/3.3.3"
+                "source": "https://github.com/doctrine/orm/tree/3.5.0"
             },
             "install-path": "../doctrine/orm"
         },
@@ -6143,16 +6143,10 @@
     ],
     "dev": true,
     "dev-package-names": [
-        "doctrine/collections",
         "doctrine/data-fixtures",
         "doctrine/doctrine-fixtures-bundle",
-        "doctrine/inflector",
-        "doctrine/instantiator",
-        "doctrine/lexer",
-        "doctrine/orm",
         "nikic/php-parser",
         "symfony/maker-bundle",
-        "symfony/polyfill-php84",
         "symfony/process"
     ]
 }

@@ -505,6 +505,11 @@ class SchemaTool
         if ($isUnique) {
             $table->addUniqueIndex([$columnName]);
         }
+
+        $isIndex = $mapping->index ?? false;
+        if ($isIndex) {
+            $table->addIndex([$columnName]);
+        }
     }
 
     /**
@@ -717,6 +722,10 @@ class SchemaTool
 
             if (isset($joinColumn->onDelete)) {
                 $fkOptions['onDelete'] = $joinColumn->onDelete;
+            }
+
+            if (isset($joinColumn->deferrable)) {
+                $fkOptions['deferrable'] = $joinColumn->deferrable;
             }
         }
 
