@@ -9,7 +9,8 @@ import Navbar from './components/Navbar';
 import MisMascotas from './features/pets/Mascotas';
 import RegistrarMascota from './features/pets/RegistrarMascota';
 import DatosMascota from './features/pets/DatosMascota';
-import Panel_Adopcion from './features/pages/Panel_Adopcion';
+import Panel_Adopcion from './features/adoption/Panel_Adopcion';
+import VistaMascota from './features/adoption/Pet_View';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/mis-mascotas/:id" element={<DatosMascota />} />
         <Route path="*" element={<Home />} />
         <Route path="/panel_adopcion" element={<Panel_Adopcion />} />
+        <Route path="/adopcion/:id" element={<VistaMascota />} />
       </Routes>
     </>
   );
