@@ -99,41 +99,6 @@
   position: relative;
 }
 
-/* Botón Guardar/Favoritos */
-.save-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(255, 255, 255, 0.8); 
-  border: none;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.save-button:hover {
-  transform: scale(1.1);
-  background-color: rgba(255, 255, 255, 0.95);
-}
-
-.save-button svg {
-  color: red; 
-  fill: red;
-  transition: color 0.2s ease, fill 0.2s ease;
-}
-
-.save-button.saved svg {
-  color: var(--primary-color);
-  fill: var(--primary-color); 
-}
-
 /* --- Sección de Información --- */
 .pet-info-section {
   flex: 1;
@@ -254,6 +219,66 @@
   align-items: center;
   gap: 5px;
 }
+
+/* Header */
+.pet-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; 
+  padding-right: 40px; 
+}
+
+.menu-container {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3em;
+  color: var(--text-color-dark);
+  padding: 5px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  opacity: 0.6;
+}
+
+.menu-button:hover {
+  opacity: 0.9;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 35px;
+  right: 0;
+  background-color: #fbf7f4;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 100;
+}
+
+.dropdown-menu button {
+  background: none;
+  border: none;
+  padding: 10px 15px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--text-color-dark);
+}
+
+.dropdown-menu button:hover {
+  background-color: #f0f0f0;
+}
+
 
 /* Botón de Adoptar */
 .adopt-button {

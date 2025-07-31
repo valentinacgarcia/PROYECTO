@@ -9,7 +9,7 @@ body {
   max-width: 1200px;
   margin: 20px auto;
   padding: 20px;
-  background-color: #fff; /* Fondo blanco para el contenedor principal, si es deseado */
+  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -44,7 +44,6 @@ h1 {
   overflow: hidden;
 }
 
-/* Estilo para la imagen del perro dentro de la tarjeta "Encuentra tu mascota ideal" */
 .card-dog-image {
   position: absolute;
   top: -20px; 
@@ -109,33 +108,50 @@ h1 {
   margin-bottom: 10px;
 }
 
-.filter-section select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #fff;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  /* SVG para la flecha personalizada en el select */
-  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2353A57D%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%00-13.2-6.2H18.2c-4.1%200-7.9%201.5-10.9%204.6a17.6%2017.6%200%200%00-4.6%2010.9c0%204.1%201.5%207.9%204.6%2010.9l128%20127.9c3.2%203.2%207%204.6%2010.9%204.6s7.7-1.4%2010.9-4.6l128-127.9c3.2-3.2%204.6-7%204.6-10.9s-1.4-7.7-4.6-10.9z%22%2F%3E%3C%2Fsvg%3E');
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 12px;
-}
-
+/* ========================= */
+/* ✅ CHECKBOXES CIRCULARES */
+/* ========================= */
 .filter-section label {
-  display: block;
+  display: flex;
+  align-items: center;
   margin-bottom: 8px;
   cursor: pointer;
   font-size: 0.95em;
-  color: #666;
+  color: #555;
+  gap: 8px;
 }
 
-.filter-section input[type="radio"] {
-  margin-right: 8px;
-  accent-color: #53a57d; 
+.filter-section input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #bbb;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.filter-section input[type="checkbox"]:hover {
+  border-color: #53a57d;
+}
+
+.filter-section input[type="checkbox"]:checked {
+  background-color: #53a57d;
+  border-color: #53a57d;
+}
+
+.filter-section input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
 }
 
 /* CONTENEDOR PRINCIPAL DE LA GRILLA DE MASCOTAS Y PAGINACIÓN */
@@ -164,11 +180,11 @@ h1 {
   overflow: hidden;
   transition: transform 0.2s ease-in-out;
   display: flex;
-  flex-direction: column; /* Contenido de la tarjeta en columna */
+  flex-direction: column;
 }
 
 .pet-card:hover {
-  transform: translateY(-5px); /* Efecto de elevación al pasar el mouse */
+  transform: translateY(-5px);
 }
 
 /* ESTILOS SKELETON (CARGA) */
@@ -215,7 +231,6 @@ h1 {
   width: 40%;
 }
 
-/* OCULTAR CONTENIDO REAL CUANDO EL SKELETON ESTÁ ACTIVO */
 .pet-info {
   padding: 15px;
 }
@@ -231,7 +246,6 @@ h1 {
   display: block;
 }
 
-/* ESTILOS DE LA INFORMACIÓN DE LA MASCOTA */
 .pet-info h2 {
   font-size: 1.2em;
   margin-top: 0;
@@ -247,11 +261,11 @@ h1 {
 }
 
 .gender-icon.male {
-  color: #53a57d; /* Color verde para el icono masculino */
+  color: #53a57d;
 }
 
 .gender-icon.female {
-  color: #e07297; /* Color rosado para el icono femenino */
+  color: #e07297;
 }
 
 .pet-info p {
@@ -275,7 +289,6 @@ h1 {
   gap: 8px; 
 }
 
-/* ESTILOS PARA TODOS LOS BOTONES DE PAGINACIÓN (ANTERIOR, SIGUIENTE, NÚMEROS) */
 .pagination-button {
   background-color: transparent; 
   color: #555; 
@@ -290,13 +303,11 @@ h1 {
   height: 38px; 
 }
 
-/* EFECTO HOVER para TODOS los botones de paginación (excepto deshabilitados y activos) */
 .pagination-button:hover:not(:disabled):not(.active) {
   background-color: #f0f0f0; 
   color: #53a57d;  
 }
 
-/* ESTADO ACTIVO para TODOS los botones de paginación (la página actual) */
 .pagination-button.active {
   background-color: #53a57d; 
   color: white; 
@@ -304,7 +315,6 @@ h1 {
   cursor: default;
   box-shadow: 0 2px 5px rgba(83, 165, 125, 0.3); 
 }
-
 
 .pagination-button:disabled {
   opacity: 0.6; 

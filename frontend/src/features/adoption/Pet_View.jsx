@@ -1,13 +1,11 @@
-// src/pages/PetDetailView.jsx (o la ruta donde ubiques esta vista de detalle)
-
-import React, { useEffect, useState } from 'react'; // Corregido: useState importado una sola vez
+import React, { useEffect, useState } from 'react'; 
 import { useParams } from 'react-router-dom';
 import Slider from 'react-slick';
 import './Pet_View.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import {
-  FaHeart,
+  FaEllipsisV,
   FaPaw,
   FaMars,
   FaVenus,
@@ -21,6 +19,8 @@ import {
 
 const PetAdoptionPost = ({ pet }) => {
   const [isSaved, setIsSaved] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   
 
   const handleAdoptClick = () => {
@@ -32,6 +32,16 @@ const PetAdoptionPost = ({ pet }) => {
   const handleSaveClick = () => {
     setIsSaved(!isSaved);
     console.log(`${pet.name} ${isSaved ? 'eliminado de' : 'añadido a'} favoritos.`);
+    setMenuOpen(false);
+  };
+
+  const handleMoreInfo = () => {
+    setShowInfoModal(true);  
+    setMenuOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
   };
 
   const sliderSettings = {
@@ -56,9 +66,7 @@ const PetAdoptionPost = ({ pet }) => {
             <Slider {...sliderSettings}>
               {pet.images.map((image, index) => (
                 <div key={index}>
-                  <img
-                    src={image}
-                    alt={`Imagen ${index}`} />
+                  <img src={image} alt={`Imagen ${index}`} />
                 </div>
               ))}
             </Slider>
@@ -68,20 +76,27 @@ const PetAdoptionPost = ({ pet }) => {
             No hay imágenes disponibles
           </div>
         )}
-
-        {/* Botón "Guardar" / "Favoritos" */}
-        <button
-          onClick={handleSaveClick}
-          className={`save-button ${isSaved ? 'saved' : ''}`}
-        >
-          <FaHeart size={50}/>
-        </button>
       </div>
 
       {/* Sección de Información */}
       <div className="pet-info-section">
         <div>
-          <h1 className="pet-name">{pet.name}</h1>
+          <div className="pet-title-row">
+            <h1 className="pet-name">{pet.name}</h1>
+            <div className="menu-container">
+              <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)}>
+                <FaEllipsisV />
+              </button>
+              {menuOpen && (
+                <div className="dropdown-menu">
+                  <button onClick={handleMoreInfo}>Más Información</button>
+                  <button onClick={handleSaveClick}>
+                    {isSaved ? 'Quitar de Favoritos' : 'Guardar en Favoritos'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           <hr className="separador" />
 
@@ -103,9 +118,6 @@ const PetAdoptionPost = ({ pet }) => {
               <FaMapMarkerAlt /> {pet.location}
             </span>
           </div>
-
-          {/* Descripción */}
-          <p className="pet-description">{pet.description}</p>
 
           {/* Detalles Adicionales */}
           <div className="pet-additional-details">
@@ -172,6 +184,24 @@ const PetAdoptionPost = ({ pet }) => {
         <button onClick={handleAdoptClick} className="adopt-button">
           ¡Quiero Adoptar a {pet.name}!
         </button>
+
+        {/* Información Modal */}
+        {showInfoModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Más informacion sobre {pet.name}</h3>
+              <p>{pet.description && pet.description.trim() !== '' 
+                    ? pet.description 
+                    : 'No hay descripción disponible para esta mascota.'}</p>
+              <button 
+                className="boton-aceptar" 
+                onClick={() => setShowInfoModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

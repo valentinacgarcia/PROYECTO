@@ -370,7 +370,7 @@ const RegistroMascota = () => {
       {registroExitoso && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Mascota registrada con éxito 🐾</h3>
+            <h3>Mascota registrada con éxito!</h3>
             <p>Tu mascota fue registrada correctamente.</p>
             <button className="boton-aceptar" onClick={() => navigate('/registrar-mascota')}>Aceptar</button>
           </div>
