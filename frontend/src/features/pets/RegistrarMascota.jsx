@@ -269,10 +269,17 @@ const RegistroMascota = () => {
             <label>Raza</label>
             <select name="raza" value={formData.raza} onChange={handleInputChange}>
               <option value="">Seleccionar raza</option>
-              <option value="raza1">Raza 1</option>
-              <option value="raza2">Raza 2</option>
-              <option value="raza3">Raza 3</option>
-              <option value="no-raza">No es de raza</option>
+              <option value="mestizo">Mestizo</option>
+              <option value="caniche">Caniche</option>
+              <option value="labrador">Labrador Retriever</option>
+              <option value="golden">Golden Retriever</option>
+              <option value="bulldog-frances">Bulldog Francés</option>
+              <option value="shitzu">Shitzu</option>
+              <option value="salchicha">Dachshund (salchicha)</option>
+              <option value="beagle">Beagle</option>
+              <option value="schnauzer">Schnauzer</option>
+              <option value="boxer">Boxer</option>
+              <option value="otro">Otro</option>
             </select>
 
             <label>Color del pelaje</label>
