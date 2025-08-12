@@ -28,6 +28,18 @@ const RegistroMascota = () => {
   const [error, setError] = useState('');
   const [mostrarOpcionales, setMostrarOpcionales] = useState(false);
   const [registroExitoso, setRegistroExitoso] = useState(false);
+  const [filters, setFilters] = useState({
+    type: [],
+    region: [],
+    raza: [],
+    genero: [],
+    edad: [],
+    tamaño: [],
+    color: [],
+    largoPelaje: [],
+    castrado: [],
+    compatibilidad: []
+  });
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {

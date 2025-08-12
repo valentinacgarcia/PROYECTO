@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\PetLike;
+use App\Entity\User;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+class PetLikeRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, PetLike::class);
+    }
+
+    /**
+     * Busca las solicitudes pendientes para mascotas que tiene un dueño dado.
+     *
+     * @param User $owner
+     * @return PetLike[]
+     */
+    public function findPendingByOwner(User $owner): array
+    {
+        return $this->createQueryBuilder('pl')
+            ->join('pl.pet', 'p')
+            ->andWhere('p.user = :owner')
+            ->andWhere('pl.status = :pending')
+            ->setParameter('owner', $owner)
+            ->setParameter('pending', 'pending')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Busca los matches aceptados para un usuario interesado.
+     *
+     * @param User $interestedUser
+     * @return PetLike[]
+     */
+    public function findAcceptedByInterestedUser(User $interestedUser): array
+    {
+        return $this->createQueryBuilder('pl')
+            ->andWhere('pl.interestedUser = :user')
+            ->andWhere('pl.status = :accepted')
+            ->setParameter('user', $interestedUser)
+            ->setParameter('accepted', 'accepted')
+            ->getQuery()
+            ->getResult();
+    }
+}
