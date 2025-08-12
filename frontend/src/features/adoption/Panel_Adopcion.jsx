@@ -3,6 +3,7 @@ import axios from 'axios';
 import './Panel_Adopcion.css';
 import perro from '../../assets/perro.png';
 import gato from '../../assets/gato.png';
+import { useNavigate } from 'react-router-dom';
 
 const cardsPerPage = 12;
 
@@ -12,6 +13,7 @@ const PetMatch = () => {
   const [totalPets, setTotalPets] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
     region: [],
@@ -67,7 +69,6 @@ const PetMatch = () => {
         }
       }
 
-      // Cambia la URL para apuntar al backend en el puerto 8000
       const response = await axios.get('http://localhost:8000/pet/list-all', { params });
 
       if (response.data.success) {
@@ -429,7 +430,12 @@ const PetMatch = () => {
               {pets.length === 0 && <p>No se encontraron mascotas para estos filtros.</p>}
               <div className="pet-grid">
                 {pets.map(pet => (
-                  <div className="pet-card" key={pet.id}>
+                  <div
+                    className="pet-card"
+                    key={pet.id}
+                    onClick={() => navigate(`/adopcion/${pet.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <img src={pet.photos && pet.photos.length > 0 ? pet.photos[0] : 'default.png'} alt={pet.name} />
                     <div className="pet-info">
                       <div className="pet-name-row">
