@@ -48,7 +48,7 @@ const LoginForm = ({ onLogin }) => {
 
       // Guardar usuario en localStorage
       localStorage.setItem('user', JSON.stringify(userData));
-      if (onLogin) onLogin(); 
+      if (onLogin) onLogin(); // Llama al callback si se pasa desde props
       navigate('/Home');
 
     } catch (error) {
