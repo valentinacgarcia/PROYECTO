@@ -68,13 +68,12 @@
   color: #333;
 }
 
-.profile-photo-container {
+.profile-photo-container-user {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
 }
 
-.profile-photo {
+.profile-ph {
   width: 120px;
   height: 120px;
   border-radius: 50%;
