@@ -24,6 +24,10 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     navigate('/register');
   };
 
+  const handleClickNuevaAdopcion = () => {
+    navigate('/formulario_nueva_adopcion');
+  }
+
   const handleProfileClick = () => {
     setMenuOpen((prev) => !prev);
   };
@@ -41,6 +45,10 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const handleHomeClick = () => {
     navigate('/home');
   };
+  
+  const handleClickAdoptar = () => {
+    navigate('/panel_adopcion');
+  }
 
   const handleDeleteAccount = () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -79,9 +87,9 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
       </div>
 
       <div className="navbar-center">
-        <span className="nav-item">Inicio</span>
-        <span className="nav-item">Adopta</span>
-        <span className="nav-item">Da en adopción</span>
+        <span className="nav-item" onClick={handleHomeClick}>Inicio</span>
+        <span className="nav-item" onClick={handleClickAdoptar}>Adopta</span>
+        <span className="nav-item" onClick={handleClickNuevaAdopcion}>Da en adopción</span>
         <span className="nav-item">Servicios</span>
         <span className="nav-item">Nosotros</span>
       </div>

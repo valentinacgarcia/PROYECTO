@@ -43,6 +43,7 @@ const MisMascotas = () => {
               />
               <div className="info-mascota">
                 <h3>{mascota.name}</h3>
+                <p className="mascota-genero-tamanio">{mascota.gender} • {mascota.size}</p>
               </div>
             </div>
           ))}
@@ -93,6 +94,7 @@ const MascotasAdopcion = () => {
               />
               <div className="info-mascota">
                 <h3>{mascota.name}</h3>
+                <p className="mascota-genero-tamanio">{mascota.gender} • {mascota.size}</p>
               </div>
             </div>
           ))}
