@@ -49,11 +49,7 @@ const Home = () => {
 
   const HandleClickAdoptar = () => {
   navigate('/panel_adopcion');
-  }
-
-  const handleClickNuevaAdopcion = () => {
-    navigate('/formulario_nueva_adopcion');
-  }
+}
 
   const sliderSettings = {
     dots: true,
@@ -96,7 +92,7 @@ const Home = () => {
             </button>
             <button
               className="home-button secondary"
-              onClick={handleClickNuevaAdopcion}
+              onClick={() => console.log('Publicar mascota en adopción')}
             >
               Tengo una mascota para dar en adopción
             </button>
@@ -110,17 +106,9 @@ const Home = () => {
 
         <Slider {...sliderSettings}>
           {servicios.map((servicio) => (
-            <div 
-            key={servicio.id} 
-            className="servicio-card">
-            <img 
-              src={servicio.imagen} 
-              alt={servicio.nombre} 
-              className="servicio-img" 
-            />
-              <div className="servicio-info">
-                <h3>{servicio.nombre}</h3>
-              </div>
+            <div key={servicio.id} className="servicio-card">
+              <img src={servicio.imagen} alt={servicio.nombre} className="servicio-img" />
+              <h3 className="servicio-nombre">{servicio.nombre}</h3>
             </div>
           ))}
           </Slider>

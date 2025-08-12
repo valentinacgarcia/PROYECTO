@@ -23,6 +23,7 @@ const Datos = () => {
         apellido: user.last_name || '',
         email: user.email || '',
         telefono: user.phone || '',
+        direccion: user.address || '', // Por seguridad no cargamos la contraseña
       });
     }
   }, []);
@@ -102,8 +103,8 @@ const Datos = () => {
 
   return (
     <div className="datos-container">
-      <div className="profile-photo-container-user">
-        <img src={profilePhoto} alt="Foto de perfil" className="profile-ph" />
+      <div className="profile-photo-container">
+        <img src={profilePhoto} alt="Foto de perfil" className="profile-photo" />
       </div>
 
       <h2>Mis Datos</h2>

@@ -11,8 +11,6 @@ import RegistrarMascota from './features/pets/RegistrarMascota';
 import DatosMascota from './features/pets/DatosMascota';
 import Panel_Adopcion from './features/adoption/Panel_Adopcion';
 import VistaMascota from './features/adoption/Pet_View';
-import FormularioAdopcion from './features/adoption/formAdoptante';
-import FormularioNuevaAdopcion from './features/adoption/FormAdopcion';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -41,8 +39,6 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="*" element={<Home />} />
         <Route path="/panel_adopcion" element={<Panel_Adopcion />} />
         <Route path="/adopcion/:id" element={<VistaMascota />} />
-        <Route path="/formulario_adopcion/:id" element={<FormularioAdopcion />} />
-        <Route path="/formulario_nueva_adopcion" element={<FormularioNuevaAdopcion />} />
       </Routes>
     </>
   );
