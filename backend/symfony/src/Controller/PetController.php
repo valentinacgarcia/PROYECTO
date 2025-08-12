@@ -249,12 +249,60 @@ class PetController extends AbstractController
         return $presignedUrl; // ✅ Sin reemplazar
     }
 
-    /**
-     * Método alternativo para URLs públicas directas
-     * (solo funciona si el bucket tiene política pública)
-     */
-    private function getPublicUrl(string $key): string
+    #[Route('/list-all', methods: ['GET'])]
+    public function listAll(Request $request, PetRepository $petRepository): JsonResponse
     {
-        return "http://localhost:9000/mascotas/{$key}";
+        
+        try {
+            $filters = $this->extractFiltersFromRequest($request);
+            $page = max(1, (int) $request->query->get('page', 1));
+            $limit = max(1, min(50, (int) $request->query->get('limit', 12)));
+            $result = $petRepository->findAvailableForAdoptionPaginated($filters, $page, $limit);
+
+            $data = array_map(fn($pet) => $this->serializePet($pet), $result['pets']);
+
+            return $this->json([
+                'success' => true,
+                'data' => $data,
+                'pagination' => [
+                    'current_page' => $result['page'],
+                    'total_pages' => $result['totalPages'],
+                    'total_items' => $result['total'],
+                    'items_per_page' => $result['limit'],
+                    'has_next' => $result['hasNext'],
+                    'has_previous' => $result['hasPrev'],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Error al obtener las mascotas: ' . $e->getMessage(),
+            ], 500);
+        }
     }
+
+    private function extractFiltersFromRequest(Request $request): array
+    {
+        $filters = [];
+        $filterKeys = [
+            'region', 'tipo', 'raza', 'genero', 'edad', 'tamaño', 'color', 'largoPelaje', 'castrado', 'compatibilidad'
+        ];
+
+        foreach ($filterKeys as $key) {
+            $value = $request->query->get($key);
+            if ($value !== null) {
+                // Si el frontend envía un array como string, decodifica
+                if (is_string($value) && $value !== '') {
+                    $decoded = json_decode($value, true);
+                    $filters[$key] = $decoded !== null ? $decoded : [$value];
+                } else {
+                    $filters[$key] = $value;
+                }
+            }
+        }
+
+        return $filters;
+    }
+
+
 }

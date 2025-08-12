@@ -22,10 +22,6 @@ const MisMascotas = () => {
     navigate('/registrar-mascota/nueva');
   };
 
-  const handleVerDetalles = (id) => {
-    navigate(`/mis-mascotas/${id}`);
-  };
-
   return (
     <div className="mis-mascotas-container">
       <h2 className="mascotas-titulo">Mis Mascotas</h2>
@@ -35,17 +31,18 @@ const MisMascotas = () => {
       ) : (
         <div className="lista-mascotas">
           {mascotas.map((mascota) => (
-            <div key={mascota.id} className="tarjeta-mascota" onClick={() => navigate(`/mis-mascotas/${mascota.id}`)}>
+            <div
+              key={mascota.id}
+              className="tarjeta-mascota"
+              onClick={() => navigate(`/mis-mascotas/${mascota.id}`)}
+            >
               <img
-                src={mascota.photos[0]} 
+                src={mascota.photos[0]}
                 alt={mascota.name}
                 className="foto-mascota"
               />
               <div className="info-mascota">
-                <h3>
-                  {mascota.type === 'Perro' ? '🐶 ' : '🐱 '}
-                  {mascota.name}{' '}
-                </h3>
+                <h3>{mascota.name}</h3>
               </div>
             </div>
           ))}
@@ -59,4 +56,59 @@ const MisMascotas = () => {
   );
 };
 
-export default MisMascotas;
+const MascotasAdopcion = () => {
+  const [mascotasAdopcion, setMascotasAdopcion] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return;
+    
+    fetch(`http://localhost:8000/pet/list/${user.id}`) // Ajusta el endpoint según tu API
+      .then((res) => res.json())
+      .then((data) => setMascotasAdopcion(data))
+      .catch((err) => {
+        console.error('Error al cargar mascotas en adopción:', err);
+      });
+  }, []);
+
+  return (
+    <div className="mis-mascotas-container">
+      <h2 className="mascotas-titulo">Mascotas en Adopción</h2>
+
+      {mascotasAdopcion.length === 0 ? (
+        <p className="mensaje-vacio">No hay mascotas publicadas en adopción.</p>
+      ) : (
+        <div className="lista-mascotas">
+          {mascotasAdopcion.map((mascota) => (
+            <div
+              key={mascota.id}
+              className="tarjeta-mascota"
+              onClick={() => navigate(`/mascotas-adopcion/${mascota.id}`)}
+            >
+              <img
+                src={mascota.photos[0]}
+                alt={mascota.name}
+                className="foto-mascota"
+              />
+              <div className="info-mascota">
+                <h3>{mascota.name}</h3>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PanelMascotas = () => {
+  return (
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
+      <MisMascotas />
+      <MascotasAdopcion />
+    </div>
+  );
+};
+
+export default PanelMascotas;

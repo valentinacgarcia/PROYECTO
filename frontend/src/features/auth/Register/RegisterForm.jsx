@@ -74,10 +74,6 @@ const RegisterForm = () => {
     }
     
 
-    //setFormError("");
-    //console.log("Formulario válido:", formData);
-    //navigate('/login')
-
     //Metodo de conexion con el back
 
     axios.post('http://localhost:8000/user/create', {
