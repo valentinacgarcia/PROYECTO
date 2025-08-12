@@ -27,6 +27,7 @@ class EntityManagerConfig
     private $classMetadataFactoryName;
     private $defaultRepositoryClass;
     private $autoMapping;
+    private $enableNativeLazyObjects;
     private $namingStrategy;
     private $quoteStrategy;
     private $typedFieldMapper;
@@ -194,6 +195,20 @@ class EntityManagerConfig
     {
         $this->_usedProperties['autoMapping'] = true;
         $this->autoMapping = $value;
+
+        return $this;
+    }
+
+    /**
+     * Enables the new native implementation of PHP lazy objects instead of generated proxies
+     * @default false
+     * @param ParamConfigurator|bool $value
+     * @return $this
+     */
+    public function enableNativeLazyObjects($value): static
+    {
+        $this->_usedProperties['enableNativeLazyObjects'] = true;
+        $this->enableNativeLazyObjects = $value;
 
         return $this;
     }
@@ -464,6 +479,12 @@ class EntityManagerConfig
             unset($value['auto_mapping']);
         }
 
+        if (array_key_exists('enable_native_lazy_objects', $value)) {
+            $this->_usedProperties['enableNativeLazyObjects'] = true;
+            $this->enableNativeLazyObjects = $value['enable_native_lazy_objects'];
+            unset($value['enable_native_lazy_objects']);
+        }
+
         if (array_key_exists('naming_strategy', $value)) {
             $this->_usedProperties['namingStrategy'] = true;
             $this->namingStrategy = $value['naming_strategy'];
@@ -585,6 +606,9 @@ class EntityManagerConfig
         }
         if (isset($this->_usedProperties['autoMapping'])) {
             $output['auto_mapping'] = $this->autoMapping;
+        }
+        if (isset($this->_usedProperties['enableNativeLazyObjects'])) {
+            $output['enable_native_lazy_objects'] = $this->enableNativeLazyObjects;
         }
         if (isset($this->_usedProperties['namingStrategy'])) {
             $output['naming_strategy'] = $this->namingStrategy;

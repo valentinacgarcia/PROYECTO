@@ -29,6 +29,7 @@ use Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver;
 use Doctrine\ORM\Mapping\Driver\StaticPHPDriver as LegacyStaticPHPDriver;
 use Doctrine\ORM\Mapping\Embeddable;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\LegacyReflectionFields;
 use Doctrine\ORM\Mapping\MappedSuperclass;
 use Doctrine\ORM\Proxy\Autoloader;
 use Doctrine\ORM\Proxy\ProxyFactory;
@@ -39,7 +40,6 @@ use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Persistence\Mapping\Driver\PHPDriver;
 use Doctrine\Persistence\Mapping\Driver\StaticPHPDriver;
-use Doctrine\Persistence\Reflection\RuntimeReflectionProperty;
 use InvalidArgumentException;
 use LogicException;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -65,7 +65,7 @@ use Symfony\Component\Messenger\Bridge\Doctrine\Transport\DoctrineTransportFacto
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
-use Symfony\Component\VarExporter\LazyGhostTrait;
+use Symfony\Component\VarExporter\ProxyHelper;
 
 use function array_intersect_key;
 use function array_keys;
@@ -77,8 +77,9 @@ use function method_exists;
 use function reset;
 use function sprintf;
 use function str_replace;
-use function trait_exists;
 use function trigger_deprecation;
+
+use const PHP_VERSION_ID;
 
 /**
  * DoctrineExtension is an extension for the Doctrine DBAL and ORM library.
@@ -309,7 +310,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
             ]);
 
         $container
-            ->registerAliasForArgument($connectionId, Connection::class, sprintf('%sConnection', $name))
+            ->registerAliasForArgument($connectionId, Connection::class, sprintf('%s.connection', $name))
             ->setPublic(false);
 
         // Set class in case "wrapper_class" option was used to assist IDEs
@@ -517,19 +518,21 @@ class DoctrineExtension extends AbstractDoctrineExtension
             $controllerResolverDefaults['evict_cache'] = true;
         }
 
-        if ($controllerResolverDefaults) {
-            $container->getDefinition('doctrine.orm.entity_value_resolver')->setArgument(2, (new Definition(MapEntity::class))->setArguments([
-                null,
-                null,
-                null,
-                $controllerResolverDefaults['mapping'] ?? null,
-                null,
-                null,
-                null,
-                $controllerResolverDefaults['evict_cache'] ?? null,
-                $controllerResolverDefaults['disabled'] ?? false,
-            ]));
-        }
+        $valueResolverDefinition = $container->getDefinition('doctrine.orm.entity_value_resolver');
+        $valueResolverDefinition->setArgument(2, (new Definition(MapEntity::class))->setArguments([
+            null,
+            null,
+            null,
+            $controllerResolverDefaults['mapping'] ?? null,
+            null,
+            null,
+            null,
+            $controllerResolverDefaults['evict_cache'] ?? null,
+            $controllerResolverDefaults['disabled'] ?? false,
+        ]));
+
+        // Symfony 7.3 and higher expose type alias support in the EntityValueResolver
+        $valueResolverDefinition->setArgument(3, $config['resolve_target_entities']);
 
         // not available in Doctrine ORM 3.0 and higher
         if (! class_exists(ConvertMappingCommand::class)) {
@@ -559,17 +562,10 @@ class DoctrineExtension extends AbstractDoctrineExtension
         $container->setParameter('doctrine.default_entity_manager', $config['default_entity_manager']);
 
         if ($config['enable_lazy_ghost_objects'] ?? false) {
-            if (! trait_exists(LazyGhostTrait::class)) {
+            if (! class_exists(ProxyHelper::class)) {
                 throw new LogicException(
                     'Lazy ghost objects cannot be enabled because the "symfony/var-exporter" library'
                     . ' is not installed. Please run "composer require symfony/var-exporter".',
-                );
-            }
-
-            if (! class_exists(RuntimeReflectionProperty::class)) {
-                throw new LogicException(
-                    'Lazy ghost objects cannot be enabled because the "doctrine/persistence" library'
-                    . ' version 3.1 or higher is not installed. Please run "composer update doctrine/persistence".',
                 );
             }
         } elseif (! method_exists(ProxyFactory::class, 'resetUninitializedProxy')) {
@@ -705,6 +701,10 @@ class DoctrineExtension extends AbstractDoctrineExtension
             'setIdentityGenerationPreferences' => $entityManager['identity_generation_preferences'],
         ];
 
+        if (PHP_VERSION_ID >= 80400 && class_exists(LegacyReflectionFields::class)) {
+            $methods['enableNativeLazyObjects'] = $entityManager['enable_native_lazy_objects'];
+        }
+
         if (isset($entityManager['fetch_mode_subselect_batch_size'])) {
             $methods['setEagerFetchBatchSize'] = $entityManager['fetch_mode_subselect_batch_size'];
         }
@@ -786,7 +786,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
             ->setConfigurator([new Reference($managerConfiguratorName), 'configure']);
 
         $container
-            ->registerAliasForArgument($entityManagerId, EntityManagerInterface::class, sprintf('%sEntityManager', $entityManager['name']))
+            ->registerAliasForArgument($entityManagerId, EntityManagerInterface::class, sprintf('%s.entity_manager', $entityManager['name']))
             ->setPublic(false);
 
         $container->setAlias(

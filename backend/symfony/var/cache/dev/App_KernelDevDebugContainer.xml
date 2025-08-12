@@ -2080,6 +2080,7 @@
           <argument>false</argument>
         </service>
       </argument>
+      <argument type="collection"/>
     </service>
     <service id="doctrine.cache_clear_metadata_command" class="Doctrine\ORM\Tools\Console\Command\ClearCache\MetadataCommand">
       <tag name="console.command" command="doctrine:cache:clear-metadata"/>
@@ -5136,12 +5137,14 @@
     <service id="Doctrine\Common\Persistence\ManagerRegistry" alias="doctrine"/>
     <service id="database_connection" alias="doctrine.dbal.default_connection" public="true"/>
     <service id="doctrine.dbal.event_manager" alias="doctrine.dbal.default_connection.event_manager"/>
+    <service id=".Doctrine\DBAL\Connection $default.connection" alias="doctrine.dbal.default_connection"/>
     <service id="Doctrine\DBAL\Connection $defaultConnection" alias="doctrine.dbal.default_connection"/>
     <service id="Doctrine\ORM\EntityManagerInterface" alias="doctrine.orm.default_entity_manager"/>
     <service id="doctrine.orm.entity_manager" alias="doctrine.orm.default_entity_manager" public="true"/>
     <service id="doctrine.orm.default_metadata_cache" alias="cache.doctrine.orm.default.metadata"/>
     <service id="doctrine.orm.default_result_cache" alias="cache.doctrine.orm.default.result"/>
     <service id="doctrine.orm.default_query_cache" alias="cache.doctrine.orm.default.query"/>
+    <service id=".Doctrine\ORM\EntityManagerInterface $default.entity_manager" alias="doctrine.orm.default_entity_manager"/>
     <service id="Doctrine\ORM\EntityManagerInterface $defaultEntityManager" alias="doctrine.orm.default_entity_manager"/>
     <service id="doctrine.orm.default_entity_manager.event_manager" alias="doctrine.dbal.default_connection.event_manager"/>
     <service id="doctrine.migrations.metadata_storage" alias="doctrine.migrations.storage.table_storage"/>

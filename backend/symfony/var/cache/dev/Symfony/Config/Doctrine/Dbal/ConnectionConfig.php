@@ -165,6 +165,7 @@ class ConnectionConfig
     }
 
     /**
+     * Adds the given suffix to the configured database name, this option has no effects for the SQLite platform
      * @default null
      * @param ParamConfigurator|mixed $value
      * @return $this

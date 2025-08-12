@@ -324,7 +324,7 @@ class Configuration implements ConfigurationInterface
                     '2.4',
                     'The "doctrine.dbal.override_url" configuration key is deprecated.',
                 )->end()
-                ->scalarNode('dbname_suffix')->end()
+                ->scalarNode('dbname_suffix')->info('Adds the given suffix to the configured database name, this option has no effects for the SQLite platform')->end()
                 ->scalarNode('application_name')->end()
                 ->scalarNode('charset')->end()
                 ->scalarNode('path')->end()
@@ -652,6 +652,10 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('class_metadata_factory_name')->defaultValue(ClassMetadataFactory::class)->end()
                     ->scalarNode('default_repository_class')->defaultValue(EntityRepository::class)->end()
                     ->scalarNode('auto_mapping')->defaultFalse()->end()
+                    ->booleanNode('enable_native_lazy_objects')
+                        ->defaultFalse()
+                        ->info('Enables the new native implementation of PHP lazy objects instead of generated proxies')
+                    ->end()
                     ->scalarNode('naming_strategy')->defaultValue('doctrine.orm.naming_strategy.default')->end()
                     ->scalarNode('quote_strategy')->defaultValue('doctrine.orm.quote_strategy.default')->end()
                     ->scalarNode('typed_field_mapper')->defaultValue('doctrine.orm.typed_field_mapper.default')->end()
