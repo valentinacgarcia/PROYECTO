@@ -195,3 +195,15 @@
     opacity: 1;
   }
 }
+
+.icon-button {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.2s ease;
+}
+
+.icon-button:hover {
+  color: #53a57d; 
+}

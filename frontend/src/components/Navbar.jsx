@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import logo from '../assets/logo.png';
+import { FaBell, FaComments } from 'react-icons/fa';
 
 const Navbar = ({ isLoggedIn, handleLogout }) => {
   const navigate = useNavigate();
@@ -113,22 +114,39 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
           </>
         ) : (
           <div className="perfil-container">
+            <FaBell 
+              className="icon-button" 
+              onClick={() => navigate('/notificaciones')} 
+              title="Notificaciones" 
+            />
+
+            <FaComments 
+              className="icon-button" 
+              onClick={() => navigate('/chats')} 
+              title="Chats" 
+            />
+
+            {/* Botón Perfil */}
             <button className="nav-button profile" onClick={handleProfileClick}>
               Perfil
             </button>
+
             {menuOpen && (
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Mis datos</span>
                 <span onClick={handleRegistrarMascota}>Mis mascotas</span>
-                <span onClick={() => {
+                <span>Favoritos</span>
+                <span>Mis solicitudes</span>
+                <span
+                  onClick={() => {
                     setMenuOpen(false);
                     setConfirmDelete(true);
                   }}
-                  style={{fontWeight: 'bold' }}
+                  style={{ fontWeight: 'bold' }}
                 >
                   Eliminar cuenta
                 </span>
-                <hr className="dropdown-separator" />
+                <hr className="dropdown-separator"/>
                 <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
             )}
