@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './FormAdoptante.css';
 import profilePhoto from '../../assets/foto1.jpg'; 
-
-// Importa tus componentes de sección
 import SeccionSituacionHabitacional from './SeccionSituacionHabitacional';
 import SeccionComposicionHogar from './SeccionComposicionHogar';
 import SeccionExperienciaAnimales from './SeccionExperienciaAnimales';
@@ -26,7 +24,7 @@ const SeccionAcordeon = ({ title, children, isOpen, onToggle }) => {
 };
 // --- Fin Nuevo Componente ---
 
-const FormularioAdopcion = () => {
+const FormularioAdopcion = ({ isLoggedIn }) => {
     const [userData, setUserData] = useState({});
     const [respuestas, setRespuestas] = useState({});
     const [openSection, setOpenSection] = useState(null); 
@@ -34,19 +32,22 @@ const FormularioAdopcion = () => {
     const [submissionMessage, setSubmissionMessage] = useState('');
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user) {
-            setUserData({
-                nombre: user.name || '',
-                apellido: user.last_name || '',
-                email: user.email || '',
-                telefono: user.phone || '',
-                direccion: user.address || '',
-            });
+        if (!isLoggedIn) {
+            setUserData({});
+        } else {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                setUserData({
+                    nombre: user.name || '',
+                    apellido: user.last_name || '',
+                    email: user.email || '',
+                    telefono: user.phone || '',
+                    direccion: user.address || '',
+                });
+            }
         }
-    }, []);
+    }, [isLoggedIn]);
 
-    // Manejador genérico para las respuestas de las secciones
     const handleChangeSeccion = (sectionName, data) => {
         setRespuestas((prev) => ({
             ...prev,
@@ -134,6 +135,7 @@ const FormularioAdopcion = () => {
             >
                 <SeccionSituacionHabitacional
                     onChange={(data) => handleChangeSeccion('situacionHabitacional', data)}
+                    initialData={respuestas.situacionHabitacional}
                 />
             </SeccionAcordeon>
 

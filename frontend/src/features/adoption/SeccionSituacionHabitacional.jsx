@@ -1,101 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import './SeccionSituacionHabitacional.css';
 
+const opcionesSiNo = ["SI", "NO"];
+const opcionesTipoVivienda = ["CASA", "DEPARTAMENTO"];
+const opcionesContrato = ["ALQUILO", "SOY PROPIETARIO"];
+const opcionesSeguridad = ["RED", "CERRADA"];
+
 const SeccionSituacionHabitacional = ({ onChange, initialData = {} }) => {
-    const [formData, setFormData] = useState({
-        tipoVivienda: initialData.tipoVivienda || [],
-        tenencia: initialData.tenencia || [],
-        patio: initialData.patio || [],
-        seguridad: initialData.seguridad || []
-    });
+  const [data, setData] = useState({
+    tipoVivienda: initialData.tipoVivienda || '',
+    contrato: initialData.contrato || '',
+    espacio: initialData.espacio || '',
+    seguridad: initialData.seguridad || ''
+  });
 
-    useEffect(() => {
-        setFormData({
-            tipoVivienda: initialData.tipoVivienda || [],
-            tenencia: initialData.tenencia || [],
-            patio: initialData.patio || [],
-            seguridad: initialData.seguridad || []
-        });
-    }, [initialData]);
+  useEffect(() => {
+    onChange(data);
+  }, [data, onChange]);
 
-    const handleSelect = (field, value) => {
-        setFormData((prev) => {
-            const currentValues = prev[field];
-            let updatedValues;
+  const handleSelect = (field, value) => {
+    setData(prev => ({ ...prev, [field]: value }));
+  };
 
-            if (currentValues.includes(value)) {
-                updatedValues = currentValues.filter((item) => item !== value);
-            } else {
-                updatedValues = [...currentValues, value];
-            }
-
-            const updatedFormData = { ...prev, [field]: updatedValues };
-            if (onChange) {
-                onChange(updatedFormData);
-            }
-            return updatedFormData;
-        });
-    };
-
-    const renderChipGroup = (field, question, options) => (
-        <fieldset className="pregunta">
-            <legend className="pregunta-texto">{question}</legend>
-            <div className="chips-container" role="group" aria-labelledby={`${field}-question`}>
-                {options.map((option) => (
-                    <button
-                        key={option.value}
-                        type="button"
-                        className={`chip ${formData[field].includes(option.value) ? 'chip-seleccionado' : ''}`}
-                        onClick={() => handleSelect(field, option.value)}
-                        aria-checked={formData[field].includes(option.value)}
-                        role="checkbox"
-                    >
-                        {option.label}
-                    </button>
-                ))}
+  return (
+    <div className="seccion-container">
+      {/* Pregunta 1 */}
+      <div className="campo-form">
+        <label>Tipo de vivienda</label>
+        <div className="chips-container">
+          {opcionesTipoVivienda.map(opcion => (
+            <div
+              key={opcion}
+              className={`chip ${data.tipoVivienda === opcion ? 'chip-seleccionado' : ''}`}
+              onClick={() => handleSelect('tipoVivienda', opcion)}
+            >
+              {opcion}
             </div>
-        </fieldset>
-    );
-
-    return (
-        <div className="seccion-container">
-            {renderChipGroup(
-                'tipoVivienda',
-                'Tipo de vivienda:',
-                [
-                    { value: 'CASA', label: 'CASA' },
-                    { value: 'DPTO', label: 'DEPARTAMENTO' }
-                ]
-            )}
-
-            {renderChipGroup(
-                'tenencia',
-                '¿Alquila o es propietario?',
-                [
-                    { value: 'ALQUILO', label: 'ALQUILO' },
-                    { value: 'SOY PROPIETARIO', label: 'SOY PROPIETARIO' }
-                ]
-            )}
-
-            {renderChipGroup(
-                'patio',
-                '¿Cuenta con patio o jardín?',
-                [
-                    { value: 'SI', label: 'SÍ' },
-                    { value: 'NO', label: 'NO' }
-                ]
-            )}
-
-            {renderChipGroup(
-                'seguridad',
-                '¿La vivienda está segura para un animal?',
-                [
-                    { value: 'POSEE RED EN EL BALCÓN', label: 'Posee red en el balcón' },
-                    { value: 'VIVIENDA CERRADA', label: 'Es una vivienda cerrada (sin balcón/patio)' }
-                ]
-            )}
+          ))}
         </div>
-    );
+      </div>
+
+      {/* Pregunta 2 */}
+      <div className="campo-form">
+        <label>¿Alquila o es propietario?</label>
+        <div className="chips-container">
+          {opcionesContrato.map(opcion => (
+            <div
+              key={opcion}
+              className={`chip ${data.contrato === opcion ? 'chip-seleccionado' : ''}`}
+              onClick={() => handleSelect('contrato', opcion)}
+            >
+              {opcion}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pregunta 3 */}
+      <div className="campo-form">
+        <label>¿Cuenta con patio o jardín?</label>
+        <div className="chips-container">
+          {opcionesSiNo.map(opcion => (
+            <div
+              key={opcion}
+              className={`chip ${data.espacio === opcion ? 'chip-seleccionado' : ''}`}
+              onClick={() => handleSelect('espacio', opcion)}
+            >
+              {opcion}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pregunta 4 */}
+      <div className="campo-form">
+        <label>¿La vivienda está segura para un animal?</label>
+        <div className="chips-container">
+          {opcionesSeguridad.map(opcion => (
+            <div
+              key={opcion}
+              className={`chip ${data.seguridad === opcion ? 'chip-seleccionado' : ''}`}
+              onClick={() => handleSelect('seguridad', opcion)}
+            >
+              {opcion}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default SeccionSituacionHabitacional;
