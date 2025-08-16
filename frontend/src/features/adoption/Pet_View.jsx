@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'; 
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
+import axios from 'axios';
 import './Pet_View.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -21,12 +22,54 @@ const PetAdoptionPost = ({ pet }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState({ text: '', type: '' });
+  const navigate = useNavigate();
 
-  const handleAdoptClick = () => {
-    console.log(`Solicitud de adopción para ${pet.name}`);
-    alert(`¡Tu solicitud para adoptar a ${pet.name} ha sido enviada! Pronto te contactaremos.`);
-    // Aquí iría la lógica para interactuar con tu backend (enviar solicitud, abrir chat)
+  const handleAdoptClick = async () => {
+    setIsProcessing(true);
+    setSubmissionMessage({ text: '', type: '' });
+
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        setSubmissionMessage({ text: 'Debes iniciar sesión para adoptar', type: 'error' });
+        return;
+      }
+
+      const formCheck = await axios.get(
+        `http://localhost:8000/adoption/check-form/${user.id}`
+      );
+
+      if (!formCheck.data.has_form) {
+        navigate(`/formulario_adopcion/${pet.id}`);
+        return;
+      }
+
+      const adoptionResponse = await axios.post(
+        'http://localhost:8000/adoptions/request',
+        { pet_id: pet.id, user_id: user.id }
+      );
+
+      setSubmissionMessage({
+        text: `¡Tu solicitud para adoptar a ${pet.name} ha sido enviada! Pronto te contactaremos.`,
+        type: 'success'
+      });
+      setTimeout(() => navigate('/panel_adopcion'), 3000);
+
+    } catch (error) {
+      console.error('Error en el proceso de adopción:', error);
+
+      if (error.response?.status === 404) {
+        navigate(`/formulario_adopcion/${pet.id}`);
+      } else if (error.response?.status === 409) {
+        setSubmissionMessage({ text: 'Ya has solicitado adoptar esta mascota', type: 'error' });
+      } else {
+        setSubmissionMessage({ text: 'Error al procesar tu solicitud. Por favor inténtalo nuevamente.', type: 'error' });
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleSaveClick = () => {
@@ -36,13 +79,11 @@ const PetAdoptionPost = ({ pet }) => {
   };
 
   const handleMoreInfo = () => {
-    setShowInfoModal(true);  
+    setShowInfoModal(true);
     setMenuOpen(false);
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const sliderSettings = {
     dots: true,
@@ -59,7 +100,7 @@ const PetAdoptionPost = ({ pet }) => {
 
   return (
     <div className="pet-adoption-post">
-      {/* Sección de Imágenes con Slider */}
+      {/* Sección de Imágenes */}
       <div className="pet-images-section">
         {pet.images && pet.images.length > 0 ? (
           <div className="slider-container">
@@ -72,19 +113,17 @@ const PetAdoptionPost = ({ pet }) => {
             </Slider>
           </div>
         ) : (
-          <div className="no-images-placeholder">
-            No hay imágenes disponibles
-          </div>
+          <div className="no-images-placeholder">No hay imágenes disponibles</div>
         )}
       </div>
 
-      {/* Sección de Información */}
+      {/* Información */}
       <div className="pet-info-section">
         <div>
           <div className="pet-title-row">
             <h1 className="pet-name">{pet.name}</h1>
             <div className="menu-container">
-              <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)}>
+              <button className="menu-button" onClick={toggleMenu}>
                 <FaEllipsisV />
               </button>
               {menuOpen && (
@@ -124,21 +163,13 @@ const PetAdoptionPost = ({ pet }) => {
             <hr className="separador" />
             <h3>Más sobre {pet.name}:</h3>
             <ul>
-              <li>
-                <strong>Raza:</strong> {pet.breed}
-              </li>
-              <li>
-                <strong>Color de Pelaje:</strong> {pet.furColor}
-              </li>
-              <li>
-                <strong>Largo de Pelaje:</strong> {pet.furLength}
-              </li>
+              <li><strong>Raza:</strong> {pet.breed}</li>
+              <li><strong>Color de Pelaje:</strong> {pet.furColor}</li>
+              <li><strong>Largo de Pelaje:</strong> {pet.furLength}</li>
               <li>
                 <strong>Esterilizado:</strong>{' '}
                 {pet.sterilized ? (
-                  <span className="status-positive">
-                    Sí <FaSyringe />
-                  </span>
+                  <span className="status-positive">Sí <FaSyringe /></span>
                 ) : (
                   <span className="status-negative">No</span>
                 )}
@@ -146,9 +177,7 @@ const PetAdoptionPost = ({ pet }) => {
               <li>
                 <strong>Vacunado:</strong>{' '}
                 {pet.vaccinated ? (
-                  <span className="status-positive">
-                    Sí <FaStethoscope />
-                  </span>
+                  <span className="status-positive">Sí <FaStethoscope /></span>
                 ) : (
                   <span className="status-negative">No</span>
                 )}
@@ -157,48 +186,43 @@ const PetAdoptionPost = ({ pet }) => {
                 <strong>Compatible con:</strong>
                 <div className="compatibility-badges">
                   {pet.compatibleWithChildren && (
-                    <span className="compatibility-badge">
-                      <FaChild /> Niños
-                    </span>
+                    <span className="compatibility-badge"><FaChild /> Niños</span>
                   )}
                   {pet.compatibleWithCats && (
-                    <span className="compatibility-badge">
-                      <FaCat /> Gatos
-                    </span>
+                    <span className="compatibility-badge"><FaCat /> Gatos</span>
                   )}
                   {pet.compatibleWithDogs && (
-                    <span className="compatibility-badge">
-                      <FaDog /> Perros
-                    </span>
+                    <span className="compatibility-badge"><FaDog /> Perros</span>
                   )}
-
-                  <hr className="separador" />
-
                 </div>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Botón de Adoptar */}
-        <button onClick={handleAdoptClick} className="adopt-button">
-          ¡Quiero Adoptar a {pet.name}!
+        {/* Botón Adoptar */}
+        <button 
+          onClick={handleAdoptClick} 
+          className="adopt-button"
+          disabled={isProcessing}
+        >
+          {isProcessing ? 'Procesando...' : `¡Quiero Adoptar a ${pet.name}!`}
         </button>
 
-        {/* Información Modal */}
+        {/* Mensaje de envío */}
+        {submissionMessage.text && (
+          <div className={`submission-message ${submissionMessage.type}`}>
+            {submissionMessage.text}
+          </div>
+        )}
+
+        {/* Modal de Información */}
         {showInfoModal && (
           <div className="modal-overlay">
             <div className="modal-content">
-              <h3>Más informacion sobre {pet.name}</h3>
-              <p>{pet.description && pet.description.trim() !== '' 
-                    ? pet.description 
-                    : 'No hay descripción disponible para esta mascota.'}</p>
-              <button 
-                className="boton-aceptar" 
-                onClick={() => setShowInfoModal(false)}
-              >
-                Cerrar
-              </button>
+              <h3>Más información sobre {pet.name}</h3>
+              <p>{pet.description?.trim() || 'No hay descripción disponible para esta mascota.'}</p>
+              <button className="boton-aceptar" onClick={() => setShowInfoModal(false)}>Cerrar</button>
             </div>
           </div>
         )}
@@ -207,7 +231,6 @@ const PetAdoptionPost = ({ pet }) => {
   );
 };
 
-// Componente principal de la vista de detalle
 const PetDetailView = () => {
   const { id } = useParams();
   const [mascota, setMascota] = useState(null);
@@ -226,6 +249,7 @@ const PetDetailView = () => {
         const data = await res.json();
 
         const mappedPetData = {
+          id: data.id,
           name: data.name,
           type: data.type,
           gender: data.gender,
@@ -261,11 +285,7 @@ const PetDetailView = () => {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="pet-detail-message loading">
-        Cargando información de la mascota...
-      </div>
-    );
+    return <div className="pet-detail-message loading">Cargando información de la mascota...</div>;
   }
 
   if (error) {
@@ -278,11 +298,7 @@ const PetDetailView = () => {
   }
 
   if (!mascota) {
-    return (
-      <div className="pet-detail-message no-data">
-        No se encontró información para esta mascota.
-      </div>
-    );
+    return <div className="pet-detail-message no-data">No se encontró información para esta mascota.</div>;
   }
 
   return <PetAdoptionPost pet={mascota} />;

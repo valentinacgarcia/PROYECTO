@@ -1,91 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import './SeccionComposicionHogar.css';
 
-const opciones = {
-  siNo: ["SI", "NO"]
-};
-
-const SeccionComposicionHogar = ({ onChange }) => {
-  const [data, setData] = useState({
-    personas: '',
-    hayNinos: '',
-    alergias: '',
-    acuerdo: ''
+const SeccionComposicionHogar = ({ onChange, initialData = {} }) => {
+  const [formData, setFormData] = useState({
+    personas: initialData.personas || '',
+    hayNinos: initialData.hayNinos || '',
+    alergias: initialData.alergias || '',
+    acuerdo: initialData.acuerdo || ''
   });
 
-  useEffect(() => {
-    onChange(data);
-  }, [data, onChange]);
-
-  const handleChange = (name, value) => {
-    setData(prev => ({ ...prev, [name]: value }));
+  // Actualización inmediata al padre
+  const handleChange = (field, value) => {
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    onChange(newData); // Envía los datos actualizados inmediatamente
   };
+
+  // Sincronización con initialData
+  useEffect(() => {
+    setFormData({
+      personas: initialData.personas || '',
+      hayNinos: initialData.hayNinos || '',
+      alergias: initialData.alergias || '',
+      acuerdo: initialData.acuerdo || ''
+    });
+  }, [initialData]);
 
   return (
     <div className="seccion-container">
       <h3>2. Composición del hogar</h3>
 
-      {/* Número de personas */}
       <div className="campo-form">
         <label>¿Cuántas personas viven en el hogar?</label>
         <input
           type="number"
           min="1"
-          value={data.personas}
+          value={formData.personas}
           onChange={(e) => handleChange('personas', e.target.value)}
           placeholder="Ej: 4"
         />
       </div>
 
-      {/* Niños */}
-      <div className="campo-form">
-        <label>¿Hay niños?</label>
-        <div className="chips-container">
-          {opciones.siNo.map(opcion => (
-            <div
-              key={opcion}
-              className={`chip ${data.hayNinos === opcion ? 'chip-seleccionado' : ''}`}
-              onClick={() => handleChange('hayNinos', opcion)}
-            >
-              {opcion}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ChipGroup 
+        title="¿Hay niños?"
+        options={['SI', 'NO']}
+        selected={formData.hayNinos}
+        onSelect={(value) => handleChange('hayNinos', value)}
+      />
 
-      {/* Alergias o condiciones */}
-      <div className="campo-form">
-        <label>¿Hay personas alérgicas o con condiciones médicas especiales?</label>
-        <div className="chips-container">
-          {opciones.siNo.map(opcion => (
-            <div
-              key={opcion}
-              className={`chip ${data.alergias === opcion ? 'chip-seleccionado' : ''}`}
-              onClick={() => handleChange('alergias', opcion)}
-            >
-              {opcion}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ChipGroup 
+        title="¿Hay personas alérgicas o con condiciones médicas especiales?"
+        options={['SI', 'NO']}
+        selected={formData.alergias}
+        onSelect={(value) => handleChange('alergias', value)}
+      />
 
-      {/* Acuerdo de todos */}
-      <div className="campo-form">
-        <label>¿Todos están de acuerdo con la adopción?</label>
-        <div className="chips-container">
-          {opciones.siNo.map(opcion => (
-            <div
-              key={opcion}
-              className={`chip ${data.acuerdo === opcion ? 'chip-seleccionado' : ''}`}
-              onClick={() => handleChange('acuerdo', opcion)}
-            >
-              {opcion}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ChipGroup 
+        title="¿Todos están de acuerdo con la adopción?"
+        options={['SI', 'NO']}
+        selected={formData.acuerdo}
+        onSelect={(value) => handleChange('acuerdo', value)}
+      />
     </div>
   );
 };
+
+// Componente ChipGroup reutilizable
+const ChipGroup = ({ title, options, selected, onSelect }) => (
+  <div className="campo-form">
+    <label>{title}</label>
+    <div className="chips-container">
+      {options.map(option => (
+        <button
+          key={option}
+          type="button"
+          className={`chip ${selected === option ? 'chip-seleccionado' : ''}`}
+          onClick={() => onSelect(option)}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
 export default SeccionComposicionHogar;

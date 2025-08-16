@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\PetLike;
 use App\Repository\PetLikeRepository;
 use App\Repository\PetRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,31 +18,51 @@ class PetLikeController extends AbstractController
     private EntityManagerInterface $em;
     private PetLikeRepository $petLikeRepository;
     private PetRepository $petRepository;
+    private UserRepository $userRepository;
 
-    public function __construct(EntityManagerInterface $em, PetLikeRepository $petLikeRepository, PetRepository $petRepository)
+    public function __construct(EntityManagerInterface $em, PetLikeRepository $petLikeRepository, PetRepository $petRepository, UserRepository $userRepository)
     {
         $this->em = $em;
         $this->petLikeRepository = $petLikeRepository;
         $this->petRepository = $petRepository;
+        $this->userRepository = $userRepository;
+        
     }
 
-    /**
-     * POST /api/adoptions/request
-     * Usuario interesado da "me gusta" a una mascota (solicita adopción)
-     */
     #[Route('/request', name: 'adoption_request', methods: ['POST'])]
     public function requestAdoption(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+
+        // Log de todo el payload
+        error_log('📥 Payload recibido: ' . json_encode($data));
+
         $petId = $data['pet_id'] ?? null;
+        $userId = $data['user_id'] ?? null;
+
+        error_log("🐾 Pet ID recibido: " . var_export($petId, true));
+        error_log("👤 User ID recibido: " . var_export($userId, true));
 
         if (!$petId) {
+            error_log("❌ Faltó el Pet ID");
             return $this->json(['error' => 'Pet ID is required'], 400);
         }
 
-        $user = $this->getUser();
+        if (!$userId) {
+            error_log("❌ Faltó el User ID");
+            return $this->json(['error' => 'User ID is required'], 400);
+        }
 
+        // Buscar usuario por ID
+        $user = $this->userRepository->find($userId);
+        error_log("🔍 Usuario encontrado: " . ($user ? $user->getId() : 'no encontrado'));
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], 404);
+        }
+
+        // Buscar mascota
         $pet = $this->petRepository->find($petId);
+        error_log("🔍 Mascota encontrada: " . ($pet ? $pet->getId() : 'no encontrada'));
         if (!$pet) {
             return $this->json(['error' => 'Pet not found'], 404);
         }
@@ -51,10 +72,13 @@ class PetLikeController extends AbstractController
             'pet' => $pet,
             'interestedUser' => $user,
         ]);
+        error_log("✅ Solicitud existente: " . ($existing ? 'sí' : 'no'));
+
         if ($existing) {
             return $this->json(['message' => 'Request already sent'], 409);
         }
 
+        // Crear nueva solicitud
         $petLike = new PetLike();
         $petLike->setPet($pet);
         $petLike->setInterestedUser($user);
@@ -64,8 +88,11 @@ class PetLikeController extends AbstractController
         $this->em->persist($petLike);
         $this->em->flush();
 
+        error_log("🎉 Nueva solicitud creada para Pet ID $petId y User ID $userId");
+
         return $this->json(['message' => 'Request sent']);
     }
+
 
     /**
      * GET /api/adoptions/notifications

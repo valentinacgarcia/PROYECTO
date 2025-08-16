@@ -49,6 +49,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Adoption::class, mappedBy: 'user')]
     private Collection $adoptions;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: AdoptionRequest::class)]
+    private Collection $adoptionRequests;
+
+
     public function __construct()
     {
         $this->roles = new ArrayCollection();
@@ -198,6 +202,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!$this->adoptions->contains($adoption)) {
             $this->adoptions->add($adoption);
             $adoption->setUser($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdoptionRequest>
+     */
+    public function getAdoptionRequests(): Collection
+    {
+        return $this->adoptionRequests;
+    }
+
+    public function addAdoptionRequest(AdoptionRequest $request): static
+    {
+        if (!$this->adoptionRequests->contains($request)) {
+            $this->adoptionRequests->add($request);
+            $request->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdoptionRequest(AdoptionRequest $request): static
+    {
+        if ($this->adoptionRequests->removeElement($request)) {
+            if ($request->getUser() === $this) {
+                $request->setUser(null);
+            }
         }
 
         return $this;

@@ -333,3 +333,23 @@
     margin: 40px auto; /* Más margen para centrar mejor en pantallas grandes */
   }
 }
+
+.submission-message {
+  padding: 12px 20px;
+  margin-top: 15px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.submission-message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.submission-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}

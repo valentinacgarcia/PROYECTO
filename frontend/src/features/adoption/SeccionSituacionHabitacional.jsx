@@ -2,59 +2,50 @@ import React, { useState, useEffect } from 'react';
 import './SeccionSituacionHabitacional.css';
 
 const SeccionSituacionHabitacional = ({ onChange, initialData = {} }) => {
-    const [formData, setFormData] = useState({
-        tipoVivienda: initialData.tipoVivienda || [],
-        tenencia: initialData.tenencia || [],
-        patio: initialData.patio || [],
-        seguridad: initialData.seguridad || []
+    const [selectedValues, setSelectedValues] = useState({
+        tipoVivienda: initialData.tipoVivienda?.[0] || '',
+        tenencia: initialData.tenencia?.[0] || '',
+        patio: initialData.patio?.[0] || '',
+        seguridad: initialData.seguridad?.[0] || ''
     });
 
-    useEffect(() => {
-        setFormData({
-            tipoVivienda: initialData.tipoVivienda || [],
-            tenencia: initialData.tenencia || [],
-            patio: initialData.patio || [],
-            seguridad: initialData.seguridad || []
-        });
-    }, [initialData]);
-
     const handleSelect = (field, value) => {
-        setFormData((prev) => {
-            const currentValues = prev[field];
-            let updatedValues;
-
-            if (currentValues.includes(value)) {
-                updatedValues = currentValues.filter((item) => item !== value);
-            } else {
-                updatedValues = [...currentValues, value];
-            }
-
-            const updatedFormData = { ...prev, [field]: updatedValues };
-            if (onChange) {
-                onChange(updatedFormData);
-            }
-            return updatedFormData;
+        setSelectedValues(prev => {
+            const newValues = {
+                ...prev,
+                [field]: prev[field] === value ? '' : value // Toggle selection
+            };
+            
+            // Convertir a formato que espera el padre (arrays)
+            const formatForParent = {
+                tipoVivienda: newValues.tipoVivienda ? [newValues.tipoVivienda] : [],
+                tenencia: newValues.tenencia ? [newValues.tenencia] : [],
+                patio: newValues.patio ? [newValues.patio] : [],
+                seguridad: newValues.seguridad ? [newValues.seguridad] : []
+            };
+            
+            onChange(formatForParent);
+            
+            return newValues;
         });
     };
 
     const renderChipGroup = (field, question, options) => (
-        <fieldset className="pregunta">
-            <legend className="pregunta-texto">{question}</legend>
-            <div className="chips-container" role="group" aria-labelledby={`${field}-question`}>
-                {options.map((option) => (
+        <div className="pregunta">
+            <h4 className="pregunta-texto">{question}</h4>
+            <div className="chips-container">
+                {options.map(option => (
                     <button
                         key={option.value}
                         type="button"
-                        className={`chip ${formData[field].includes(option.value) ? 'chip-seleccionado' : ''}`}
+                        className={`chip ${selectedValues[field] === option.value ? 'chip-seleccionado' : ''}`}
                         onClick={() => handleSelect(field, option.value)}
-                        aria-checked={formData[field].includes(option.value)}
-                        role="checkbox"
                     >
                         {option.label}
                     </button>
                 ))}
             </div>
-        </fieldset>
+        </div>
     );
 
     return (
