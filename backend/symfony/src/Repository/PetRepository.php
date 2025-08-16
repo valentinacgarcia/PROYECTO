@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Pet;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\QueryBuilder; // Asegúrate de tener este use
+use Doctrine\ORM\QueryBuilder;
 
 class PetRepository extends ServiceEntityRepository
 {
@@ -45,8 +45,8 @@ class PetRepository extends ServiceEntityRepository
      * Encuentra mascotas disponibles con paginación
      */
     public function findAvailableForAdoptionPaginated(
-        array $filters = [], 
-        int $page = 1, 
+        array $filters = [],
+        int $page = 1,
         int $limit = 12
     ): array {
         $qb = $this->createQueryBuilder('p')
@@ -66,7 +66,6 @@ class PetRepository extends ServiceEntityRepository
 
         // Aplicar paginación
         $qb->setFirstResult($offset)->setMaxResults($limit);
-
         $pets = $qb->getQuery()->getResult();
 
         return [
@@ -88,20 +87,20 @@ class PetRepository extends ServiceEntityRepository
         // Filtro por región/ubicación
         if (!empty($filters['region']) && is_array($filters['region'])) {
             $qb->andWhere('p.location IN (:regions)')
-               ->setParameter('regions', $filters['region']);
+                ->setParameter('regions', $filters['region']);
         }
 
         // Filtro por raza
         if (!empty($filters['raza']) && is_array($filters['raza'])) {
             $qb->andWhere('p.breed IN (:breeds)')
-               ->setParameter('breeds', $filters['raza']);
+                ->setParameter('breeds', $filters['raza']);
         }
 
         // Filtro por género
         if (!empty($filters['genero']) && is_array($filters['genero'])) {
             $normalizedGenders = array_map([$this, 'normalizeGenderForQuery'], $filters['genero']);
             $qb->andWhere('LOWER(p.gender) IN (:genders)')
-               ->setParameter('genders', $normalizedGenders);
+                ->setParameter('genders', $normalizedGenders);
         }
 
         // Filtro por edad (categorías)
@@ -113,15 +112,15 @@ class PetRepository extends ServiceEntityRepository
         if (!empty($filters['tamaño']) && is_array($filters['tamaño'])) {
             $normalizedSizes = array_map([$this, 'normalizeSizeForQuery'], $filters['tamaño']);
             $qb->andWhere('LOWER(p.size) IN (:sizes)')
-               ->setParameter('sizes', $normalizedSizes);
+                ->setParameter('sizes', $normalizedSizes);
         }
 
-        // Filtro por color - usando JSON_CONTAINS para arrays
-        if (!empty($filters['color']) && is_array($filters['color'])) {
+        // Filtro por colores
+        if (!empty($filters['colors']) && is_array($filters['colors'])) {
             $colorConditions = [];
-            foreach ($filters['color'] as $index => $color) {
-                $colorConditions[] = "JSON_CONTAINS(p.colors, :color{$index}) = 1";
-                $qb->setParameter("color{$index}", json_encode($this->normalizeColorForQuery($color)));
+            foreach ($filters['colors'] as $index => $color) {
+                $colorConditions[] = "p.colors LIKE :color{$index}";
+                $qb->setParameter("color{$index}", '%"' . strtolower($color) . '"%');
             }
             if (!empty($colorConditions)) {
                 $qb->andWhere('(' . implode(' OR ', $colorConditions) . ')');
@@ -131,69 +130,60 @@ class PetRepository extends ServiceEntityRepository
         // Filtro por largo de pelaje
         if (!empty($filters['largoPelaje']) && is_array($filters['largoPelaje'])) {
             $normalizedFurLengths = array_map([$this, 'normalizeFurLengthForQuery'], $filters['largoPelaje']);
-            $qb->andWhere('LOWER(p.furLength) IN (:furLengths)')
-               ->setParameter('furLengths', $normalizedFurLengths);
+            $qb->andWhere('LOWER(p.fur_length) IN (:furLengths)')
+                ->setParameter('furLengths', $normalizedFurLengths);
         }
 
         // Filtro por castrado
         if (!empty($filters['castrado']) && is_array($filters['castrado'])) {
-            $sterilizedValues = [];
-            foreach ($filters['castrado'] as $value) {
-                $sterilizedValues[] = ($value === 'Sí') ? 1 : 0;
-            }
             $qb->andWhere('p.sterilized IN (:sterilized)')
-               ->setParameter('sterilized', $sterilizedValues);
+                ->setParameter('sterilized', $filters['castrado']); // ✅ Usar ["Sí"] directamente
         }
 
-        // Filtro por compatibilidad - usando JSON_CONTAINS
         if (!empty($filters['compatibilidad']) && is_array($filters['compatibilidad'])) {
-            $compatibilityConditions = [];
-            foreach ($filters['compatibilidad'] as $index => $compatibility) {
-                $compatibilityConditions[] = "JSON_CONTAINS(p.compatibility, :compatibility{$index}) = 1";
-                $qb->setParameter("compatibility{$index}", json_encode($compatibility));
-            }
-            if (!empty($compatibilityConditions)) {
-                $qb->andWhere('(' . implode(' OR ', $compatibilityConditions) . ')');
-            }
+        $compatibilityConditions = [];
+        foreach ($filters['compatibilidad'] as $index => $compa) {
+            $compatibilityConditions[] = "p.compatibility LIKE :compatibilidad{$index}";
+            $qb->setParameter("compatibilidad{$index}", '%"' . $compa . '"%');
         }
-
+        if (!empty($compatibilityConditions)) {
+            $qb->andWhere('(' . implode(' OR ', $compatibilityConditions) . ')');
+        }
+    }
         // Filtro por tipo de mascota
         if (!empty($filters['tipo']) && is_array($filters['tipo'])) {
-            $qb->andWhere('p.type IN (:types)')
-               ->setParameter('types', $filters['tipo']);
+            $normalizedTypes = array_map([$this, 'normalizeTypeForQuery'], $filters['tipo']);
+            $qb->andWhere('LOWER(p.type) IN (:types)')
+                ->setParameter('types', $normalizedTypes);
         }
 
         // Filtro por vacunación
         if (!empty($filters['vacunado'])) {
             $qb->andWhere('p.vaccinated = :vaccinated')
-               ->setParameter('vaccinated', $filters['vacunado'] === 'Sí');
+                ->setParameter('vaccinated', $filters['vacunado'] === 'Sí');
         }
     }
 
-    /**
-     * Aplicar filtro de edad por categorías
-     */
     private function applyAgeFilter(QueryBuilder $qb, array $ageCategories): void
     {
         $ageConditions = [];
-        
         foreach ($ageCategories as $category) {
             switch ($category) {
                 case 'Cachorro':
-                    $ageConditions[] = '(p.ageYears * 12 + p.ageMonths) <= 12';
+                    $ageConditions[] = '(p.age_years * 12 + p.age_months) <= 12'; 
                     break;
                 case 'Joven':
-                    $ageConditions[] = '(p.ageYears * 12 + p.ageMonths) > 12 AND (p.ageYears * 12 + p.ageMonths) <= 36';
+                    $ageConditions[] = '(p.age_years * 12 + p.age_months) > 12 AND (p.age_years * 12 + p.age_months) <= 36';
                     break;
                 case 'Adulto':
-                    $ageConditions[] = '(p.ageYears * 12 + p.ageMonths) > 36 AND (p.ageYears * 12 + p.ageMonths) <= 96';
+                    $ageConditions[] = '(p.age_years * 12 + p.age_months) > 36 AND (p.age_years * 12 + p.age_months) <= 96';
                     break;
                 case 'Senior':
-                    $ageConditions[] = '(p.ageYears * 12 + p.ageMonths) > 96';
+                    $ageConditions[] = '(p.age_years * 12 + p.age_months) > 96';
                     break;
             }
         }
-        
+
         if (!empty($ageConditions)) {
             $qb->andWhere('(' . implode(' OR ', $ageConditions) . ')');
         }
@@ -269,7 +259,7 @@ class PetRepository extends ServiceEntityRepository
             ->andWhere('
                 LOWER(p.name) LIKE LOWER(:search) OR 
                 LOWER(p.breed) LIKE LOWER(:search) OR 
-                LOWER(p.description) LIKE LOWER(:search) OR
+                LOWER(p.description) LIKE LOWER(:search) OR 
                 LOWER(p.location) LIKE LOWER(:search)
             ')
             ->setParameter('adopted', false)
@@ -293,7 +283,7 @@ class PetRepository extends ServiceEntityRepository
     {
         return match (strtolower($size)) {
             'pequeño' => 'pequeño',
-            'mediano' => 'mediano', 
+            'mediano' => 'mediano',
             'grande' => 'grande',
             default => strtolower($size)
         };
@@ -305,6 +295,7 @@ class PetRepository extends ServiceEntityRepository
             'blanco' => 'blanco',
             'negro' => 'negro',
             'marrón' => 'marrón',
+            'otro' => 'otro',
             default => strtolower($color)
         };
     }
@@ -316,6 +307,16 @@ class PetRepository extends ServiceEntityRepository
             'medio' => 'medio',
             'largo' => 'largo',
             default => strtolower($furLength)
+        };
+    }
+
+    // NUEVO MÉTODO para normalizar tipos
+    private function normalizeTypeForQuery(string $type): string
+    {
+        return match (strtolower($type)) {
+            'perro' => 'perro',
+            'gato' => 'gato',
+            default => strtolower($type)
         };
     }
 }

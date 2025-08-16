@@ -21,12 +21,16 @@ const PetMatch = () => {
     genero: [],
     edad: [],
     tamaño: [],
-    color: [],
+    colors: [],
     largoPelaje: [],
     castrado: [],
     compatibilidad: [],
     tipo: []
   });
+
+  const normalizeBackendData = (pets) => {
+    return pets;
+  };
 
   // Manejo de checkboxes
   const handleCheckboxChange = (filterName, value) => {
@@ -52,6 +56,15 @@ const PetMatch = () => {
     setCurrentPage(1);
   };
 
+  // Manejo especial para el filtro de tipo
+  const handleTypeFilter = (type) => {
+    setFilters(prev => ({
+      ...prev,
+      tipo: prev.tipo.includes(type) ? [] : [type]
+    }));
+    setCurrentPage(1);
+  };
+
   const fetchPets = async () => {
     setLoading(true);
     setError(null);
@@ -63,6 +76,7 @@ const PetMatch = () => {
         limit: cardsPerPage,
       };
 
+      // Agregar filtros a los parámetros
       for (const key in filters) {
         if (filters[key].length > 0) {
           params[key] = JSON.stringify(filters[key]);
@@ -72,7 +86,9 @@ const PetMatch = () => {
       const response = await axios.get('http://localhost:8000/pet/list-all', { params });
 
       if (response.data.success) {
-        setPets(response.data.data);
+        // Normalizar datos antes de setear el estado
+        const normalizedPets = normalizeBackendData(response.data.data);
+        setPets(normalizedPets);
         setTotalPets(response.data.pagination.total_items);
       } else {
         setError('Error al cargar mascotas.');
@@ -138,6 +154,11 @@ const PetMatch = () => {
     ));
   };
 
+  // Función para capitalizar primera letra
+  const capitalize = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   return (
     <div className="petmatch-container">
       <h1>Mascotas en adopción cerca tuyo!</h1>
@@ -154,24 +175,14 @@ const PetMatch = () => {
             <div className="icon-selector">
               <div
                 className={`icon-option ${filters.tipo.includes('perro') ? 'selected' : ''}`}
-                onClick={() =>
-                  setFilters(prev => ({
-                    ...prev,
-                    tipo: prev.tipo.includes('perro') ? [] : ['perro']
-                  }))
-                }
+                onClick={() => handleTypeFilter('perro')}
               >
                 <img src={perro} alt="Perro" />
                 <span>Perro</span>
               </div>
               <div
                 className={`icon-option ${filters.tipo.includes('gato') ? 'selected' : ''}`}
-                onClick={() =>
-                  setFilters(prev => ({
-                    ...prev,
-                    tipo: prev.tipo.includes('gato') ? [] : ['gato']
-                  }))
-                }
+                onClick={() => handleTypeFilter('gato')}
               >
                 <img src={gato} alt="Gato" />
                 <span>Gato</span>
@@ -179,7 +190,6 @@ const PetMatch = () => {
             </div>
           </div>
 
-          {/* Luego el resto de los filtros */}
           <div className="filter-section">
             <h3>Región</h3>
             <select
@@ -226,8 +236,6 @@ const PetMatch = () => {
             </label>
           </div>
 
-          {/* Resto filtros similares */}
-
           <div className="filter-section">
             <h3>Edad</h3>
             <label>
@@ -264,8 +272,6 @@ const PetMatch = () => {
             </label>
           </div>
 
-          {/* Tamaño, color, largo pelaje, castrado, compatibilidad igual */}
-
           <div className="filter-section">
             <h3>Tamaño</h3>
             <label>
@@ -299,32 +305,32 @@ const PetMatch = () => {
             <label>
               <input
                 type="checkbox"
-                checked={filters.color.includes('Blanco')}
-                onChange={() => handleCheckboxChange('color', 'Blanco')}
+                checked={filters.colors.includes('Blanco')}
+                onChange={() => handleCheckboxChange('colors', 'Blanco')}
               />{' '}
               Blanco
             </label>
             <label>
               <input
                 type="checkbox"
-                checked={filters.color.includes('Negro')}
-                onChange={() => handleCheckboxChange('color', 'Negro')}
+                checked={filters.colors.includes('Negro')}
+                onChange={() => handleCheckboxChange('colors', 'Negro')}
               />{' '}
               Negro
             </label>
             <label>
               <input
                 type="checkbox"
-                checked={filters.color.includes('Marrón')}
-                onChange={() => handleCheckboxChange('color', 'Marrón')}
+                checked={filters.colors.includes('Marrón')}
+                onChange={() => handleCheckboxChange('colors', 'Marrón')}
               />{' '}
               Marrón
             </label>
             <label>
               <input
                 type="checkbox"
-                checked={filters.color.includes('Otro')}
-                onChange={() => handleCheckboxChange('color', 'Otro')}
+                checked={filters.colors.includes('Otro')}
+                onChange={() => handleCheckboxChange('colors', 'Otro')}
               />{' '}
               Otro
             </label>
@@ -436,14 +442,17 @@ const PetMatch = () => {
                     onClick={() => navigate(`/adopcion/${pet.id}`)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <img src={pet.photos && pet.photos.length > 0 ? pet.photos[0] : 'default.png'} alt={pet.name} />
+                    <img 
+                      src={pet.photos && pet.photos.length > 0 ? pet.photos[0] : 'default.png'} 
+                      alt={pet.name} 
+                    />
                     <div className="pet-info">
                       <div className="pet-name-row">
                         <span className="pet-name">{pet.name}</span>
-                        {pet.gender === 'hembra' && (
+                        {pet.gender === 'Hembra' && (
                           <span className="gender-icon female">♀</span>
                         )}
-                        {pet.gender === 'macho' && (
+                        {pet.gender === 'Macho' && (
                           <span className="gender-icon male">♂</span>
                         )}
                       </div>

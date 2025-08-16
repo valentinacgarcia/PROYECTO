@@ -162,37 +162,7 @@ class PetController extends AbstractController
     
     private function serializePet(Pet $pet): array
     {
-        $photos = [];
-        foreach ($pet->getPhotos() as $photo) {
-            // Opción 1: Usar presigned URLs (más seguro)
-            $photos[] = $this->getPresignedUrl($photo->getUrl());
-            
-            // Opción 2: Usar URLs públicas directas (si el bucket es público)
-            // $photos[] = $this->getPublicUrl($photo->getUrl());
-        }
-
-        return [
-            'id' => $pet->getId(),
-            'name' => $pet->getName(),
-            'type' => $pet->getType(),
-            'gender' => $pet->getGender(),
-            'age_years' => $pet->getAgeYears(),
-            'age_months' => $pet->getAgeMonths(),
-            'size' => $pet->getSize(),
-            'is_purebred' => $pet->isPurebred(),
-            'breed' => $pet->getBreed(),
-            'colors' => $pet->getColors(),
-            'fur_length' => $pet->getFurLength(),
-            'sterilized' => $pet->getSterilized(),
-            'vaccinated' => $pet->getVaccinated(),
-            'compatibility' => $pet->getCompatibility(),
-            'description' => $pet->getDescription(),
-            'location' => $pet->getLocation(),
-            'is_adopted' => $pet->isAdopted(),
-            'created_at' => $pet->getCreatedAt()->format('Y-m-d H:i:s'),
-            'owner_id' => $pet->getOwner()?->getId(),
-            'photos' => $photos,
-        ];
+        return $this->serializePetNormalized($pet);
     }
 
     private function uploadToMinio(UploadedFile $file, int $userId, int $petId): string
@@ -246,22 +216,22 @@ class PetController extends AbstractController
         $request = $s3->createPresignedRequest($cmd, '+20 minutes');
         $presignedUrl = (string) $request->getUri();
 
-        return $presignedUrl; // ✅ Sin reemplazar
+        return $presignedUrl; 
     }
 
     #[Route('/list-all', methods: ['GET'])]
     public function listAll(Request $request, PetRepository $petRepository): JsonResponse
     {
-        
         try {
             $filters = $this->extractFiltersFromRequest($request);
             $page = max(1, (int) $request->query->get('page', 1));
             $limit = max(1, min(50, (int) $request->query->get('limit', 12)));
             $result = $petRepository->findAvailableForAdoptionPaginated($filters, $page, $limit);
 
-            $data = array_map(fn($pet) => $this->serializePet($pet), $result['pets']);
+            // Normalizar datos antes de serializar
+            $data = array_map(fn($pet) => $this->serializePetNormalized($pet), $result['pets']);
 
-            return $this->json([
+            $response = new JsonResponse([
                 'success' => true,
                 'data' => $data,
                 'pagination' => [
@@ -273,11 +243,21 @@ class PetController extends AbstractController
                     'has_previous' => $result['hasPrev'],
                 ],
             ]);
+            
+            // Configurar el encoding para caracteres Unicode
+            $response->setEncodingOptions(JSON_UNESCAPED_UNICODE);
+            
+            return $response;
+            
         } catch (\Exception $e) {
-            return $this->json([
+            $errorResponse = new JsonResponse([
                 'success' => false,
                 'error' => 'Error al obtener las mascotas: ' . $e->getMessage(),
             ], 500);
+            
+            $errorResponse->setEncodingOptions(JSON_UNESCAPED_UNICODE);
+            
+            return $errorResponse;
         }
     }
 
@@ -285,24 +265,75 @@ class PetController extends AbstractController
     {
         $filters = [];
         $filterKeys = [
-            'region', 'tipo', 'raza', 'genero', 'edad', 'tamaño', 'color', 'largoPelaje', 'castrado', 'compatibilidad'
+            'region', 'tipo', 'raza', 'genero', 'edad', 'tamaño', 'colors', 'largoPelaje', 'castrado', 'compatibilidad'
         ];
 
         foreach ($filterKeys as $key) {
             $value = $request->query->get($key);
-            if ($value !== null) {
-                // Si el frontend envía un array como string, decodifica
-                if (is_string($value) && $value !== '') {
+            if ($value !== null && $value !== '') {
+                if (is_string($value)) {
                     $decoded = json_decode($value, true);
-                    $filters[$key] = $decoded !== null ? $decoded : [$value];
-                } else {
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $filters[$key] = $decoded;
+                    } else {
+                        $filters[$key] = [$value];
+                    }
+                } elseif (is_array($value)) {
                     $filters[$key] = $value;
+                } else {
+                    $filters[$key] = [$value];
                 }
             }
         }
 
         return $filters;
     }
+
+    private function serializePetNormalized(Pet $pet): array
+    {
+        $photos = [];
+        foreach ($pet->getPhotos() as $photo) {
+            $photos[] = $this->getPresignedUrl($photo->getUrl());
+        }
+
+        return [
+            'id' => $pet->getId(),
+            'name' => $this->normalizeString($pet->getName()),
+            'type' => strtolower($this->normalizeString($pet->getType())), // 🔧 En minúsculas para consistencia
+            'gender' => $this->normalizeString($pet->getGender()),
+            'age_years' => $pet->getAgeYears(),
+            'age_months' => $pet->getAgeMonths(),
+            'size' => $this->normalizeString($pet->getSize()), // 🔧 Normalizado
+            'is_purebred' => $pet->isPurebred(),
+            'breed' => $this->normalizeString($pet->getBreed()),
+            'colors' => $pet->getColors() ? array_map([$this, 'normalizeString'], $pet->getColors()) : [], // 🔧 Normalizado
+            'fur_length' => $this->normalizeString($pet->getFurLength()), // 🔧 Normalizado
+            'sterilized' => $pet->getSterilized() ? 'Sí' : 'No', // 🔧 Convertir a texto
+            'vaccinated' => $pet->getVaccinated() ? 'Sí' : 'No', // 🔧 Convertir a texto
+            'compatibility' => $pet->getCompatibility() ?: [], // ✅ SIN normalizeString
+            'description' => $this->normalizeString($pet->getDescription()),
+            'location' => $this->normalizeString($pet->getLocation()),
+            'is_adopted' => $pet->isAdopted(),
+            'created_at' => $pet->getCreatedAt()->format('Y-m-d H:i:s'),
+            'owner_id' => $pet->getOwner()?->getId(),
+            'photos' => $photos,
+        ];
+    }
+    private function normalizeString(?string $str): ?string
+{
+    if (!$str) {
+        return $str;
+    }
+    
+    if (class_exists('Normalizer')) {
+        $normalized = \Normalizer::normalize($str, \Normalizer::FORM_C);
+        return $normalized ?: $str;
+    }
+ 
+    return mb_convert_encoding($str, 'UTF-8', 'UTF-8');
+}
+
+    
 
 
 }
