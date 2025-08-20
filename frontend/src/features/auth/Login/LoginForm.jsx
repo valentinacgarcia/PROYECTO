@@ -6,6 +6,8 @@ import logo from '../../../assets/logo.png';
 const LoginForm = ({ onLogin }) => {
   const navigate = useNavigate();
 
+  const [isloggedIn, setIsloggedIn] = useState(false);
+
   const [formData, setFormData] = useState({
     email: '',
     contraseña: '',

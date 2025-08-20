@@ -12,6 +12,11 @@
   align-items: center;
 }
 
+.navbar-icons {
+  position: relative;
+  z-index: 100; 
+}
+
 .logo {
   height: 50px;
   margin-right: 10px;
@@ -197,8 +202,9 @@
 }
 
 .icon-button {
-  font-size: 1.5rem;
-  margin-right: 10px;
+  font-size: 1.1rem;
+  margin-right: 20px;
+  margin-top: 10px;
   cursor: pointer;
   color: #333;
   transition: color 0.2s ease;
@@ -207,3 +213,49 @@
 .icon-button:hover {
   color: #53a57d; 
 }
+
+.icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 250px;
+  background: #fbf7f4;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 1000;
+}
+
+.dropdown-panel h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+.dropdown-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dropdown-panel li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dropdown-panel li:hover {
+  background: #f9f9f9;
+}
+
+

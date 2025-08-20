@@ -127,7 +127,7 @@ const FormularioAdopcion = ({ isLoggedIn }) => {
 
             <hr className="divider" />
 
-            {/* --- SECCIONES RETRÁCTILES --- */}
+            {/* --- SECCIONES --- */}
             <SeccionAcordeon
                 title="1. Situación Habitacional"
                 isOpen={openSection === 'situacionHabitacional'}

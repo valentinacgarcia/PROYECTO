@@ -11,10 +11,22 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showChats, setShowChats] = useState(false);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [isLoggedIn]);
+
+  const toggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+    setShowChats(false);
+  };
+
+  const toggleChats = () => {
+    setShowChats((prev) => !prev);
+    setShowNotifications(false);
+  };
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -30,6 +42,8 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
 
   const handleProfileClick = () => {
     setMenuOpen((prev) => !prev);
+    setShowChats(false);
+    setShowNotifications(false);
   };
 
   const handleDatosClick = () => {
@@ -113,18 +127,34 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
             </button>
           </>
         ) : (
-          <div className="perfil-container">
-            <FaBell 
-              className="icon-button" 
-              onClick={() => navigate('/notificaciones')} 
-              title="Notificaciones" 
-            />
+          <div className="navbar-icons">
+            {/* Notificaciones */}
+            <div className="icon-wrapper">
+              <FaBell
+                className="icon-button"
+                onClick={toggleNotifications}
+                title="Notificaciones"
+              />
+              {showNotifications && (
+                <div className="dropdown-panel">
+                  <h4>Notificaciones</h4>
+                </div>
+              )}
+            </div>
 
-            <FaComments 
-              className="icon-button" 
-              onClick={() => navigate('/chats')} 
-              title="Chats" 
-            />
+            {/* Chats */}
+            <div className="icon-wrapper">
+              <FaComments
+                className="icon-button"
+                onClick={toggleChats}
+                title="Chats"
+              />
+              {showChats && (
+                <div className="dropdown-panel">
+                  <h4>Chats</h4>
+                </div>
+              )}
+            </div>
 
             {/* Botón Perfil */}
             <button className="nav-button profile" onClick={handleProfileClick}>
@@ -135,8 +165,11 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Mis datos</span>
                 <span onClick={handleRegistrarMascota}>Mis mascotas</span>
-                <span>Favoritos</span>
                 <span>Mis solicitudes</span>
+                <hr className="dropdown-separator"/>
+                <span>Favoritos</span>
+                <hr className="dropdown-separator"/>
+                <span onClick={handleLogout}>Cerrar sesión</span>
                 <span
                   onClick={() => {
                     setMenuOpen(false);
@@ -146,8 +179,6 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 >
                   Eliminar cuenta
                 </span>
-                <hr className="dropdown-separator"/>
-                <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
             )}
           </div>
