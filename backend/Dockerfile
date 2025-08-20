@@ -25,7 +25,7 @@ WORKDIR /var/www/symfony
 COPY symfony/ .
 
 # Instala dependencias de Composer
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --optimize-autoloader
 
 # Permisos
 RUN chown -R www-data:www-data /var/www/symfony
