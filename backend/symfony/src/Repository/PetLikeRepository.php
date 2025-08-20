@@ -17,16 +17,16 @@ class PetLikeRepository extends ServiceEntityRepository
     /**
      * Busca las solicitudes pendientes para mascotas que tiene un dueño dado.
      *
-     * @param User $owner
+     * @param User $userId
      * @return PetLike[]
      */
-    public function findPendingByOwner(User $owner): array
+    public function findPendingByOwner(User $userId): array
     {
         return $this->createQueryBuilder('pl')
             ->join('pl.pet', 'p')
-            ->andWhere('p.user = :owner')
+            ->andWhere('p.owner = :owner')
             ->andWhere('pl.status = :pending')
-            ->setParameter('owner', $owner)
+            ->setParameter('owner', $userId)
             ->setParameter('pending', 'pending')
             ->getQuery()
             ->getResult();

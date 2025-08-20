@@ -86,4 +86,41 @@ class AdoptionRequestController extends AbstractController
         ]);
     }
 
+    #[Route('/form/user/{userId}', name: 'get_adoption_form_by_user', methods: ['GET'])]
+    public function getAdoptionFormByUser(
+        AdoptionRequestRepository $adoptionRequestRepository,
+        UserRepository $userRepository,
+        int $userId
+    ): JsonResponse {
+        $user = $userRepository->find($userId);
+
+        if (!$user) {
+            return $this->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        $adoptionRequest = $adoptionRequestRepository->findOneByUser($user);
+        if (!$adoptionRequest) {
+            return $this->json(['error' => 'Formulario no encontrado'], 404);
+        }
+
+        return $this->json([
+            'id' => $adoptionRequest->getId(),
+            'is_house' => $adoptionRequest->getIsHouse(),
+            'is_owner' => $adoptionRequest->getIsOwner(),
+            'has_yard' => $adoptionRequest->getHasYard(),
+            'has_security' => $adoptionRequest->getHasSecurity(),
+            'household_members' => $adoptionRequest->getHouseholdMembers(),
+            'has_children' => $adoptionRequest->getHasChildren(),
+            'has_allergies' => $adoptionRequest->getHasAllergies(),
+            'adoption_agreement' => $adoptionRequest->getAdoptionAgreement(),
+            'had_pets_before' => $adoptionRequest->getHadPetsBefore(),
+            'has_current_pets' => $adoptionRequest->getHasCurrentPets(),
+            'pets_vaccinated' => $adoptionRequest->getPetsVaccinated(),
+            'hours_alone_per_day' => $adoptionRequest->getHoursAlonePerDay(),
+            'sleeping_location' => $adoptionRequest->getSleepingLocation(),
+            'caretaker' => $adoptionRequest->getCaretaker(),
+            'will_neuter_vaccinate' => $adoptionRequest->getWillNeuterVaccinate()
+        ]);
+    }
+
 }

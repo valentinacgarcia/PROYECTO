@@ -28,6 +28,17 @@ const PetMatch = () => {
     tipo: []
   });
 
+  // Función para obtener el user_id del localStorage
+  const getCurrentUserId = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      return user?.id || null;
+    } catch (error) {
+      console.error('Error al obtener user del localStorage:', error);
+      return null;
+    }
+  };
+
   const normalizeBackendData = (pets) => {
     return pets;
   };
@@ -74,6 +85,7 @@ const PetMatch = () => {
         paginated: true,
         page: currentPage,
         limit: cardsPerPage,
+        user_id: getCurrentUserId(),
       };
 
       // Agregar filtros a los parámetros

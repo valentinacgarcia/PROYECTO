@@ -13,16 +13,20 @@ import Panel_Adopcion from './features/adoption/Panel_Adopcion';
 import VistaMascota from './features/adoption/Pet_View';
 import FormularioAdopcion from './features/adoption/formAdoptante';
 import FormularioNuevaAdopcion from './features/adoption/FormAdopcion';
+import PostulacionesPanel from './features/adopters/PostulacionesPanel';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
 
+  // Función que activa sesión al loguearse
   const handleLoginSimulado = () => {
     setIsLoggedIn(true);
     navigate('/home');
   };
 
+  // Función de logout real, borra localStorage
   const handleLogoutSimulado = () => {
+    localStorage.removeItem('user'); 
     setIsLoggedIn(false);
     navigate('/home'); 
   };
@@ -41,7 +45,8 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="*" element={<Home />} />
         <Route path="/panel_adopcion" element={<Panel_Adopcion />} />
         <Route path="/adopcion/:id" element={<VistaMascota />} />
-        <Route path="/formulario_adopcion/:id" element={<FormularioAdopcion />} />
+        <Route path="/formulario_adopcion/:id" element={<FormularioAdopcion isLoggedIn={isLoggedIn} />} />
+        <Route path="/postulaciones" element={<PostulacionesPanel  isLoggedIn={isLoggedIn} />} />
         <Route path="/formulario_nueva_adopcion" element={<FormularioNuevaAdopcion />} />
       </Routes>
     </>

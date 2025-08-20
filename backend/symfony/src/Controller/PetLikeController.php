@@ -11,6 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Enum\RequestStatus;
+
 
 #[Route('/adoptions')]
 class PetLikeController extends AbstractController
@@ -98,27 +100,26 @@ class PetLikeController extends AbstractController
      * GET /api/adoptions/notifications
      * El dueño ve las solicitudes pendientes para sus mascotas
      */
-    #[Route('/notifications', name: 'adoption_notifications', methods: ['GET'])]
-    public function getPendingNotifications(): JsonResponse
+    #[Route('/notifications/{userId}', name: 'adoption_notifications', methods: ['GET'])]
+    public function getPendingNotifications(string $userId): JsonResponse
     {
-        $user = $this->getUser();
+        $user = $this->userRepository->find($userId);
 
         $pendingRequests = $this->petLikeRepository->findPendingByOwner($user);
 
         $data = [];
         foreach ($pendingRequests as $request) {
             $data[] = [
-                'like_id' => $request->getId(),
-                'pet_id' => $request->getPet()->getId(),
+                'petition_id' => $request->getId(),
                 'pet_name' => $request->getPet()->getName(),
-                'interested_user_id' => $request->getInterestedUser()->getId(),
                 'interested_user_name' => $request->getInterestedUser()->getName(),
-                'created_at' => $request->getCreatedAt()->format('Y-m-d H:i:s'),
+                'interested_user_id' => $request->getInterestedUser()->getId(),
             ];
         }
 
         return $this->json($data);
     }
+
 
     /**
      * PATCH /api/adoptions/respond/{id}
@@ -164,14 +165,30 @@ class PetLikeController extends AbstractController
         $data = [];
         foreach ($matches as $match) {
             $data[] = [
+                'petition_id' => $match->getId(),
                 'pet_id' => $match->getPet()->getId(),
                 'pet_name' => $match->getPet()->getName(),
                 'owner_id' => $match->getPet()->getUser()->getId(),
-                'owner_name' => $match->getPet()->getUser()->getName(),
-                'matched_at' => $match->getCreatedAt()->format('Y-m-d H:i:s'),
+                'owner_name' => $match->getPet()->getUser()->getName()
             ];
         }
 
         return $this->json($data);
+    }
+
+    #[Route('/status/{id}', name: 'update_adoption_status', methods: ['PUT'])]
+    public function updateStatus(int $id, Request $request, PetLikeRepository $repo, EntityManagerInterface $em)
+    {
+        $adoption = $repo->find($id);
+        if (!$adoption) return $this->json(['error' => 'Postulación no encontrada'], 404);
+
+        $data = json_decode($request->getContent(), true);
+        $status = $data['status'] ?? null;
+        if (!in_array($status, ['approved', 'rejected'])) return $this->json(['error' => 'Estado inválido'], 400);
+
+        $adoption->setStatus($status === 'approved' ? RequestStatus::APPROVED->value : RequestStatus::REJECTED->value);
+        $em->flush();
+
+        return $this->json(['success' => true, 'status' => $adoption->getStatus()]);
     }
 }

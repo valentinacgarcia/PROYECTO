@@ -162,6 +162,13 @@ class PetRepository extends ServiceEntityRepository
             $qb->andWhere('p.vaccinated = :vaccinated')
                 ->setParameter('vaccinated', $filters['vacunado'] === 'Sí');
         }
+
+        // Filtro por user_id
+        if (!empty($filters['exclude_user_id']) && is_numeric($filters['exclude_user_id'])) {
+            $qb->leftJoin('p.owner', 'owner')
+            ->andWhere('owner.id != :excludeUserId OR owner.id IS NULL')
+            ->setParameter('excludeUserId', (int) $filters['exclude_user_id']);
+        }
     }
 
     private function applyAgeFilter(QueryBuilder $qb, array $ageCategories): void

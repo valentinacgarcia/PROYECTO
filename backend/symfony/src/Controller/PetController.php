@@ -224,6 +224,13 @@ class PetController extends AbstractController
     {
         try {
             $filters = $this->extractFiltersFromRequest($request);
+            
+            // Obtener user_id del request
+            $userId = $request->query->get('user_id');
+            if ($userId !== null && $userId !== '' && $userId !== 'null') {
+                $filters['exclude_user_id'] = (int) $userId;
+            }
+            
             $page = max(1, (int) $request->query->get('page', 1));
             $limit = max(1, min(50, (int) $request->query->get('limit', 12)));
             $result = $petRepository->findAvailableForAdoptionPaginated($filters, $page, $limit);
@@ -319,21 +326,18 @@ class PetController extends AbstractController
             'photos' => $photos,
         ];
     }
+    
     private function normalizeString(?string $str): ?string
-{
-    if (!$str) {
-        return $str;
+    {
+        if (!$str) {
+            return $str;
+        }
+        
+        if (class_exists('Normalizer')) {
+            $normalized = \Normalizer::normalize($str, \Normalizer::FORM_C);
+            return $normalized ?: $str;
+        }
+     
+        return mb_convert_encoding($str, 'UTF-8', 'UTF-8');
     }
-    
-    if (class_exists('Normalizer')) {
-        $normalized = \Normalizer::normalize($str, \Normalizer::FORM_C);
-        return $normalized ?: $str;
-    }
- 
-    return mb_convert_encoding($str, 'UTF-8', 'UTF-8');
-}
-
-    
-
-
 }

@@ -4,7 +4,11 @@ import AppRoutes from './AppRoutes';
 
 function App() {
   console.log('✅ App.jsx recargado');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Inicializar el estado según si hay un usuario en localStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return !!localStorage.getItem('user');
+  });
 
   return (
     <Router>
