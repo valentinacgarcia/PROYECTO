@@ -46,7 +46,7 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/panel_adopcion" element={<Panel_Adopcion />} />
         <Route path="/adopcion/:id" element={<VistaMascota />} />
         <Route path="/formulario_adopcion/:id" element={<FormularioAdopcion isLoggedIn={isLoggedIn} />} />
-        <Route path="/postulaciones" element={<PostulacionesPanel />} />
+        <Route path="/postulaciones" element={<PostulacionesPanel  isLoggedIn={isLoggedIn} />} />
         <Route path="/formulario_nueva_adopcion" element={<FormularioNuevaAdopcion />} />
       </Routes>
     </>

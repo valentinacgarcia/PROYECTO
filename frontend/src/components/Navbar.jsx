@@ -59,6 +59,11 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const handleHomeClick = () => {
     navigate('/home');
   };
+
+  const handleMisSolicitudes = () => {
+    setMenuOpen(false);
+    navigate('/postulaciones');
+  }
   
   const handleClickAdoptar = () => {
     navigate('/panel_adopcion');
@@ -165,7 +170,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Mis datos</span>
                 <span onClick={handleRegistrarMascota}>Mis mascotas</span>
-                <span>Mis solicitudes</span>
+                <span onClick={handleMisSolicitudes}>Mis solicitudes</span>
                 <hr className="dropdown-separator"/>
                 <span>Favoritos</span>
                 <hr className="dropdown-separator"/>
