@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaTimes,
   FaUser,
   FaEnvelope,
   FaDog,
-  FaHome,
-  FaClock,
-  FaBuilding,
-  FaPaw,
   FaClipboardList
 } from "react-icons/fa";
 import "./PostulacionesPanel.css";
@@ -18,34 +14,49 @@ const PostulacionesPanel = () => {
   const [postulaciones, setPostulaciones] = useState([]);
   const [selected, setSelected] = useState(null);
   const [formData, setFormData] = useState(null);
+  const [newNotification, setNewNotification] = useState(null);
 
-  // Traer postulaciones
-  useEffect(() => {
-    const fetchPostulaciones = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        const res = await axios.get(`http://localhost:8000/adoptions/notifications/${user.id}`);
-        const mapped = res.data.map((item) => ({
-          id: item.petition_id, // clave única para React
-          petition_id: item.petition_id, // id real para el PUT
-          postulante: { 
-            nombre: item.interested_user_name, 
-            email: "email@desconocido.com",
-            id: item.interested_user_id
-          },
-          mascota: { nombre: item.pet_name, tipo: "Desconocido" },
-          estado: "Pendiente",
-          respuestas: {}
-        }));
-        setPostulaciones(mapped);
-      } catch (err) {
-        console.error("Error al traer postulaciones:", err);
+  // Función para traer postulaciones
+  const fetchPostulaciones = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const res = await axios.get(`http://localhost:8000/adoptions/notifications/${user.id}`);
+      const mapped = res.data.map((item) => ({
+        id: item.petition_id,
+        petition_id: item.petition_id,
+        postulante: { 
+          nombre: item.interested_user_name, 
+          email: "email@desconocido.com",
+          id: item.interested_user_id
+        },
+        mascota: { nombre: item.pet_name, tipo: "Desconocido" },
+        estado: "Pendiente"
+      }));
+
+      // Detectar nuevas postulaciones
+      if (postulaciones.length > 0) {
+        const existingIds = postulaciones.map(p => p.petition_id);
+        const newPosts = mapped.filter(p => !existingIds.includes(p.petition_id));
+        if (newPosts.length > 0) {
+          setNewNotification(newPosts[0]);
+          setTimeout(() => setNewNotification(null), 5000);
+        }
       }
-    };
+
+      setPostulaciones(mapped);
+    } catch (err) {
+      console.error("Error al traer postulaciones:", err);
+    }
+  };
+
+  // Traer postulaciones al montar y cada 10s
+  useEffect(() => {
     fetchPostulaciones();
+    const interval = setInterval(fetchPostulaciones, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Traer formulario seleccionado
+  // Traer formulario del seleccionado
   useEffect(() => {
     const fetchFormData = async () => {
       if (!selected) return;
@@ -71,12 +82,16 @@ const PostulacionesPanel = () => {
         status: nuevoEstado
       });
       setPostulaciones(prev => 
-        prev.map(p => p.petition_id === selected.petition_id ? { ...p, estado: nuevoEstado === "approved" ? "Aprobado" : "Rechazado" } : p)
+        prev.map(p => p.petition_id === selected.petition_id
+          ? { ...p, estado: nuevoEstado === "approved" ? "Aprobado" : "Rechazado" }
+          : p
+        )
       );
       setSelected(prev => ({
         ...prev,
         estado: nuevoEstado === "approved" ? "Aprobado" : "Rechazado"
       }));
+      setSelected(null);
     } catch (err) {
       console.error("Error al actualizar el estado:", err);
     }
@@ -88,6 +103,21 @@ const PostulacionesPanel = () => {
       <p className="descripcion-panel">
         En este panel podrás visualizar y gestionar todas las postulaciones de adopción recibidas para las mascotas que publicaste.
       </p>
+
+      {/* Toast de nueva postulación */}
+      <AnimatePresence>
+        {newNotification && (
+          <motion.div
+            className="toast-notification"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+          >
+            Nueva solicitud de <strong>{newNotification.postulante.nombre}</strong> para <em>{newNotification.mascota.nombre}</em>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="postulaciones-container">
         <div className="postulaciones-list">
