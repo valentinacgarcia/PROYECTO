@@ -97,7 +97,6 @@ class PetLikeController extends AbstractController
 
 
     /**
-     * GET /api/adoptions/notifications
      * El dueño ve las solicitudes pendientes para sus mascotas
      */
     #[Route('/notifications/{userId}', name: 'adoption_notifications', methods: ['GET'])]
@@ -109,6 +108,29 @@ class PetLikeController extends AbstractController
 
         $data = [];
         foreach ($pendingRequests as $request) {
+            $data[] = [
+                'petition_id' => $request->getId(),
+                'pet_name' => $request->getPet()->getName(),
+                'interested_user_name' => $request->getInterestedUser()->getName(),
+                'interested_user_id' => $request->getInterestedUser()->getId(),
+            ];
+        }
+
+        return $this->json($data);
+    }
+
+    /**
+     * El interesado ve su notificacion de match
+     */
+    #[Route('/notifications/match/{userId}', name: 'adoption_notifications_match', methods: ['GET'])]
+    public function getApprovedNotifications(string $userId): JsonResponse
+    {
+        $user = $this->userRepository->find($userId);
+
+        $approvedRequests = $this->petLikeRepository->findAcceptedByInterestedUser($user);
+
+        $data = [];
+        foreach ($approvedRequests as $request) {
             $data[] = [
                 'petition_id' => $request->getId(),
                 'pet_name' => $request->getPet()->getName(),

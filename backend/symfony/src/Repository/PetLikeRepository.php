@@ -44,7 +44,7 @@ class PetLikeRepository extends ServiceEntityRepository
             ->andWhere('pl.interestedUser = :user')
             ->andWhere('pl.status = :accepted')
             ->setParameter('user', $interestedUser)
-            ->setParameter('accepted', 'accepted')
+            ->setParameter('accepted', 'APPROVED')
             ->getQuery()
             ->getResult();
     }

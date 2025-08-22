@@ -257,3 +257,66 @@
 .dropdown-panel li:hover {
   background: #f9f9f9;
 }
+
+/* Wrapper específico para la campanita */
+.bell-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Badge rojo sobre la campanita - POSICIÓN AJUSTADA */
+.bell-badge {
+  position: absolute;
+  top: -8px;
+  right: 15px; /* Posicionado más hacia la izquierda para estar sobre el ícono */
+  background-color: #ff4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border: 2px solid #fbf7f4; /* Borde blanco para mejor contraste */
+}
+
+/* Dropdown de notificaciones estilo tarjeta */
+.bell-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 280px;
+  max-height: 350px;
+  overflow-y: auto;
+  background-color: #fff;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 10px;
+  z-index: 1000;
+}
+
+.bell-dropdown h4 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.notification-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  border: 1px solid #eee;
+}
+
+.notification-item:hover {
+  background-color: #e8f5e9;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}

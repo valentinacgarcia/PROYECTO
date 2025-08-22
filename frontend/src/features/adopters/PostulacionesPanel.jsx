@@ -52,7 +52,7 @@ const PostulacionesPanel = () => {
   // Traer postulaciones al montar y cada 10s
   useEffect(() => {
     fetchPostulaciones();
-    const interval = setInterval(fetchPostulaciones, 10000);
+    const interval = setInterval(fetchPostulaciones, 5000);
     return () => clearInterval(interval);
   }, []);
 
