@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\PetLike;
+use App\Entity\Chat;
 use App\Repository\PetLikeRepository;
 use App\Repository\PetRepository;
 use App\Repository\UserRepository;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Enum\RequestStatus;
+use App\Repository\ChatRepository;
 
 
 #[Route('/adoptions')]
@@ -199,7 +201,13 @@ class PetLikeController extends AbstractController
     }
 
     #[Route('/status/{id}', name: 'update_adoption_status', methods: ['PUT'])]
-    public function updateStatus(int $id, Request $request, PetLikeRepository $repo, EntityManagerInterface $em)
+    public function updateStatus(
+        int $id, 
+        Request $request, 
+        PetLikeRepository $repo, 
+        EntityManagerInterface $em,
+        ChatRepository $chatRepo
+    )
     {
         $adoption = $repo->find($id);
         if (!$adoption) return $this->json(['error' => 'Postulación no encontrada'], 404);
@@ -210,6 +218,30 @@ class PetLikeController extends AbstractController
 
         $adoption->setStatus($status === 'approved' ? RequestStatus::APPROVED->value : RequestStatus::REJECTED->value);
         $em->flush();
+
+        // ✅ Si se aprueba, crear chat automáticamente
+        if ($status === 'approved') {
+            $ownerUser = $adoption->getPet()->getOwner();
+            $interestedUser = $adoption->getInterestedUser();
+
+            // Evitar duplicados: verificar si ya existe chat entre estos dos usuarios
+            $existingChat = $chatRepo->findOneBy([
+                'ownerUser' => $ownerUser,
+                'interestedUser' => $interestedUser,
+                'petName' => $adoption->getPet()->getName()
+            ]);
+
+            if (!$existingChat) {
+                $chat = new Chat();
+                $chat->setOwnerUser($ownerUser);
+                $chat->setInterestedUser($interestedUser);
+                $chat->setPetName($adoption->getPet()->getName());
+                $chat->setCreatedAt(new \DateTime());
+
+                $em->persist($chat);
+                $em->flush();
+            }
+        }
 
         return $this->json(['success' => true, 'status' => $adoption->getStatus()]);
     }
