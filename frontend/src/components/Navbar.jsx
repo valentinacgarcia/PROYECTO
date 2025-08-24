@@ -113,8 +113,6 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 >
                   Eliminar cuenta
                 </span>
-                <hr className="dropdown-separator" />
-                <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
             )}
           </div>

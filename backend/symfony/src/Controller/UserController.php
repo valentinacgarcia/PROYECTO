@@ -92,28 +92,45 @@ class UserController extends AbstractController
     }
 
     #[Route('/create', name: 'user_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $em): JsonResponse
+    public function create(Request $request, EntityManagerInterface $em, UserRepository $userRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['name'], $data['email'], $data['password'])) {
-            return $this->json(['error' => 'El campo name, email y password son obligatorios'], 400);
+        // Validar campos obligatorios del front
+        if (!isset($data['email'], $data['password'], $data['terminos'])) {
+            return $this->json(['error' => 'Email, password y aceptación de términos son obligatorios'], 400);
         }
 
+        if (!$data['terminos']) {
+            return $this->json(['error' => 'Debe aceptar los términos y condiciones'], 400);
+        }
+
+        // Verificar si el usuario ya existe
+        $existingUser = $userRepository->findOneBy(['email' => $data['email']]);
+        if ($existingUser) {
+            return $this->json(['error' => 'Ya existe un usuario con ese email'], 409);
+        }
+
+        // Crear nuevo usuario
         $user = new User();
-        $user->setName($data['name']);
-        $user->setLastName($data['last_name']);
+
+        // Campos obligatorios de la base de datos
+        $user->setName($data['name'] ?? 'Usuario');           // default "Usuario"
+        $user->setLastName($data['last_name'] ?? '');        // default vacío
+        $user->setPhone($data['phone'] ?? '');               // default vacío
+        $user->setAddress($data['address'] ?? '');           // default vacío
+
+        // Campos enviados por el front
         $user->setEmail($data['email']);
-        $user->setPhone($data['phone'] ?? null);
-        $user->setPassword($data['password']); 
-        $user->setAddress($data['address']); 
-        
+        $user->setPassword($data['password']); // Ideal: encriptar con bcrypt
 
         $em->persist($user);
         $em->flush();
 
-        return $this->json(['message' => 'Usuario Creado', 'id' => $user->getId()], 201);
+        return $this->json(['message' => 'Usuario creado con éxito', 'id' => $user->getId()], 201);
     }
+
+
 
     #[Route('/edit/{id}', name: 'user_edit', methods: ['PUT'])]
     public function edit(Request $request, UserRepository $userRepository, EntityManagerInterface $em, int $id): JsonResponse

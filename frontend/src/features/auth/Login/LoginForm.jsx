@@ -41,7 +41,7 @@ const LoginForm = ({ onLogin }) => {
     try {
       const response = await axios.post('http://localhost:8000/user/sesion', {
         email: formData.email,
-        password: formData.contraseña, // importante: backend espera "password"
+        password: formData.contraseña, // backend espera "password"
       });
 
       const userData = response.data;
@@ -53,19 +53,25 @@ const LoginForm = ({ onLogin }) => {
 
     } catch (error) {
       console.error('Error en login:', error);
-      
+
       if (error.response) {
-        // El servidor respondió con un código de error
-        if (error.response.status === 401) {
+        const status = error.response.status;
+        const data = error.response.data;
+
+        if (status === 401) {
           setFormError('Email o contraseña incorrectos.');
+        } else if (status === 404) {
+          setFormError('Usuario no registrado.');
+        } else if (status === 400) {
+          setFormError(data?.message || 'Solicitud inválida.');
+        } else if (status >= 500) {
+          setFormError('Error en el servidor. Intente más tarde.');
         } else {
-          setFormError('Error al intentar iniciar sesión. Intente más tarde.');
+          setFormError(data?.message || 'Error inesperado. Intente más tarde.');
         }
       } else if (error.request) {
-        // No hubo respuesta del servidor
         setFormError('No se pudo conectar al servidor.');
       } else {
-        // Error en la configuración de la request
         setFormError('Error inesperado. Intente más tarde.');
       }
     }
@@ -100,7 +106,7 @@ const LoginForm = ({ onLogin }) => {
         <button type="submit">Entrar</button>
 
         <p className="switch-form">
-          <Link to="/forgot-password" className="link">¿Olvidaste tu contraseña?</Link>
+          <Link to="/recuperar_contraseña" className="link">¿Olvidaste tu contraseña?</Link>
         </p>
 
         <p className="switch-form">

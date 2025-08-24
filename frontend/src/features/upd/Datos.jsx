@@ -11,10 +11,9 @@ const Datos = () => {
     telefono: '',
     direccion: '',
   });
-
   const [editMode, setEditMode] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
-  // Cargar datos desde localStorage al montar el componente
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
@@ -23,6 +22,7 @@ const Datos = () => {
         apellido: user.last_name || '',
         email: user.email || '',
         telefono: user.phone || '',
+        direccion: user.address || '',
       });
     }
   }, []);
@@ -32,18 +32,9 @@ const Datos = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleEditClick = () => {
-    setEditMode(true);
-  };
-
-  const validateEmail = (email) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-  };
-
+  const handleEditClick = () => setEditMode(true);
   const handleCancelClick = () => {
     setEditMode(false);
-    // Resetear datos a los que están en localStorage si se cancela
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
       setFormData({
@@ -56,18 +47,27 @@ const Datos = () => {
     }
   };
 
-  const handleSaveClick = () => {
-    setEditMode(false);
+  const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
-    // Validar campos antes (opcional)
+  const validatePhone = (phone) => {
+    const phoneRegex = /^\+?\d{8,15}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const handleSaveClick = () => {
     if (!validateEmail(formData.email)) {
-      alert('Por favor ingrese un email válido.');
+      setModalMessage('Por favor ingrese un email válido.');
+      return;
+    }
+
+    if (!validatePhone(formData.telefono)) {
+      setModalMessage('Por favor ingrese un teléfono válido (solo números y 8-15 dígitos).');
       return;
     }
 
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
-      alert('No hay usuario logueado');
+      setModalMessage('No hay usuario logueado.');
       return;
     }
 
@@ -77,28 +77,27 @@ const Datos = () => {
       email: formData.email,
       phone: formData.telefono,
       address: formData.direccion,
-      // password: formData.password, // si permitís cambiar contraseña
     })
     .then(response => {
       const updatedUser = response.data;
-      // Actualizar localStorage con el usuario actualizado
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Datos actualizados con éxito');
-      // Actualizar formData para sincronizar la UI
       setFormData({
         nombre: updatedUser.name || '',
         apellido: updatedUser.last_name || '',
         email: updatedUser.email || '',
         telefono: updatedUser.phone || '',
         direccion: updatedUser.address || '',
-        password: '', // contraseña no se maneja aquí
       });
+      setEditMode(false);
+      setModalMessage('Datos actualizados con éxito.');
     })
     .catch(error => {
       console.error('Error al actualizar:', error);
-      alert('Hubo un error al actualizar los datos.');
+      setModalMessage('Hubo un error al actualizar los datos.');
     });
   };
+
+  const closeModal = () => setModalMessage('');
 
   return (
     <div className="datos-container">
@@ -107,60 +106,31 @@ const Datos = () => {
       </div>
 
       <h2>Mis Datos</h2>
+
       <form className="datos-form" onSubmit={e => e.preventDefault()}>
         <label>
           Nombre:
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
+          <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} disabled={!editMode} />
         </label>
 
         <label>
           Apellido:
-          <input
-            type="text"
-            name="apellido"
-            value={formData.apellido}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
+          <input type="text" name="apellido" value={formData.apellido} onChange={handleChange} disabled={!editMode} />
         </label>
 
         <label>
           Email:
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
+          <input type="email" name="email" value={formData.email} onChange={handleChange} disabled={!editMode} />
         </label>
 
         <label>
           Teléfono:
-          <input
-            type="tel"
-            name="telefono"
-            value={formData.telefono}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
+          <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} disabled={!editMode} />
         </label>
 
         <label>
           Dirección:
-          <input
-            type="text"
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
+          <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} disabled={!editMode} />
         </label>
 
         <div className="botones">
@@ -180,6 +150,15 @@ const Datos = () => {
           )}
         </div>
       </form>
+
+      {modalMessage && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <p>{modalMessage}</p>
+            <button className="modal-close-button" onClick={closeModal}>Cerrar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

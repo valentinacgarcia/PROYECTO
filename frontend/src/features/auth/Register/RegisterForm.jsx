@@ -1,31 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './RegisterForm.css'; 
+import './RegisterForm.css';
 import logo from '../../../assets/logo.png';
 
-/* CONSTRUCCION DEL FORM */
 const RegisterForm = () => {
-
-  //Estado para cada campo
   const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
     email: "",
-    telefono: "",
     contraseña: "",
-    direccion: "",
     confirmarContraseña: "",
     terminos: false,
   });
 
-  // Estado para errores
   const [formError, setFormError] = useState("");
+  const navigate = useNavigate();
 
-  /* estado para datos enviados
-  const [submittedData, setSubmittedData] = useState(null); */
-
-  // Manejar cambios en inputs
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -34,63 +23,57 @@ const RegisterForm = () => {
     }));
   };
 
-  //Hook
-  const navigate = useNavigate();
-
-  //Manejo del submit
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validar campos
-    if (
-      !formData.nombre.trim() ||
-      !formData.apellido.trim() ||
-      !formData.email.trim() ||
-      !formData.telefono.trim() ||
-      !formData.contraseña.trim() ||
-      !formData.confirmarContraseña.trim()
-    ) {
-      setFormError("Todos los campos son obligatorios.");
-      return;
-    }
-
-    // Validación específica del email:
+    // Validar email
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(formData.email)) {
       setFormError("El email es inválido.");
       return;
     }
 
-    // Validar que las contraseñas coincidan
+    // Validar contraseña
+    if (formData.contraseña.length < 8) {
+      setFormError("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+
+    // Validar confirmación
     if (formData.contraseña !== formData.confirmarContraseña) {
       setFormError("Las contraseñas no coinciden.");
       return;
     }
 
-    //Validacion terminos
+    // Validar términos
     if (!formData.terminos) {
       setFormError("Debes aceptar los términos y condiciones.");
       return;
     }
-    
 
-    //Metodo de conexion con el back
+    setFormError("");
 
+    // Conexion back
     axios.post('http://localhost:8000/user/create', {
-      name: formData.nombre,
-      last_name: formData.apellido,
       email: formData.email,
-      phone: formData.telefono,
-      address: formData.direccion,
-      password: formData.contraseña, // importante: el backend espera "password"
+      password: formData.contraseña,
+      terminos: formData.terminos
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
       .then((response) => {
         console.log('Registro exitoso:', response.data);
-        navigate('/login');
+        navigate('/login', { state: { registeredEmail: formData.email } });
       })
       .catch((error) => {
         console.error('Error:', error);
-        setFormError('Hubo un problema al registrar. Intente más tarde.');
+        if (error.response && error.response.status === 409) {
+          setFormError("Ya existe un usuario con ese email.");
+        } else {
+          setFormError("Hubo un problema al registrar. Intente más tarde.");
+        }
       });
   };
 
@@ -102,31 +85,48 @@ const RegisterForm = () => {
 
         {formError && <p className="form-error">{formError}</p>}
 
-        <label htmlFor="Nombre">Nombre</label>
-        <input type="text" name="nombre" placeholder="Ingrese su nombre" value={formData.nombre} onChange={handleChange} />
-        
-
-        <label htmlFor="Apellido">Apellido</label>
-        <input type="text" name="apellido" placeholder="Ingrese su apellido" value={formData.apellido} onChange={handleChange} />
-        
         <label htmlFor="Email">Email</label>
-        <input type="text" name="email" placeholder="ejemplo@correo.com" value={formData.email} onChange={handleChange} autoComplete="off" />
+        <input
+          type="email"
+          name="email"
+          placeholder="ejemplo@correo.com"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
 
-        <label htmlFor="Direccion">Direccion</label>
-        <input type="text" name="direccion" placeholder="Ingrese su direccion" value={formData.direccion} onChange={handleChange}/>
-
-        <label htmlFor="telefono">Teléfono</label>
-        <input type="tel" name="telefono" placeholder='Ej: 1183489432'value={formData.telefono} onChange={handleChange}/>
-        
         <label htmlFor="Contraseña">Contraseña</label>
-        <input type="password" name="contraseña" placeholder="Ingrese una contraseña" value={formData.contraseña} onChange={handleChange}/>
-        
+        <input
+          type="password"
+          name="contraseña"
+          placeholder="Ingrese una contraseña"
+          value={formData.contraseña}
+          onChange={handleChange}
+          required
+        />
+
         <label htmlFor="ConfirmarContraseña">Confirmar contraseña</label>
-        <input type="password" name="confirmarContraseña" placeholder="Confirme la contraseña" value={formData.confirmarContraseña} onChange={handleChange}/>
-        
+        <input
+          type="password"
+          name="confirmarContraseña"
+          placeholder="Confirme la contraseña"
+          value={formData.confirmarContraseña}
+          onChange={handleChange}
+          required
+        />
+
         <div className="form-group checkbox-group">
-          <input type="checkbox" id="terminos" name="terminos" checked={formData.terminos} onChange={handleChange}/>
-          <label htmlFor="terminos"> Acepto los <a href="#">términos y condiciones</a> </label>
+          <label>
+            <input
+              type="checkbox"
+              name="terminos"
+              checked={formData.terminos}
+              onChange={handleChange}
+            />
+            <span>
+              Acepto los <a href="#">términos y condiciones</a>
+            </span>
+          </label>
         </div>
 
         <button type="submit">Registrarse</button>
@@ -134,6 +134,5 @@ const RegisterForm = () => {
     </div>
   );
 };
- 
 
 export default RegisterForm;

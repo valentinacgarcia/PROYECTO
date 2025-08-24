@@ -47,27 +47,31 @@
 
 .checkbox-group {
   display: flex;
-  align-items: center;
-  gap: 6px; 
-  margin-top: 16px;
+  align-items: center; 
+  gap: 8px; 
+  margin-top: 25px;
   font-size: 14px;
 }
 
 .checkbox-group input[type="checkbox"] {
-  margin-right: 10px;
   width: 16px;
   height: 16px;
-  accent-color: #53a57d; 
+  accent-color: #53a57d;
+  margin: 0;
 }
 
 .checkbox-group label {
   margin: 0;
-  display: inline;
+  display: flex; 
+  align-items: center; 
+  cursor: pointer;
+  gap: 6px;
 }
 
 .checkbox-group a {
   color: #53a57d;
   text-decoration: underline;
+  margin-left: 2px;
 }
 
 .register-form button {

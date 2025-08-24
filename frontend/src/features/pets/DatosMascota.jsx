@@ -226,10 +226,10 @@ const DatosMascota = () => {
         }
     };
 
-    if (!mascota) return <div className="datos-container"><p>Cargando datos...</p></div>;
+    if (!mascota) return <div className="datos-mascota-container"><p>Cargando datos...</p></div>;
 
     return (
-        <div className="datos-container">
+        <div className="datos-mascota-container">
             <div className="contenido-principal-horizontal">
                 {/* Columna izquierda: Fotos (solo para visualización, no edición) */}
                 <div className="columna foto-col">
