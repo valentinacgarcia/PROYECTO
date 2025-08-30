@@ -113,11 +113,8 @@ class UserController extends AbstractController
         $user = new User();
         $user->setName($data['name']);
         $user->setEmail($data['email']);
+        $user->setPassword($data['password']); 
         
-        // Encriptar contraseña antes de guardar
-        $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
-        $user->setPassword($hashedPassword);
-
         $em->persist($user);
         $em->flush();
 
