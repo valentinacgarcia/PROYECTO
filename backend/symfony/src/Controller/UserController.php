@@ -96,24 +96,34 @@ class UserController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
+        // Validación básica
         if (!isset($data['name'], $data['email'], $data['password'])) {
-            return $this->json(['error' => 'El campo name, email y password son obligatorios'], 400);
+            return $this->json([
+                'error' => 'Los campos name, email y password son obligatorios'
+            ], 400);
+        }
+
+        // Validar términos aceptados si quieres (opcional)
+        if (!isset($data['terms']) || !$data['terms']) {
+            return $this->json([
+                'error' => 'Debe aceptar los términos y condiciones'
+            ], 400);
         }
 
         $user = new User();
         $user->setName($data['name']);
-        $user->setLastName($data['last_name']);
         $user->setEmail($data['email']);
-        $user->setPhone($data['phone'] ?? null);
         $user->setPassword($data['password']); 
-        $user->setAddress($data['address']); 
         
-
         $em->persist($user);
         $em->flush();
 
-        return $this->json(['message' => 'Usuario Creado', 'id' => $user->getId()], 201);
+        return $this->json([
+            'message' => 'Usuario creado',
+            'id' => $user->getId()
+        ], 201);
     }
+
 
     #[Route('/edit/{id}', name: 'user_edit', methods: ['PUT'])]
     public function edit(Request $request, UserRepository $userRepository, EntityManagerInterface $em, int $id): JsonResponse
