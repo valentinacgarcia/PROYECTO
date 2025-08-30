@@ -15,6 +15,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const [deleteMessage, setDeleteMessage] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [showChats, setShowChats] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const toggleChats = () => {
     setShowChats(prev => !prev);
