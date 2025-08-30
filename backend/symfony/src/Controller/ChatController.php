@@ -11,6 +11,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Aws\S3\S3Client;
+
 
 #[Route('/chats')]
 class ChatController extends AbstractController
@@ -102,13 +105,14 @@ class ChatController extends AbstractController
                 'senderId' => $msg->getSender()->getId(),
                 'senderName' => $msg->getSender()->getName(),
                 'content' => $msg->getContent(),
-                'imageUrl' => $msg->getImageUrl(), // Si tiene imagen
+                'fileUrl' => $msg->getImage() ? $this->getPresignedUrl($msg->getImage()) : null,
                 'createdAt' => $msg->getCreatedAt()->format('Y-m-d H:i:s')
             ];
         }
 
         return $this->json($data);
     }
+
 
 
     #[Route('/{chatId}/message/send', name:'send_chat_message', methods:['POST'])]
@@ -129,16 +133,86 @@ class ChatController extends AbstractController
         $message->setContent($content);
         $message->setCreatedAt(new \DateTime());
 
+        // ✅ Manejo de archivo opcional (imagen adjunta)
+        $file = $request->files->get('file'); 
+        if ($file) {
+            // Subir a MinIO
+            $fileKey = $this->uploadToMinio($file, $sender->getId(), $chat->getId());
+            $message->setImage($fileKey);
+        }
+
         $this->em->persist($message);
         $this->em->flush();
+
+        // ✅ Si tiene imagen, devolver URL presignada
+        $imageUrl = null;
+        if ($message->getImage()) {
+            $imageUrl = $this->getPresignedUrl($message->getImage());
+        }
 
         return $this->json([
             'messageId' => $message->getId(),
             'senderId' => $sender->getId(),
             'content' => $content,
+            'image' => $imageUrl, 
             'createdAt' => $message->getCreatedAt()->format('Y-m-d H:i:s')
         ]);
     }
+
+    private function uploadToMinio(UploadedFile $file, int $userId, int $chatId): string
+    {
+        $bucket = 'chats';
+
+        $key = "chat_{$chatId}/user_{$userId}/" . uniqid() . '.' . $file->guessExtension();
+
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => 'us-east-1',
+            'endpoint' => $_ENV['MINIO_ENDPOINT'] ?? 'http://minio:9000',
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => $_ENV['MINIO_KEY'] ?? 'petmatch',
+                'secret' => $_ENV['MINIO_SECRET'] ?? 'petmatch',
+            ],
+        ]);
+
+        $s3->putObject([
+            'Bucket' => $bucket,
+            'Key' => $key,
+            'Body' => fopen($file->getPathname(), 'rb'),
+            'ContentType' => $file->getMimeType(),
+        ]);
+
+        return $key;
+    }
+
+    private function getPresignedUrl(string $key): string
+    {
+        $bucket = 'chats';
+
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => 'us-east-1',
+            'endpoint' => 'http://localhost:9000', 
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => 'petmatch',
+                'secret' => 'petmatch',
+            ],
+        ]);
+
+        $cmd = $s3->getCommand('GetObject', [
+            'Bucket' => $bucket,
+            'Key' => $key,
+        ]);
+
+        $request = $s3->createPresignedRequest($cmd, '+20 minutes');
+        $presignedUrl = (string) $request->getUri();
+
+        return $presignedUrl; 
+    }
+
+
 
 
 }
