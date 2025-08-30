@@ -3,16 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaBell } from 'react-icons/fa';
 
-const NotificationBell = ({ isLoggedIn }) => {
+const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
   const navigate = useNavigate();
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  // Estados separados
   const [ownerNotifications, setOwnerNotifications] = useState([]);
   const [matchNotifications, setMatchNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  // IDs ya mostrados (evita duplicados entre polls)
   const seenNotifications = useRef(new Set());
 
   useEffect(() => {
@@ -20,7 +15,6 @@ const NotificationBell = ({ isLoggedIn }) => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user?.id) return;
 
-    // --- Notificaciones para dueños (postulaciones pendientes) ---
     const fetchPostulations = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/adoptions/notifications/${user.id}`);
@@ -30,25 +24,20 @@ const NotificationBell = ({ isLoggedIn }) => {
           postulante: item.interested_user_name,
           mascota: item.pet_name
         }));
-
         const newOnes = mapped.filter(n => !seenNotifications.current.has(n.petition_id));
         newOnes.forEach(n => seenNotifications.current.add(n.petition_id));
-
         if (newOnes.length > 0) {
           setOwnerNotifications(prev => [...newOnes, ...prev]);
           setUnreadCount(prev => prev + newOnes.length);
         }
       } catch (err) {
-        console.error("Error al traer notificaciones de postulaciones:", err);
+        console.error(err);
       }
     };
 
-    // --- Notificaciones para interesados (match aceptado) ---
     const fetchMatches = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/adoptions/notifications/match/${user.id}`);
-
-        // Mostrar SOLO los match cuyo interesado sea el usuario logueado
         const mapped = res.data
           .filter(item => Number(item.interested_user_id) === Number(user.id))
           .map(item => ({
@@ -57,24 +46,20 @@ const NotificationBell = ({ isLoggedIn }) => {
             postulante: item.interested_user_name,
             mascota: item.pet_name
           }));
-
         const newOnes = mapped.filter(n => !seenNotifications.current.has(n.petition_id));
         newOnes.forEach(n => seenNotifications.current.add(n.petition_id));
-
         if (newOnes.length > 0) {
           setMatchNotifications(prev => [...newOnes, ...prev]);
           setUnreadCount(prev => prev + newOnes.length);
         }
       } catch (err) {
-        console.error("Error al traer notificaciones de match:", err);
+        console.error(err);
       }
     };
 
-    // Primer fetch inmediato
     fetchPostulations();
     fetchMatches();
 
-    // Polling cada 5s
     const interval1 = setInterval(fetchPostulations, 5000);
     const interval2 = setInterval(fetchMatches, 5000);
 
@@ -84,32 +69,25 @@ const NotificationBell = ({ isLoggedIn }) => {
     };
   }, [isLoggedIn]);
 
-  const toggleNotifications = () => {
-    setShowNotifications(prev => {
-      const newShowValue = !prev;
-      if (newShowValue) setUnreadCount(0);
-      return newShowValue;
-    });
-  };
-
   const handleNotificationItemClick = (petitionId) => {
-    // Eliminar la tarjeta al click
     setOwnerNotifications(prev => prev.filter(n => n.petition_id !== petitionId));
     setMatchNotifications(prev => prev.filter(n => n.petition_id !== petitionId));
-
-    // Redirigir a solicitudes
     navigate('/postulaciones');
-    setShowNotifications(false);
+    onClose();
   };
 
-  // Merge de notificaciones para mostrar
   const allNotifications = [...ownerNotifications, ...matchNotifications];
 
   return (
     <div className="bell-wrapper">
-      <FaBell className="icon-button" onClick={toggleNotifications} title="Notificaciones" />
+      <FaBell
+        className="icon-button"
+        onClick={onClick}
+        title="Notificaciones"
+      />
       {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
-      {showNotifications && (
+
+      {isOpen && (
         <div className="dropdown-panel notifications-dropdown">
           <h4>Notificaciones</h4>
           {allNotifications.length === 0 ? (

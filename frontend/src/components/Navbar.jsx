@@ -9,29 +9,19 @@ import ChatPanel from '../features/chats/ChatPanel';
 
 const Navbar = ({ isLoggedIn, handleLogout }) => {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null); // "perfil" | "chats" | "notificaciones" | null
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
-  const [showChats, setShowChats] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-
-  const toggleChats = () => {
-    setShowChats(prev => !prev);
-  };
 
   const handleLoginClick = () => navigate('/login');
   const handleRegisterClick = () => navigate('/register');
   const handleClickNuevaAdopcion = () => navigate('/formulario_nueva_adopcion');
-  const handleProfileClick = () => {
-    setMenuOpen(prev => !prev);
-    setShowChats(false); // Cerrar chats cuando se abra el perfil
-  };
-  const handleDatosClick = () => { setMenuOpen(false); navigate('/datos'); };
-  const handleRegistrarMascota = () => { setMenuOpen(false); navigate('/registrar-mascota'); };
+  const handleDatosClick = () => { setActiveDropdown(null); navigate('/datos'); };
+  const handleRegistrarMascota = () => { setActiveDropdown(null); navigate('/registrar-mascota'); };
   const handleHomeClick = () => navigate('/home');
-  const handleMisSolicitudes = () => { setMenuOpen(false); navigate('/postulaciones'); };
+  const handleMisSolicitudes = () => { setActiveDropdown(null); navigate('/postulaciones'); };
   const handleClickAdoptar = () => navigate('/panel_adopcion');
 
   const handleDeleteAccount = () => {
@@ -60,6 +50,10 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
       });
   };
 
+  const toggleDropdown = (dropdown) => {
+    setActiveDropdown((prev) => (prev === dropdown ? null : dropdown));
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-left" onClick={handleHomeClick} style={{ cursor: 'pointer' }}>
@@ -83,39 +77,53 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
           </>
         ) : (
           <div className="navbar-icons">
-            {/* Componente de notificaciones separado */}
-            <NotificationBell isLoggedIn={isLoggedIn} />
+            {/* Notificaciones */}
+            <div className="icon-wrapper">
+              <NotificationBell
+                isLoggedIn={isLoggedIn}
+                isOpen={activeDropdown === "notificaciones"}
+                onClick={() => toggleDropdown("notificaciones")}
+                onClose={() => setActiveDropdown(null)}
+              />
+            </div>
 
             {/* Chats */}
             <div className="icon-wrapper">
-              <FaComments className="icon-button" onClick={toggleChats} title="Chats" />
-              {showChats && (
-                <ChatPanel 
-                  userId={JSON.parse(localStorage.getItem("user"))?.id} 
-                  onClose={() => setShowChats(false)} 
+              <FaComments
+                className="icon-button"
+                onClick={() => toggleDropdown("chats")}
+                title="Chats"
+              />
+              {activeDropdown === "chats" && (
+                <ChatPanel
+                  userId={JSON.parse(localStorage.getItem("user"))?.id}
+                  onClose={() => setActiveDropdown(null)}
                 />
               )}
             </div>
 
             {/* Perfil */}
-            <button className="nav-button profile" onClick={handleProfileClick}>Perfil</button>
-            {menuOpen && (
+            <button
+              className="nav-button profile"
+              onClick={() => toggleDropdown("perfil")}
+            >
+              Perfil
+            </button>
+            {activeDropdown === "perfil" && (
               <div className="perfil-dropdown">
                 <span onClick={handleDatosClick}>Mis datos</span>
                 <span onClick={handleRegistrarMascota}>Mis mascotas</span>
                 <span onClick={handleMisSolicitudes}>Mis solicitudes</span>
-                <hr className="dropdown-separator"/>
+                <hr className="dropdown-separator" />
                 <span>Favoritos</span>
-                <hr className="dropdown-separator"/>
+                <hr className="dropdown-separator" />
                 <span onClick={handleLogout}>Cerrar sesión</span>
                 <span
-                  onClick={() => { setMenuOpen(false); setConfirmDelete(true); }}
+                  onClick={() => { setActiveDropdown(null); setConfirmDelete(true); }}
                   style={{ fontWeight: 'bold' }}
                 >
                   Eliminar cuenta
                 </span>
-                <hr className="dropdown-separator" />
-                <span onClick={handleLogout}>Cerrar sesión</span>
               </div>
             )}
           </div>

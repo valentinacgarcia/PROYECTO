@@ -1,15 +1,18 @@
 .navbar {
   display: flex;
+  flex-wrap: wrap; 
   justify-content: space-between;
   align-items: center;
   background-color: #fbf7f4;
-  padding: 15px 30px;
+  padding: 10px 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
+  flex: 1 1 auto;
+  min-width: 150px;
 }
 
 .navbar-icons {
@@ -30,9 +33,10 @@
 
 .navbar-center {
   display: flex;
-  flex-grow: 1;
+  flex: 2 1 300px; 
   justify-content: center;
-  gap: 30px;
+  flex-wrap: wrap; 
+  gap: 15px;
 }
 
 .nav-item {
@@ -42,6 +46,7 @@
   color: #000000;
   cursor: pointer;
   align-items: left;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -50,6 +55,9 @@
 
 .navbar-right {
   display: flex;
+  flex: 1 1 auto; 
+  justify-content: flex-end;
+  flex-wrap: wrap; 
   gap: 10px;
 }
 
@@ -319,5 +327,24 @@
 .notification-item:hover {
   background-color: #e8f5e9;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* responsive */
+@media (max-width: 600px) {
+  .navbar {
+    flex-direction: column; 
+    align-items: flex-start;
+  }
+
+  .navbar-center {
+    justify-content: flex-start;
+    margin: 10px 0;
+  }
+
+  .navbar-right {
+    justify-content: flex-start;
+    width: 100%;
+    gap: 5px;
+  }
 }
 

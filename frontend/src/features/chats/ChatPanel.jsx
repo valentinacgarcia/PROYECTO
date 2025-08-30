@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera } from 'react-icons/fa';
+import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera, FaPaw} from 'react-icons/fa';
 import './ChatPanel.css';
 
 const ChatPanel = ({ userId, onClose }) => {
@@ -11,6 +11,8 @@ const ChatPanel = ({ userId, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showAdoptionModal, setShowAdoptionModal] = useState(false);
+
 
   const seenChats = useRef(new Set());
   const seenMessages = useRef(new Set());
@@ -79,6 +81,15 @@ const ChatPanel = ({ userId, onClose }) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
+  };
+
+  const handleAdoptionClick = () => {
+    setShowAdoptionModal(true);
+  };
+
+  const handleAdoptionDecision = (decision) => {
+    console.log('Decisión adopción:', decision); 
+    setShowAdoptionModal(false);
   };
 
   const handleCameraClick = async () => {
@@ -223,27 +234,27 @@ const ChatPanel = ({ userId, onClose }) => {
           {currentMessages.length === 0 ? (
             <div className="no-messages">No hay mensajes aún</div>
           ) : (
-            <>
-              {currentMessages.map(message => {
-                const isMine = message.senderId === loggedUserId;
-                return (
-                  <div key={message.id} className={`message ${isMine ? 'own-message' : 'other-message'}`}>
-                    <div className="message-content">
-                      {message.fileUrl && (
-                        <img
-                          src={message.fileUrl}
-                          alt="Adjunto"
-                          className="message-image"
-                          onError={(e) => e.target.style.display = 'none'}
-                        />
-                      )}
-                      {message.content && <div>{message.content}</div>}
-                    </div>
-                    <div className="message-time">{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            currentMessages.map(message => {
+              const isMine = message.senderId === loggedUserId;
+              return (
+                <div key={message.id} className={`message ${isMine ? 'own-message' : 'other-message'}`}>
+                  <div className="message-content">
+                    {message.fileUrl && (
+                      <img
+                        src={message.fileUrl}
+                        alt="Adjunto"
+                        className="message-image"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    )}
+                    {message.content && <div>{message.content}</div>}
                   </div>
-                );
-              })}
-            </>
+                  <div className="message-time">
+                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
 
@@ -261,7 +272,12 @@ const ChatPanel = ({ userId, onClose }) => {
           <input type="file" accept="image/*" style={{ display: 'none' }} id="fileInput" onChange={handleFileChange} />
           <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} id="cameraInput" onChange={handleFileChange} />
 
+          <button onClick={handleAdoptionClick} className="adoption-button">
+            <FaPaw />
+          </button>
+
           <button onClick={() => document.getElementById('fileInput').click()} className="attach-button" aria-label="Adjuntar archivo"><FaPaperclip /></button>
+
           <button onClick={handleCameraClick} className="camera-button" aria-label="Abrir cámara"><FaCamera /></button>
           <button
             onClick={sendMessage}
@@ -272,6 +288,17 @@ const ChatPanel = ({ userId, onClose }) => {
             <FaPaperPlane />
           </button>
         </div>
+            {showAdoptionModal && (
+            <div className="adoption-modal-container">
+              <div className="adoption-modal">
+                <h4>¿Querés concretar la adopción?</h4>
+                <div className="adoption-buttons">
+                  <button onClick={() => handleAdoptionDecision(true)} className="yes-button">Sí</button>
+                  <button onClick={() => handleAdoptionDecision(false)} className="no-button">No</button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
 
       {/* Preview de imagen */}

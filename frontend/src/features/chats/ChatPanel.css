@@ -1,10 +1,10 @@
 /* Panel general */
 .chat-panel {
   position: fixed;
-  top: 80px;                    
+  top: 70px;                    
   right: 0;
-  width: 400px;
-  height: calc(100vh - 80px);    
+  width: 500px;
+  height: calc(100vh - 70px);    
   background: #fbf7f4;
   border-left: 1px solid #ddd;
   box-shadow: -4px 0 20px rgba(0,0,0,0.1);
@@ -173,19 +173,36 @@
 }
 
 .send-button {
-  background: #53a57d; color: white; border: none; border-radius: 50%;
-  width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.2s;
+  background: #53a57d; 
+  color: white; 
+  border: none; 
+  border-radius: 50%;
+  width: 35px; 
+  height: 35px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  cursor: pointer; 
+  transition: all 0.2s;
+  margin-bottom: 15px;
 }
 .send-button:disabled { background: #ccc; cursor: not-allowed; }
 .send-button:hover:not(:disabled) { background: #428e6a; }
 
-.attach-button, .camera-button {
-  background: #f1f1f1; border: none; border-radius: 50%; width: 35px; height: 35px;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+.attach-button, .camera-button, .adoption-button {
+  background: #f1f1f1; 
+  border: none; 
+  border-radius: 50%; 
+  margin-bottom: 15px;
+  width: 35px; 
+  height: 35px;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer;
   transition: all 0.2s;
 }
-.attach-button:hover, .camera-button:hover { background: #e0e0e0; }
+.attach-button:hover, .camera-button:hover, .adoption-button:hover { background: #428e6a; }
 
 /* Preview archivo */
 .file-preview {
@@ -208,6 +225,78 @@
 .camera-controls { display: flex; justify-content: center; padding: 20px; background: rgba(0,0,0,0.9); }
 .capture-button { width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; background: transparent; cursor: pointer; }
 .capture-button div { width: 50px; height: 50px; background: white; border-radius: 50%; margin: auto; }
+
+/* Blur del chat cuando el modal está activo */
+.chat-panel.blur {
+  filter: blur(4px);
+}
+
+/* Overlay del modal */
+.adoption-modal-overlay {
+  position: absolute; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; 
+  pointer-events: auto; 
+}
+
+/* Contenedor del modal */
+.adoption-modal {
+  position: absolute;      
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fbf7f4;
+  padding: 30px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  text-align: center;
+  width: 300px;
+  z-index: 1000;
+}
+
+/* Botones del modal */
+.adoption-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.adoption-buttons button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.yes-button {
+  background: #53a57d;
+  color: white;
+}
+
+.yes-button:hover { background: #428e6a; }
+
+.no-button {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.no-button:hover { background: #ddd; }
+
+
+
+
+
 
 @media (max-width: 768px) {
   .chat-panel {

@@ -3,41 +3,40 @@
   justify-content: center;
   align-items: center;
   min-height: 80vh;
+  padding: 10px;
 }
 
 .register-form {
-  width: 400px;
-  max-width: 500px;
-  margin: 100px auto;
-  padding: 30px;
+  width: 100%;
+  max-width: 400px;
+  padding: 25px;
   border-radius: 10px;
   background-color: #fbf7f4;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .form-logo {
-  width: 150px;
-  height: auto; 
-  margin: 0 auto;
+  width: 120px;
   display: block;
+  margin: 0 auto 15px;
 }
 
-.form-Title {
-  font-size: 30px;
-  font-weight: 600;
+.form-title {
   text-align: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
 .register-form label {
-  text-align: left;
   display: block;
-  width: 100%;
-  margin-top: 20px;
+  margin-top: 15px;
   font-weight: 500;
 }
 
-.register-form input {
-  width: 93%;
+.register-form input[type="text"],
+.register-form input[type="password"] {
+  width: 90%;
   padding: 12px;
   margin-top: 5px;
   border: 1px solid #ccc;
@@ -45,27 +44,22 @@
   font-size: 16px;
 }
 
-.checkbox-group {
+.checkbox-group-registro {
   display: flex;
   align-items: center;
-  gap: 6px; 
-  margin-top: 16px;
+  gap: 6px;
+  margin-top: 15px;
+  margin-bottom: 10px;
   font-size: 14px;
 }
 
-.checkbox-group input[type="checkbox"] {
-  margin-right: 10px;
+.checkbox-group-registro input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #53a57d; 
+  accent-color: #53a57d;
 }
 
-.checkbox-group label {
-  margin: 0;
-  display: inline;
-}
-
-.checkbox-group a {
+.checkbox-group-registro a {
   color: #53a57d;
   text-decoration: underline;
 }
@@ -73,23 +67,21 @@
 .register-form button {
   width: 100%;
   padding: 12px;
+  margin-top: 20px;
   background-color: #53a57d;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 6px;
-  font-size: 16px;
   cursor: pointer;
-  margin-top: 25px;
+}
+
+.register-form button:hover {
+  background-color: #4a8a62;
 }
 
 .form-error {
   color: red;
-  font-size: 12px;
-  margin-top: 5px;
-  margin-right: 0px;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
 }
-
-.register-form button:hover {
-  background-color: #53a57d;
-}
-
