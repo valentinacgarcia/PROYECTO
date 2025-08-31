@@ -6,6 +6,8 @@
   background-color: #fbf7f4;
   padding: 10px 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 100;
 }
 
 .navbar-left {
@@ -18,6 +20,9 @@
 .navbar-icons {
   position: relative;
   z-index: 100; 
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .logo {
@@ -112,7 +117,6 @@
 .perfil-dropdown span:hover {
   background-color: #eee;
 }
-
 
 .dropdown-separator {
   border: none;
@@ -226,6 +230,67 @@
   position: relative;
   display: inline-block;
 }
+
+/* === Estilos específicos para chat con notificaciones === */
+.navbar-icons .icon-wrapper .chat-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.navbar-icons .icon-wrapper .chat-icon-wrapper:hover {
+  background-color: rgba(83, 165, 125, 0.1);
+}
+
+/* Icono de chat en la navbar */
+.navbar-icons .chat-icon {
+  font-size: 20px;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.navbar-icons .chat-icon:hover {
+  color: #53a57d;
+}
+
+/* Badge de notificación del chat */
+.navbar-icons .chat-notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: 2px solid #fbf7f4;
+  animation: chatPulse 2s infinite;
+}
+
+@keyframes chatPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Asegurar que el panel de chat tenga el z-index correcto */
+.chat-panel {
+  z-index: 1000 !important;
+}
+
+/* === Fin estilos específicos para chat === */
 
 .dropdown-panel {
   position: absolute;
@@ -346,5 +411,13 @@
     width: 100%;
     gap: 5px;
   }
-}
 
+  /* Ajustes móviles para el chat */
+  .navbar-icons .chat-notification-badge {
+    top: -3px;
+    right: -3px;
+    min-width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+}

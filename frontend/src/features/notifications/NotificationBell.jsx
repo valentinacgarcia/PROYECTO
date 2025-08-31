@@ -10,10 +10,39 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const seenNotifications = useRef(new Set());
 
+  // Función para cargar notificaciones vistas desde localStorage
+  const loadSeenNotifications = (userId) => {
+    const stored = localStorage.getItem(`seenNotifications_${userId}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        seenNotifications.current = new Set(parsed);
+      } catch (err) {
+        console.error('Error parsing seen notifications:', err);
+        seenNotifications.current = new Set();
+      }
+    } else {
+      seenNotifications.current = new Set();
+    }
+  };
+
+  // Función para guardar notificaciones vistas en localStorage
+  const saveSeenNotifications = (userId) => {
+    try {
+      const seenArray = Array.from(seenNotifications.current);
+      localStorage.setItem(`seenNotifications_${userId}`, JSON.stringify(seenArray));
+    } catch (err) {
+      console.error('Error saving seen notifications:', err);
+    }
+  };
+
   useEffect(() => {
     if (!isLoggedIn) return;
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user?.id) return;
+
+    // Cargar notificaciones vistas al inicializar
+    loadSeenNotifications(user.id);
 
     const fetchPostulations = async () => {
       try {
@@ -24,9 +53,14 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
           postulante: item.interested_user_name,
           mascota: item.pet_name
         }));
+        
         const newOnes = mapped.filter(n => !seenNotifications.current.has(n.petition_id));
-        newOnes.forEach(n => seenNotifications.current.add(n.petition_id));
+        
         if (newOnes.length > 0) {
+          // Marcar nuevas notificaciones como vistas para futuras cargas
+          newOnes.forEach(n => seenNotifications.current.add(n.petition_id));
+          saveSeenNotifications(user.id);
+          
           setOwnerNotifications(prev => [...newOnes, ...prev]);
           setUnreadCount(prev => prev + newOnes.length);
         }
@@ -46,9 +80,14 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
             postulante: item.interested_user_name,
             mascota: item.pet_name
           }));
+        
         const newOnes = mapped.filter(n => !seenNotifications.current.has(n.petition_id));
-        newOnes.forEach(n => seenNotifications.current.add(n.petition_id));
+        
         if (newOnes.length > 0) {
+          // Marcar nuevas notificaciones como vistas para futuras cargas
+          newOnes.forEach(n => seenNotifications.current.add(n.petition_id));
+          saveSeenNotifications(user.id);
+          
           setMatchNotifications(prev => [...newOnes, ...prev]);
           setUnreadCount(prev => prev + newOnes.length);
         }
@@ -70,8 +109,21 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
   }, [isLoggedIn]);
 
   const handleNotificationItemClick = (petitionId) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    
+    // Actualizar estado local
     setOwnerNotifications(prev => prev.filter(n => n.petition_id !== petitionId));
     setMatchNotifications(prev => prev.filter(n => n.petition_id !== petitionId));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
+    // Asegurar que la notificación esté marcada como vista
+    if (!seenNotifications.current.has(petitionId)) {
+      seenNotifications.current.add(petitionId);
+      if (user?.id) {
+        saveSeenNotifications(user.id);
+      }
+    }
+    
     navigate('/postulaciones');
     onClose();
   };
