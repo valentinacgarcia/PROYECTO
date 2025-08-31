@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera, FaPaw} from 'react-icons/fa';
+import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera, FaPaw, FaComments } from 'react-icons/fa';
 import './ChatPanel.css';
 
-const ChatPanel = ({ userId, onClose }) => {
+const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messagesByChat, setMessagesByChat] = useState({});
@@ -12,34 +12,88 @@ const ChatPanel = ({ userId, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [showAdoptionModal, setShowAdoptionModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [chatsWithNewMessages, setChatsWithNewMessages] = useState(new Set());
 
-
-  const seenChats = useRef(new Set());
-  const seenMessages = useRef(new Set());
+  const lastReadMessages = useRef(new Map());
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
   const loggedUser = JSON.parse(localStorage.getItem('user'));
   const loggedUserId = loggedUser?.id;
 
+  const loadLastReadMessages = () => {
+    const stored = localStorage.getItem(`lastReadMessages_${userId}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        lastReadMessages.current = new Map(Object.entries(parsed));
+      } catch (err) {
+        console.error('Error loading last read messages:', err);
+        lastReadMessages.current = new Map();
+      }
+    }
+  };
+
+  const saveLastReadMessages = () => {
+    try {
+      const obj = Object.fromEntries(lastReadMessages.current);
+      localStorage.setItem(`lastReadMessages_${userId}`, JSON.stringify(obj));
+    } catch (err) {
+      console.error('Error saving last read messages:', err);
+    }
+  };
+
+  const checkForUnreadMessages = (allChats, allMessages) => {
+    if (!allChats || allChats.length === 0 || !loggedUserId) return;
+    
+    let totalUnread = 0;
+    const newChatsWithNew = new Set();
+    
+    allChats.forEach(chat => {
+      const lastReadId = lastReadMessages.current.get(chat.id.toString());
+      const messages = allMessages[chat.id] || [];
+      
+      const unreadInChat = messages.filter(msg => 
+        msg.senderId !== loggedUserId && 
+        (!lastReadId || msg.id > lastReadId)
+      ).length;
+      
+      if (unreadInChat > 0) {
+        totalUnread += unreadInChat;
+        newChatsWithNew.add(chat.id);
+      }
+    });
+    
+    // Solo actualizar si realmente cambió algo
+    setUnreadCount(prevCount => {
+      if (prevCount !== totalUnread) {
+        return totalUnread;
+      }
+      return prevCount;
+    });
+    
+    setChatsWithNewMessages(prevChats => {
+      const prevSet = Array.from(prevChats).sort();
+      const newSet = Array.from(newChatsWithNew).sort();
+      
+      if (JSON.stringify(prevSet) !== JSON.stringify(newSet)) {
+        return newChatsWithNew;
+      }
+      return prevChats;
+    });
+  };
+
   const fetchChats = async () => {
     try {
       const response = await axios.get(`http://localhost:8000/chats/user/${userId}`);
-      const newChats = response.data.filter(chat => !seenChats.current.has(chat.id));
-      newChats.forEach(chat => seenChats.current.add(chat.id));
-      if (newChats.length > 0) {
-        setChats(prevChats => {
-          const existingIds = new Set(prevChats.map(c => c.id));
-          const filtered = newChats.filter(c => !existingIds.has(c.id));
-          return [...filtered, ...prevChats];
-        });
-      }
+      setChats(response.data);
     } catch (error) {
       console.error('Error fetching chats:', error);
     }
   };
 
-  const fetchMessages = async (chatId) => {
+  const fetchMessagesForChat = async (chatId) => {
     try {
       const response = await axios.get(`http://localhost:8000/chats/${chatId}/messages`);
       const backendMessages = response.data.map(msg => ({
@@ -50,33 +104,79 @@ const ChatPanel = ({ userId, onClose }) => {
         createdAt: msg.createdAt,
         fileUrl: msg.fileUrl
       }));
-
-      const newMessages = backendMessages.filter(msg => !seenMessages.current.has(msg.id));
-      newMessages.forEach(msg => seenMessages.current.add(msg.id));
-
-      setMessagesByChat(prev => ({
-        ...prev,
-        [chatId]: [...(prev[chatId] || []), ...newMessages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      }));
+      
+      setMessagesByChat(prev => {
+        const updated = {
+          ...prev,
+          [chatId]: backendMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        };
+        return updated;
+      });
+      
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error(`Error fetching messages for chat ${chatId}:`, error);
+    }
+  };
+
+  // Función para marcar mensajes como leídos y actualizar contador inmediatamente
+  const markMessagesAsRead = (chatId, messages) => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      lastReadMessages.current.set(chatId.toString(), lastMessage.id);
+      saveLastReadMessages();
+      
+      // Actualizar el contador inmediatamente después de marcar como leído
+      checkForUnreadMessages(chats, messagesByChat);
     }
   };
 
   useEffect(() => {
-    if (!userId) return;
-    fetchChats();
-    const chatInterval = setInterval(fetchChats, 3000);
-    return () => clearInterval(chatInterval);
+    loadLastReadMessages();
   }, [userId]);
 
   useEffect(() => {
-    if (!selectedChat) return;
-    fetchMessages(selectedChat.id);
-    const messageInterval = setInterval(() => fetchMessages(selectedChat.id), 2000);
-    return () => clearInterval(messageInterval);
-  }, [selectedChat]);
+    if (!userId) return;
+    fetchChats();
+    const chatInterval = setInterval(fetchChats, 5000);
+    return () => clearInterval(chatInterval);
+  }, [userId]);
+  
+  useEffect(() => {
+    if (chats.length > 0) {
+      const messageIntervals = chats.map(chat => {
+        fetchMessagesForChat(chat.id);
+        return setInterval(() => fetchMessagesForChat(chat.id), 3000);
+      });
 
+      return () => {
+        messageIntervals.forEach(interval => clearInterval(interval));
+      };
+    }
+  }, [chats]);
+  
+  // Efecto principal para actualizar el contador de no leídos - SIEMPRE SE EJECUTA
+  useEffect(() => {
+    if (chats.length > 0 && Object.keys(messagesByChat).length > 0) {
+      checkForUnreadMessages(chats, messagesByChat);
+    }
+  }, [chats, messagesByChat, loggedUserId]);
+
+  // Efecto para manejar la selección de chat - SOLO cuando el panel está abierto
+  useEffect(() => {
+    if (isOpen && selectedChat && messagesByChat[selectedChat.id]) {
+      const messages = messagesByChat[selectedChat.id];
+      markMessagesAsRead(selectedChat.id, messages);
+    }
+  }, [selectedChat, isOpen]);
+
+  // Efecto adicional para actualizar cuando los mensajes del chat seleccionado cambian - SOLO cuando el panel está abierto
+  useEffect(() => {
+    if (isOpen && selectedChat && messagesByChat[selectedChat.id]) {
+      const messages = messagesByChat[selectedChat.id];
+      markMessagesAsRead(selectedChat.id, messages);
+    }
+  }, [selectedChat, messagesByChat, isOpen]);
+  
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -88,7 +188,7 @@ const ChatPanel = ({ userId, onClose }) => {
   };
 
   const handleAdoptionDecision = (decision) => {
-    console.log('Decisión adopción:', decision); 
+    console.log('Decisión adopción:', decision);
     setShowAdoptionModal(false);
   };
 
@@ -157,13 +257,19 @@ const ChatPanel = ({ userId, onClose }) => {
           createdAt: response.data.createdAt,
           fileUrl: response.data.image || null
         };
-
-        setMessagesByChat(prev => ({
-          ...prev,
-          [selectedChat.id]: [...(prev[selectedChat.id] || []), newMsg]
-        }));
-
-        seenMessages.current.add(newMsg.id);
+        
+        setMessagesByChat(prev => {
+          const updatedMessages = [...(prev[selectedChat.id] || []), newMsg].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          return {
+            ...prev,
+            [selectedChat.id]: updatedMessages
+          };
+        });
+        
+        // Marcar este mensaje como leído inmediatamente ya que lo enviamos nosotros
+        lastReadMessages.current.set(selectedChat.id.toString(), newMsg.id);
+        saveLastReadMessages();
+        
         setNewMessage('');
         setSelectedFile(null);
       }
@@ -183,13 +289,70 @@ const ChatPanel = ({ userId, onClose }) => {
 
   const selectChat = (chat) => {
     setSelectedChat(chat);
-    seenMessages.current.clear();
+    
+    // Solo marcar como leído si el panel está abierto (usuario está interactuando)
+    if (isOpen) {
+      const messages = messagesByChat[chat.id] || [];
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        lastReadMessages.current.set(chat.id.toString(), lastMessage.id);
+        saveLastReadMessages();
+        
+        // Forzar recálculo inmediato del contador
+        setTimeout(() => {
+          checkForUnreadMessages(chats, messagesByChat);
+        }, 0);
+      }
+    }
   };
 
   const backToChats = () => {
     setSelectedChat(null);
-    seenMessages.current.clear();
   };
+
+  const ChatIcon = () => (
+    <div 
+      className="chat-icon-wrapper" 
+      style={{ 
+        position: 'relative', 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        padding: '8px',
+        minWidth: '40px',
+        minHeight: '40px'
+      }}
+      onClick={onToggle}
+    >
+      <FaComments className="chat-icon" style={{ fontSize: '20px' }} />
+      {unreadCount > 0 && (
+        <span className="chat-notification-badge" style={{
+          position: 'absolute',
+          top: '2px',
+          right: '2px',
+          backgroundColor: '#ff4444',
+          color: 'white',
+          borderRadius: '50%',
+          minWidth: '18px',
+          height: '18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '11px',
+          fontWeight: 'bold',
+          zIndex: 1
+        }}>
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </div>
+  );
+
+  // Siempre mostrar el ícono cuando no está abierto
+  if (!isOpen) {
+    return <ChatIcon />;
+  }
 
   if (!selectedChat) {
     return (
@@ -202,15 +365,28 @@ const ChatPanel = ({ userId, onClose }) => {
           <p className="no-chats">Cargando chats...</p>
         ) : (
           <div className="chat-list">
-            {chats.map(chat => (
-              <div key={chat.id} className="chat-item" onClick={() => selectChat(chat)}>
-                <div className="chat-info">
-                  <strong>{chat.name || `Chat con ${chat.petName} 🐾`}</strong>
-                  <small>{chat.lastMessage || 'Sin mensajes'}</small>
+            {chats.map(chat => {
+              const hasNewMessages = chatsWithNewMessages.has(chat.id);
+              const lastMessage = messagesByChat[chat.id]?.slice(-1)[0] || {};
+              return (
+                <div 
+                  key={chat.id} 
+                  className={`chat-item ${hasNewMessages ? 'chat-item-unread' : ''}`}
+                  onClick={() => selectChat(chat)}
+                >
+                  <div className="chat-info">
+                    <strong>{chat.name || `Chat con ${chat.petName} 🐾`}</strong>
+                    <small>{lastMessage.content || 'Sin mensajes'}</small>
+                  </div>
+                  <div className="chat-meta">
+                    <div className="chat-time">
+                      {lastMessage.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString() : ''}
+                    </div>
+                    {hasNewMessages && <div className="chat-unread-indicator"></div>}
+                  </div>
                 </div>
-                <div className="chat-time">{chat.lastMessageAt ? new Date(chat.lastMessageAt).toLocaleTimeString() : ''}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -288,20 +464,19 @@ const ChatPanel = ({ userId, onClose }) => {
             <FaPaperPlane />
           </button>
         </div>
-            {showAdoptionModal && (
-            <div className="adoption-modal-container">
-              <div className="adoption-modal">
-                <h4>¿Querés concretar la adopción?</h4>
-                <div className="adoption-buttons">
-                  <button onClick={() => handleAdoptionDecision(true)} className="yes-button">Sí</button>
-                  <button onClick={() => handleAdoptionDecision(false)} className="no-button">No</button>
-                </div>
-              </div>
+        {showAdoptionModal && (
+        <div className="adoption-modal-container">
+          <div className="adoption-modal">
+            <h4>¿Querés concretar la adopción?</h4>
+            <div className="adoption-buttons">
+              <button onClick={() => handleAdoptionDecision(true)} className="yes-button">Sí</button>
+              <button onClick={() => handleAdoptionDecision(false)} className="no-button">No</button>
             </div>
-          )}
+          </div>
+        </div>
+        )}
       </div>
 
-      {/* Preview de imagen */}
       {selectedFile && (
         <div className="file-preview">
           <img src={URL.createObjectURL(selectedFile)} alt="Preview" />
@@ -313,7 +488,6 @@ const ChatPanel = ({ userId, onClose }) => {
         </div>
       )}
 
-      {/* Interfaz de cámara */}
       {showCamera && (
         <div className="camera-overlay">
           <div className="camera-header">

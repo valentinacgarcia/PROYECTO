@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Navbar.css';
 import logo from '../assets/logo.png';
-import { FaComments } from 'react-icons/fa';
 import NotificationBell from '../features/notifications/NotificationBell';
 import ChatPanel from '../features/chats/ChatPanel';
 
@@ -54,6 +53,10 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     setActiveDropdown((prev) => (prev === dropdown ? null : dropdown));
   };
 
+  const handleChatClose = () => {
+    setActiveDropdown(null);
+  };
+  
   return (
     <nav className="navbar">
       <div className="navbar-left" onClick={handleHomeClick} style={{ cursor: 'pointer' }}>
@@ -87,19 +90,14 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
               />
             </div>
 
-            {/* Chats */}
+            {/* Chat - UN SOLO ChatPanel que maneja tanto el ícono como el panel */}
             <div className="icon-wrapper">
-              <FaComments
-                className="icon-button"
-                onClick={() => toggleDropdown("chats")}
-                title="Chats"
+              <ChatPanel
+                userId={JSON.parse(localStorage.getItem("user"))?.id}
+                isOpen={activeDropdown === "chats"}
+                onClose={handleChatClose}
+                onToggle={() => toggleDropdown("chats")} // Pasamos la función toggle como prop
               />
-              {activeDropdown === "chats" && (
-                <ChatPanel
-                  userId={JSON.parse(localStorage.getItem("user"))?.id}
-                  onClose={() => setActiveDropdown(null)}
-                />
-              )}
             </div>
 
             {/* Perfil */}
