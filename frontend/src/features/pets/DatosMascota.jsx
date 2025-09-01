@@ -32,6 +32,15 @@ const DatosMascota = () => {
         compatibilidad: [],
     });
 
+    // Listas de razas según tipo
+    const razasPerro = [
+        'Mestizo', 'Caniche', 'Labrador Retriever', 'Golden Retriever', 'Bulldog Francés',
+        'Shitzu', 'Dachshund (salchicha)', 'Beagle', 'Schnauzer', 'Boxer', 'Otro'
+    ];
+    const razasGato = [
+        'Mestizo', 'Siames', 'Persa', 'Bengala', 'Maine Coon', 'Sphynx', 'Ragdoll', 'Otro'
+    ];
+
     useEffect(() => {
         fetch(`http://localhost:8000/pet/detail/${id}`)
             .then((res) => res.json())
@@ -93,7 +102,13 @@ const DatosMascota = () => {
         }
     };
 
-    const handleTipoSelect = (tipo) => setFormData((prev) => ({ ...prev, tipo }));
+    const handleTipoSelect = (tipo) => {
+        setFormData((prev) => ({
+            ...prev,
+            tipo,
+            raza: '' // Resetea la raza al cambiar el tipo
+        }));
+    };
     const handleSexoSelect = (sexo) => setFormData((prev) => ({ ...prev, sexo }));
     const handleTamañoSelect = (tamaño) => setFormData((prev) => ({ ...prev, tamaño }));
     const handleLargoPeloSelect = (largoPelo) => setFormData((prev) => ({ ...prev, largoPelo }));
@@ -194,21 +209,21 @@ const DatosMascota = () => {
             vaccinated: formData.vacunasAlDia,
             compatibility: formData.compatibilidad,
             description: formData.descripcion,
-            rescue_date: formData.esFechaRescate ? formData.fechaRescate : null, // Usar null si no hay fecha de rescate
-            birth_date: !formData.esFechaRescate ? formData.fechaNacimiento : null, // Usar null si no hay fecha de nacimiento
-            };
+            rescue_date: formData.esFechaRescate ? formData.fechaRescate : null,
+            birth_date: !formData.esFechaRescate ? formData.fechaNacimiento : null,
+        };
 
         try {
             const responseJson = await fetch(`http://localhost:8000/pet/edit/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    },
+                },
                 body: JSON.stringify(dataJson),
             });
 
             if (!responseJson.ok) {
-                const errorData = await responseJson.json(); // Intentar obtener más detalles del error
+                const errorData = await responseJson.json();
                 throw new Error(errorData.message || 'Error al guardar los datos de la mascota.');
             }
 
@@ -228,15 +243,17 @@ const DatosMascota = () => {
 
     if (!mascota) return <div className="datos-container"><p>Cargando datos...</p></div>;
 
+    // Seleccionar lista de razas según tipo
+    const listaRazas = formData.tipo === 'Perro' ? razasPerro : formData.tipo === 'Gato' ? razasGato : [];
+
     return (
         <div className="datos-container">
             <div className="contenido-principal-horizontal">
-                {/* Columna izquierda: Fotos (solo para visualización, no edición) */}
+                {/* Columna izquierda: Fotos */}
                 <div className="columna foto-col">
                     <div className="profile-photo-container">
-                        {/* En modo edición, las fotos no se modifican, solo se muestran las existentes */}
                         <img
-                            src={mascota.photos?.[0] || '/placeholder.jpg'} // Muestra la primera foto guardada o un placeholder
+                            src={mascota.photos?.[0] || '/placeholder.jpg'}
                             alt={mascota.name}
                             className="profile-photo"
                         />
@@ -247,7 +264,7 @@ const DatosMascota = () => {
                 <div className="datos-central-derecha">
                     <h2 className="titulo-principal">Datos de {formData.nombre || mascota.name}</h2>
                     <div className="datos-columns">
-                        {/* Columna central: Datos principales */}
+                        {/* Columna central */}
                         <div className="columna principales-col">
                             {error && <p className="form-error">{error}</p>}
 
@@ -351,23 +368,17 @@ const DatosMascota = () => {
                             )}
                         </div>
 
-                        {/* Columna derecha: Datos secundarios */}
+                        {/* Columna derecha */}
                         <div className="columna secundarios-col">
                             <label>Raza:</label>
                             {editMode ? (
                                 <select name="raza" value={formData.raza} onChange={handleInputChange}>
                                     <option value="">Seleccionar raza</option>
-                                    <option value="mestizo">Mestizo</option>
-                                    <option value="caniche">Caniche</option>
-                                    <option value="labrador">Labrador Retriever</option>
-                                    <option value="golden">Golden Retriever</option>
-                                    <option value="bulldog-frances">Bulldog Francés</option>
-                                    <option value="shitzu">Shitzu</option>
-                                    <option value="salchicha">Dachshund (salchicha)</option>
-                                    <option value="beagle">Beagle</option>
-                                    <option value="schnauzer">Schnauzer</option>
-                                    <option value="boxer">Boxer</option>
-                                    <option value="otro">Otro</option>
+                                    {listaRazas.map((r) => (
+                                        <option key={r.toLowerCase()} value={r.toLowerCase()}>
+                                            {r}
+                                        </option>
+                                    ))}
                                 </select>
                             ) : (
                                 <input type="text" value={mascota.breed || 'No informada'} disabled />
