@@ -5,7 +5,6 @@ import perro from '../../assets/perro.png';
 import gato from '../../assets/gato.png';
 import logo from '../../assets/logo.png';
 
-
 const RegistroMascota = () => {
   const [formData, setFormData] = useState({
     tipo: '',
@@ -28,19 +27,16 @@ const RegistroMascota = () => {
   const [error, setError] = useState('');
   const [mostrarOpcionales, setMostrarOpcionales] = useState(false);
   const [registroExitoso, setRegistroExitoso] = useState(false);
-  const [filters, setFilters] = useState({
-    type: [],
-    region: [],
-    raza: [],
-    genero: [],
-    edad: [],
-    tamaño: [],
-    color: [],
-    largoPelaje: [],
-    castrado: [],
-    compatibilidad: []
-  });
   const navigate = useNavigate();
+
+  const razasPerro = [
+    'Mestizo', 'Caniche', 'Labrador Retriever', 'Golden Retriever',
+    'Bulldog Francés', 'Shitzu', 'Dachshund', 'Beagle', 'Schnauzer', 'Boxer', 'Otro'
+  ];
+
+  const razasGato = [
+    'Mestizo', 'Siamés', 'Persa', 'Maine Coon', 'Bengalí', 'Ragdoll', 'British Shorthair', 'Otro'
+  ];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -52,12 +48,12 @@ const RegistroMascota = () => {
       
       if (invalidFiles.length > 0) {
         setError('Solo se permiten archivos PNG y JPG.');
-        setFormData((prev) => ({ ...prev, fotos: [] })); // Limpiar fotos si hay inválidas
-        e.target.value = ''; // Limpiar el input de archivo
+        setFormData((prev) => ({ ...prev, fotos: [] }));
+        e.target.value = '';
         return;
       }
 
-      setError(''); // Limpiar error si todo está bien
+      setError('');
       setFormData((prev) => ({ ...prev, fotos: selectedFiles }));
     } else if (type === 'checkbox' && name === 'coloresPelaje') {
       if (checked) {
@@ -80,7 +76,7 @@ const RegistroMascota = () => {
   };
 
   const handleTipoSelect = (tipo) => {
-    setFormData((prev) => ({ ...prev, tipo }));
+    setFormData((prev) => ({ ...prev, tipo, raza: '' }));
   };
 
   const handleSexoSelect = (sexo) => {
@@ -94,29 +90,27 @@ const RegistroMascota = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //Validacion campos obligatorios
     if (
       !formData.tipo ||
       !formData.nombre ||
       !formData.sexo ||
       (!formData.fechaNacimiento && !formData.fechaRescate) ||
       !formData.tamaño ||
-      !formData.fotos.length === 0 
+      formData.fotos.length === 0
     ) {
       setError('Por favor, complete todos los campos obligatorios.');
       return;
     }
     setError('');
-    
+
     const usuario = JSON.parse(localStorage.getItem('user'));
     const ownerId = usuario?.id;
 
     if (!ownerId) {
-    setError('No se encontró el usuario logueado.');
-    return;
+      setError('No se encontró el usuario logueado.');
+      return;
     }
 
-    // Calcular edad aproximada en años y meses
     const fechaBase = new Date(formData.esFechaRescate ? formData.fechaRescate : formData.fechaNacimiento);
     const hoy = new Date();
     let ageYears = hoy.getFullYear() - fechaBase.getFullYear();
@@ -128,7 +122,7 @@ const RegistroMascota = () => {
 
     const data = new FormData();
     data.append('owner_id', ownerId);
-    data.append('type', formData.tipo); 
+    data.append('type', formData.tipo);
     data.append('name', formData.nombre);
     data.append('gender', formData.sexo);
     data.append('age_years', ageYears);
@@ -142,18 +136,9 @@ const RegistroMascota = () => {
     data.append('vaccinated', formData.vacunasAlDia);
     data.append('compatibility', JSON.stringify(formData.compatibilidad));
     data.append('description', formData.descripcion);
-    data.append('location', ''); //mando string vacio pq todavia no se carga la ubicacion
+    data.append('location', ''); 
 
-    if (Array.isArray(formData.fotos)) {
-      formData.fotos.forEach((foto) => {
-        data.append('photos[]', foto);
-      });
-    } else {
-      console.warn("formData.fotos no es un array. Subiendo como una sola foto si existe.");
-      if (formData.fotos) { 
-        data.append('photos[]', formData.fotos);
-      }
-    }
+    formData.fotos.forEach((foto) => data.append('photos[]', foto));
 
     try {
       const response = await fetch('http://localhost:8000/pet/create', {
@@ -161,13 +146,9 @@ const RegistroMascota = () => {
         body: data,
       });
 
-      if (!response.ok) {
-        throw new Error('Error al registrar la mascota');
-      }
-
-      const result = await response.json();
-      console.log('Mascota registrada:', result);
-      setRegistroExitoso(true); // Mostrar modal
+      if (!response.ok) throw new Error('Error al registrar la mascota');
+      await response.json();
+      setRegistroExitoso(true);
     } catch (err) {
       console.error(err);
       setError('Hubo un error al registrar la mascota.');
@@ -254,20 +235,27 @@ const RegistroMascota = () => {
           ))}
         </div>
 
+        <label>Raza</label>
+        <select name="raza" value={formData.raza} onChange={handleInputChange}>
+          <option value="">Seleccionar raza</option>
+          {(formData.tipo === 'Perro' ? razasPerro : razasGato).map((r) => (
+            <option key={r} value={r.toLowerCase()}>{r}</option>
+          ))}
+        </select>
+
         <label>Foto de la mascota *</label>
         <input type="file" accept=".png, .jpg, .jpeg" multiple onChange={handleInputChange} />
-        
         {formData.fotos.length > 0 && (
-            <div style={{ marginTop: '10px' }}>
-                <strong>Archivos seleccionados:</strong>
-                <ul>
-                    {formData.fotos.map((file, index) => (
-                        <li key={index}>{file.name}</li>
-                    ))}
-                </ul>
-            </div>
-        )}  
-      
+          <div style={{ marginTop: '10px' }}>
+            <strong>Archivos seleccionados:</strong>
+            <ul>
+              {formData.fotos.map((file, index) => (
+                <li key={index}>{file.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <button
           type="button"
           className="btn-toggle-opcionales"
@@ -278,22 +266,6 @@ const RegistroMascota = () => {
 
         {mostrarOpcionales && (
           <div className="opcional-section">
-            <label>Raza</label>
-            <select name="raza" value={formData.raza} onChange={handleInputChange}>
-              <option value="">Seleccionar raza</option>
-              <option value="mestizo">Mestizo</option>
-              <option value="caniche">Caniche</option>
-              <option value="labrador">Labrador Retriever</option>
-              <option value="golden">Golden Retriever</option>
-              <option value="bulldog-frances">Bulldog Francés</option>
-              <option value="shitzu">Shitzu</option>
-              <option value="salchicha">Dachshund (salchicha)</option>
-              <option value="beagle">Beagle</option>
-              <option value="schnauzer">Schnauzer</option>
-              <option value="boxer">Boxer</option>
-              <option value="otro">Otro</option>
-            </select>
-
             <label>Color del pelaje</label>
             <div className="checkbox-group">
               {['Blanco', 'Negro', 'Marrón', 'Tricolor', 'Otro'].map((color) => (
@@ -381,9 +353,7 @@ const RegistroMascota = () => {
           </div>
         )}
 
-        <button type="submit" className="btn-submit">
-          Registrar Mascota
-        </button>
+        <button type="submit" className="btn-submit">Registrar Mascota</button>
       </form>
 
       {registroExitoso && (
