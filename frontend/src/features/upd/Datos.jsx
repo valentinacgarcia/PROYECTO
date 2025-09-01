@@ -13,6 +13,11 @@ const Datos = () => {
   });
 
   const [editMode, setEditMode] = useState(false);
+  const [feedback, setFeedback] = useState({ message: '', type: '' });
+
+  // Regex para validaciones
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^(?:\+54|0)?[1-9]\d{9,10}$/;
 
   // Cargar datos desde localStorage al montar el componente
   useEffect(() => {
@@ -23,6 +28,7 @@ const Datos = () => {
         apellido: user.last_name || '',
         email: user.email || '',
         telefono: user.phone || '',
+        direccion: user.address || '',
       });
     }
   }, []);
@@ -36,14 +42,8 @@ const Datos = () => {
     setEditMode(true);
   };
 
-  const validateEmail = (email) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-  };
-
   const handleCancelClick = () => {
     setEditMode(false);
-    // Resetear datos a los que están en localStorage si se cancela
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
       setFormData({
@@ -56,18 +56,41 @@ const Datos = () => {
     }
   };
 
-  const handleSaveClick = () => {
-    setEditMode(false);
+  // Función para mostrar mensajes de feedback
+  const showFeedback = (message, type = 'error') => {
+    setFeedback({ message, type });
+    setTimeout(() => {
+      setFeedback({ message: '', type: '' });
+    }, 3000); // desaparece después de 3s
+  };
 
-    // Validar campos antes (opcional)
-    if (!validateEmail(formData.email)) {
-      alert('Por favor ingrese un email válido.');
+  const handleSaveClick = () => {
+    // Validaciones
+    if (!formData.nombre.trim()) {
+      showFeedback('El nombre es obligatorio');
       return;
     }
 
+    if (!formData.email.trim()) {
+      showFeedback('El email es obligatorio');
+      return;
+    }
+
+    if (!emailRegex.test(formData.email)) {
+      showFeedback('Por favor ingrese un email válido');
+      return;
+    }
+
+    if (formData.telefono && !phoneRegex.test(formData.telefono)) {
+      showFeedback('Por favor ingrese un teléfono válido (Argentina)');
+      return;
+    }
+
+    setEditMode(false);
+
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
-      alert('No hay usuario logueado');
+      showFeedback('No hay usuario logueado');
       return;
     }
 
@@ -77,37 +100,40 @@ const Datos = () => {
       email: formData.email,
       phone: formData.telefono,
       address: formData.direccion,
-      // password: formData.password, // si permitís cambiar contraseña
     })
     .then(response => {
       const updatedUser = response.data;
-      // Actualizar localStorage con el usuario actualizado
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      alert('Datos actualizados con éxito');
-      // Actualizar formData para sincronizar la UI
       setFormData({
         nombre: updatedUser.name || '',
         apellido: updatedUser.last_name || '',
         email: updatedUser.email || '',
         telefono: updatedUser.phone || '',
         direccion: updatedUser.address || '',
-        password: '', // contraseña no se maneja aquí
       });
+      showFeedback('Datos actualizados con éxito', 'success');
     })
     .catch(error => {
       console.error('Error al actualizar:', error);
-      alert('Hubo un error al actualizar los datos.');
+      showFeedback('Hubo un error al actualizar los datos');
     });
   };
 
   return (
-    <div className="datos-container">
+    <div className="datos-container-usuario">
+      {/* Mensaje de feedback */}
+      {feedback.message && (
+        <div className={`feedback-message ${feedback.type === 'success' ? 'success' : ''}`}>
+          {feedback.message}
+        </div>
+      )}
+
       <div className="profile-photo-container-user">
         <img src={profilePhoto} alt="Foto de perfil" className="profile-ph" />
       </div>
 
       <h2>Mis Datos</h2>
-      <form className="datos-form" onSubmit={e => e.preventDefault()}>
+      <form className="datos-form-usuario" onSubmit={e => e.preventDefault()}>
         <label>
           Nombre:
           <input

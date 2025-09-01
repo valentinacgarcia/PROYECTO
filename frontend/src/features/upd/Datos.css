@@ -1,5 +1,5 @@
-.datos-container {
-  max-width: 600px;
+.datos-container-usuario {
+  max-width: 400px;
   margin: 40px auto;
   background-color: #fbf7f4;
   padding: 30px;
@@ -7,20 +7,20 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.datos-container h2 {
+.datos-container-usuario h2 {
   text-align: center;
   margin-bottom: 25px;
   color: #333;
 }
 
-.datos-form label {
+.datos-form-usuario label {
   display: block;
   margin-bottom: 15px;
   font-weight: 500;
   color: #333;
 }
 
-.datos-form input {
+.datos-container-usuario .datos-form-usuario input {
   width: 100%;
   padding: 10px;
   margin-top: 5px;
@@ -28,12 +28,15 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   background-color: white;
+  color: #222;
+  box-sizing: border-box;
 }
 
-.datos-form input:disabled {
+.datos-container-usuario .datos-form-usuario input:disabled {
   background-color: #f0f0f0;
   color: #777;
 }
+
 
 .botones {
   display: flex;
@@ -79,4 +82,36 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #53a57d;
+}
+
+
+.feedback-message {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 25px;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #721c24; 
+  background-color: #f8d7da; 
+  border: 1px solid #f5c6cb;
+  z-index: 9999;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  opacity: 0;
+  animation: fadeInOut 3s forwards;
+}
+
+.feedback-message.success {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+/* Animación para que aparezca y desaparezca */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }

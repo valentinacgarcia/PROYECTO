@@ -2,42 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Mascotas.css';
 
-const MisMascotas = () => {
-  const [mascotas, setMascotas] = useState([]);
+const ListaMascotas = ({ title, mascotas, detalleRuta, botonTexto, botonClick, isAdopted }) => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) return;
-
-    fetch(`http://localhost:8000/pet/list/${user.id}`)
-      .then((res) => res.json())
-      .then((data) => setMascotas(data))
-      .catch((err) => {
-        console.error('Error al cargar mascotas:', err);
-      });
-  }, []);
-
-  const handleNuevaMascota = () => {
-    navigate('/registrar-mascota/nueva');
-  };
+  // Filtrar según is_adopted (conversión a número para evitar problemas de tipo)
+  const mascotasFiltradas = mascotas.filter(m => Number(m.is_adopted) === Number(isAdopted));
 
   return (
     <div className="mis-mascotas-container">
-      <h2 className="mascotas-titulo">Mis Mascotas</h2>
+      <h2 className="mascotas-titulo">{title}</h2>
 
-      {mascotas.length === 0 ? (
-        <p className="mensaje-vacio">Todavía no registraste ninguna mascota.</p>
+      {mascotasFiltradas.length === 0 ? (
+        <p className="mensaje-vacio">
+          {isAdopted ? 'No hay mascotas publicadas en adopción.' : 'Todavía no registraste ninguna mascota.'}
+        </p>
       ) : (
         <div className="lista-mascotas">
-          {mascotas.map((mascota) => (
+          {mascotasFiltradas.map(mascota => (
             <div
               key={mascota.id}
               className="tarjeta-mascota"
-              onClick={() => navigate(`/mis-mascotas/${mascota.id}`)}
+              onClick={() => navigate(`${detalleRuta}/${mascota.id}`)}
             >
               <img
-                src={mascota.photos[0]}
+                src={mascota.photos?.[0] || '/placeholder.png'}
                 alt={mascota.name}
                 className="foto-mascota"
               />
@@ -50,65 +38,53 @@ const MisMascotas = () => {
         </div>
       )}
 
-      <button className="boton-nueva-mascota" onClick={handleNuevaMascota}>
-        Registrar una nueva mascota
-      </button>
-    </div>
-  );
-};
-
-const MascotasAdopcion = () => {
-  const [mascotasAdopcion, setMascotasAdopcion] = useState([]);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) return;
-    
-    fetch(`http://localhost:8000/pet/list/${user.id}`) // Ajusta el endpoint según tu API
-      .then((res) => res.json())
-      .then((data) => setMascotasAdopcion(data))
-      .catch((err) => {
-        console.error('Error al cargar mascotas en adopción:', err);
-      });
-  }, []);
-
-  return (
-    <div className="mis-mascotas-container">
-      <h2 className="mascotas-titulo">Mascotas en Adopción</h2>
-
-      {mascotasAdopcion.length === 0 ? (
-        <p className="mensaje-vacio">No hay mascotas publicadas en adopción.</p>
-      ) : (
-        <div className="lista-mascotas">
-          {mascotasAdopcion.map((mascota) => (
-            <div
-              key={mascota.id}
-              className="tarjeta-mascota"
-              onClick={() => navigate(`/mascotas-adopcion/${mascota.id}`)}
-            >
-              <img
-                src={mascota.photos[0]}
-                alt={mascota.name}
-                className="foto-mascota"
-              />
-              <div className="info-mascota">
-                <h3>{mascota.name}</h3>
-                <p className="mascota-genero-tamanio">{mascota.gender} • {mascota.size}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+      {botonTexto && botonClick && (
+        <button className="boton-nueva-mascota" onClick={botonClick}>
+          {botonTexto}
+        </button>
       )}
     </div>
   );
 };
 
 const PanelMascotas = () => {
+  const [mascotas, setMascotas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return setLoading(false);
+
+    fetch(`http://localhost:8000/pet/list/${user.id}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log('Mascotas recibidas:', data); // Para debug
+        setMascotas(data);
+      })
+      .catch(err => console.error('Error al cargar mascotas:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p>Cargando mascotas...</p>;
+
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
-      <MisMascotas />
-      <MascotasAdopcion />
+      <ListaMascotas
+        title="Mis Mascotas"
+        mascotas={mascotas}
+        detalleRuta="/mis-mascotas"
+        botonTexto="Registrar una nueva mascota"
+        botonClick={() => navigate('/registrar-mascota/nueva')}
+        isAdopted={0}
+      />
+
+      <ListaMascotas
+        title="Mascotas en Adopción"
+        mascotas={mascotas}
+        detalleRuta="/mascotas-adopcion"
+        isAdopted={1}
+      />
     </div>
   );
 };
