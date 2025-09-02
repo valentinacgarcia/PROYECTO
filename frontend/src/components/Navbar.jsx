@@ -9,6 +9,7 @@ import ChatPanel from '../features/chats/ChatPanel';
 const Navbar = ({ isLoggedIn, handleLogout }) => {
   const navigate = useNavigate();
   const [activeDropdown, setActiveDropdown] = useState(null); // "perfil" | "chats" | "notificaciones" | null
+  const [selectedChatId, setSelectedChatId] = useState(null); // Para abrir un chat específico
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState(null);
@@ -55,6 +56,13 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
 
   const handleChatClose = () => {
     setActiveDropdown(null);
+    setSelectedChatId(null); // Limpiar el chat seleccionado al cerrar
+  };
+
+  // Nueva función para abrir chat desde notificaciones
+  const handleOpenChatFromNotification = (chatId = null) => {
+    setSelectedChatId(chatId);
+    setActiveDropdown("chats");
   };
   
   return (
@@ -87,6 +95,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 isOpen={activeDropdown === "notificaciones"}
                 onClick={() => toggleDropdown("notificaciones")}
                 onClose={() => setActiveDropdown(null)}
+                onOpenChat={handleOpenChatFromNotification} // Nueva prop
               />
             </div>
 
@@ -96,7 +105,8 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 userId={JSON.parse(localStorage.getItem("user"))?.id}
                 isOpen={activeDropdown === "chats"}
                 onClose={handleChatClose}
-                onToggle={() => toggleDropdown("chats")} // Pasamos la función toggle como prop
+                onToggle={() => toggleDropdown("chats")}
+                selectedChatId={selectedChatId} // Nueva prop para chat específico
               />
             </div>
 
