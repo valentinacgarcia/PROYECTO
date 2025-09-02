@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaBell } from 'react-icons/fa';
 
-const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
+const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose, onOpenChat }) => {
   const navigate = useNavigate();
   const [ownerNotifications, setOwnerNotifications] = useState([]);
   const [matchNotifications, setMatchNotifications] = useState([]);
@@ -51,7 +51,8 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
           petition_id: `postulation-${item.petition_id}`,
           type: "postulation",
           postulante: item.interested_user_name,
-          mascota: item.pet_name
+          mascota: item.pet_name,
+          originalPetitionId: item.petition_id // Guardamos el ID original para navegación
         }));
         
         const newOnes = mapped.filter(n => !seenNotifications.current.has(n.petition_id));
@@ -78,7 +79,11 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
             petition_id: `match-${item.petition_id}`,
             type: "match",
             postulante: item.interested_user_name,
-            mascota: item.pet_name
+            mascota: item.pet_name,
+            originalPetitionId: item.petition_id,
+            // Para buscar el chat necesitamos estos datos
+            interestedUserId: item.interested_user_id,
+            petName: item.pet_name
           }));
         
         const newOnes = mapped.filter(n => !seenNotifications.current.has(n.petition_id));
@@ -108,23 +113,63 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
     };
   }, [isLoggedIn]);
 
-  const handleNotificationItemClick = (petitionId) => {
+  const handleNotificationItemClick = async (notification) => {
     const user = JSON.parse(localStorage.getItem("user"));
     
     // Actualizar estado local
-    setOwnerNotifications(prev => prev.filter(n => n.petition_id !== petitionId));
-    setMatchNotifications(prev => prev.filter(n => n.petition_id !== petitionId));
+    setOwnerNotifications(prev => prev.filter(n => n.petition_id !== notification.petition_id));
+    setMatchNotifications(prev => prev.filter(n => n.petition_id !== notification.petition_id));
     setUnreadCount(prev => Math.max(0, prev - 1));
     
     // Asegurar que la notificación esté marcada como vista
-    if (!seenNotifications.current.has(petitionId)) {
-      seenNotifications.current.add(petitionId);
+    if (!seenNotifications.current.has(notification.petition_id)) {
+      seenNotifications.current.add(notification.petition_id);
       if (user?.id) {
         saveSeenNotifications(user.id);
       }
     }
     
-    navigate('/postulaciones');
+    // Redirigir según el tipo de notificación
+    if (notification.type === "postulation") {
+      // Para postulaciones, ir a la página de postulaciones
+      navigate('/postulaciones');
+    } else if (notification.type === "match") {
+      // Para matches, abrir el chat panel y buscar el chat específico
+      try {
+        // Buscar el chat que coincida con interestedUser, petName
+        const chatRes = await axios.get(`http://localhost:8000/chat/find`, {
+          params: {
+            interested_user_id: notification.interestedUserId,
+            pet_name: notification.petName
+          }
+        });
+        
+        if (chatRes.data && chatRes.data.chat_id) {
+          // Cerrar notificaciones y abrir chat con el ID específico
+          onClose();
+          if (onOpenChat) {
+            onOpenChat(chatRes.data.chat_id);
+          }
+          return; // Salir temprano para evitar el onClose() al final
+        } else {
+          // Si no encuentra el chat, abrir el panel de chats sin chat específico
+          onClose();
+          if (onOpenChat) {
+            onOpenChat();
+          }
+          return;
+        }
+      } catch (err) {
+        console.error('Error buscando chat:', err);
+        // En caso de error, abrir el panel de chats
+        onClose();
+        if (onOpenChat) {
+          onOpenChat();
+        }
+        return;
+      }
+    }
+    
     onClose();
   };
 
@@ -149,7 +194,7 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose }) => {
               <div
                 key={n.petition_id}
                 className="notification-item"
-                onClick={() => handleNotificationItemClick(n.petition_id)}
+                onClick={() => handleNotificationItemClick(n)}
               >
                 {n.type === "postulation"
                   ? (<><strong>🐾{n.postulante}</strong> quiere adoptar a <em>{n.mascota}</em></>)

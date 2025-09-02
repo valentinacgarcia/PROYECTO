@@ -12,8 +12,20 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const [loading, setLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [showAdoptionModal, setShowAdoptionModal] = useState(false);
+  const [adoptionStatus, setAdoptionStatus] = useState(null);
+  const [adoptionLoading, setAdoptionLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatsWithNewMessages, setChatsWithNewMessages] = useState(new Set());
+  
+  // Nuevos estados para manejar la información de usuarios del chat
+  const [chatUsers, setChatUsers] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [isInterestedUser, setIsInterestedUser] = useState(false);
+  const [loadingChatUsers, setLoadingChatUsers] = useState(false);
+  
+  // Estados para polling
+  const [lastStatusUpdate, setLastStatusUpdate] = useState(null);
+  const statusPollingRef = useRef(null);
 
   const lastReadMessages = useRef(new Map());
   const videoRef = useRef(null);
@@ -21,6 +33,87 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
 
   const loggedUser = JSON.parse(localStorage.getItem('user'));
   const loggedUserId = loggedUser?.id;
+
+  // Función optimizada para obtener estado completo del chat (usuarios + adopción)
+  const fetchChatStatus = async (chatId, isInitialLoad = false) => {
+    if (!chatId) return;
+    
+    if (isInitialLoad) {
+      setLoadingChatUsers(true);
+    }
+    
+    try {
+      // Usar los endpoints que ya tienes
+      const [usersResponse, adoptionResponse] = await Promise.all([
+        axios.post(`http://localhost:8000/chats/${chatId}/users`),
+        axios.get(`http://localhost:8000/adoption/status/${chatId}`).catch(() => ({ data: null }))
+      ]);
+      
+      const { owner_id, interested_id } = usersResponse.data;
+      const adoption_status = adoptionResponse.data;
+      const last_updated = Date.now();
+      
+      // Solo actualizar si hay cambios reales
+      if (isInitialLoad || !chatUsers || 
+          chatUsers.owner_id !== owner_id || 
+          chatUsers.interested_id !== interested_id ||
+          JSON.stringify(adoptionStatus) !== JSON.stringify(adoption_status)) {
+        
+        setChatUsers({ owner_id, interested_id });
+        setAdoptionStatus(adoption_status);
+        setLastStatusUpdate(last_updated);
+        
+        // Verificar si el usuario loggeado es owner o interested
+        const userIsOwner = loggedUserId === owner_id;
+        const userIsInterested = loggedUserId === interested_id;
+        
+        setIsOwner(userIsOwner);
+        setIsInterestedUser(userIsInterested);
+        
+        console.log('Chat Status Updated:', {
+          chatId,
+          loggedUserId,
+          owner_id,
+          interested_id,
+          userIsOwner,
+          userIsInterested,
+          adoption_status
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error fetching chat status:', error);
+      if (isInitialLoad) {
+        setChatUsers(null);
+        setIsOwner(false);
+        setIsInterestedUser(false);
+        setAdoptionStatus(null);
+      }
+    } finally {
+      if (isInitialLoad) {
+        setLoadingChatUsers(false);
+      }
+    }
+  };
+
+  // Función para iniciar polling del estado del chat
+  const startStatusPolling = (chatId) => {
+    // Limpiar polling anterior si existe
+    stopStatusPolling();
+    
+    // Hacer polling cada 3 segundos (más frecuente para mejor UX)
+    statusPollingRef.current = setInterval(() => {
+      fetchChatStatus(chatId, false);
+    }, 3000);
+  };
+
+  // Función para detener polling
+  const stopStatusPolling = () => {
+    if (statusPollingRef.current) {
+      clearInterval(statusPollingRef.current);
+      statusPollingRef.current = null;
+    }
+  };
 
   const loadLastReadMessages = () => {
     const stored = localStorage.getItem(`lastReadMessages_${userId}`);
@@ -65,7 +158,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
       }
     });
     
-    // Solo actualizar si realmente cambió algo
     setUnreadCount(prevCount => {
       if (prevCount !== totalUnread) {
         return totalUnread;
@@ -82,6 +174,17 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
       }
       return prevChats;
     });
+  };
+
+  // Cargar el estado de la adopción cuando se selecciona un chat
+  const fetchAdoptionStatus = async (chatId) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/adoption/status/${chatId}`);
+      setAdoptionStatus(response.data);
+    } catch (error) {
+      console.error('Error fetching adoption status:', error);
+      setAdoptionStatus(null);
+    }
   };
 
   const fetchChats = async () => {
@@ -118,14 +221,11 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     }
   };
 
-  // Función para marcar mensajes como leídos y actualizar contador inmediatamente
   const markMessagesAsRead = (chatId, messages) => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       lastReadMessages.current.set(chatId.toString(), lastMessage.id);
       saveLastReadMessages();
-      
-      // Actualizar el contador inmediatamente después de marcar como leído
       checkForUnreadMessages(chats, messagesByChat);
     }
   };
@@ -154,14 +254,12 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     }
   }, [chats]);
   
-  // Efecto principal para actualizar el contador de no leídos - SIEMPRE SE EJECUTA
   useEffect(() => {
     if (chats.length > 0 && Object.keys(messagesByChat).length > 0) {
       checkForUnreadMessages(chats, messagesByChat);
     }
   }, [chats, messagesByChat, loggedUserId]);
 
-  // Efecto para manejar la selección de chat - SOLO cuando el panel está abierto
   useEffect(() => {
     if (isOpen && selectedChat && messagesByChat[selectedChat.id]) {
       const messages = messagesByChat[selectedChat.id];
@@ -169,13 +267,51 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     }
   }, [selectedChat, isOpen]);
 
-  // Efecto adicional para actualizar cuando los mensajes del chat seleccionado cambian - SOLO cuando el panel está abierto
   useEffect(() => {
     if (isOpen && selectedChat && messagesByChat[selectedChat.id]) {
       const messages = messagesByChat[selectedChat.id];
       markMessagesAsRead(selectedChat.id, messages);
     }
   }, [selectedChat, messagesByChat, isOpen]);
+
+  // Efecto para cargar usuarios del chat y estado de adopción cuando se selecciona un chat
+  useEffect(() => {
+    if (selectedChat && loggedUserId) {
+      // Carga inicial
+      fetchChatStatus(selectedChat.id, true);
+      
+      // Iniciar polling si el panel está abierto
+      if (isOpen) {
+        startStatusPolling(selectedChat.id);
+      }
+    } else {
+      // Limpiar estados cuando no hay chat seleccionado
+      stopStatusPolling();
+      setChatUsers(null);
+      setIsOwner(false);
+      setIsInterestedUser(false);
+      setAdoptionStatus(null);
+      setLastStatusUpdate(null);
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      stopStatusPolling();
+    };
+  }, [selectedChat, loggedUserId, isOpen]);
+
+  // Efecto para manejar el polling cuando cambia la visibilidad del panel
+  useEffect(() => {
+    if (selectedChat) {
+      if (isOpen) {
+        // Si el panel se abre, iniciar polling
+        startStatusPolling(selectedChat.id);
+      } else {
+        // Si el panel se cierra, detener polling
+        stopStatusPolling();
+      }
+    }
+  }, [isOpen, selectedChat]);
   
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -187,9 +323,46 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     setShowAdoptionModal(true);
   };
 
-  const handleAdoptionDecision = (decision) => {
-    console.log('Decisión adopción:', decision);
-    setShowAdoptionModal(false);
+  const handleAdoptionDecision = async (decision) => {
+    if (!decision) {
+      setShowAdoptionModal(false);
+      return;
+    }
+
+    setAdoptionLoading(true);
+    
+    try {
+      if (isOwner && !adoptionStatus?.exists) {
+        // Owner inicia el proceso
+        const response = await axios.post('http://localhost:8000/adoption/initiate', {
+          chat_id: selectedChat.id,
+          owner_id: chatUsers.owner_id
+        });
+        
+        if (response.data.success) {
+          // Refrescar el estado de adopción inmediatamente
+          await fetchChatStatus(selectedChat.id, false);
+          alert('Proceso de adopción iniciado. El usuario interesado recibirá una notificación.');
+        }
+      } else if (isInterestedUser && adoptionStatus?.canUserConfirm) {
+        const response = await axios.post(`http://localhost:8000/adoption/confirm/${adoptionStatus.adoption_id}`,{
+          interested_id: chatUsers.interested_id
+        });
+        
+        if (response.data.success) {
+          // Refrescar el estado de adopción inmediatamente
+          await fetchChatStatus(selectedChat.id, false);
+          alert('¡Felicitaciones! La adopción ha sido confirmada exitosamente.');
+        }
+      }
+    } catch (error) {
+      console.error('Error processing adoption:', error);
+      const errorMessage = error.response?.data?.error || 'Error procesando la adopción';
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setAdoptionLoading(false);
+      setShowAdoptionModal(false);
+    }
   };
 
   const handleCameraClick = async () => {
@@ -266,7 +439,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           };
         });
         
-        // Marcar este mensaje como leído inmediatamente ya que lo enviamos nosotros
         lastReadMessages.current.set(selectedChat.id.toString(), newMsg.id);
         saveLastReadMessages();
         
@@ -290,7 +462,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const selectChat = (chat) => {
     setSelectedChat(chat);
     
-    // Solo marcar como leído si el panel está abierto (usuario está interactuando)
     if (isOpen) {
       const messages = messagesByChat[chat.id] || [];
       if (messages.length > 0) {
@@ -298,7 +469,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
         lastReadMessages.current.set(chat.id.toString(), lastMessage.id);
         saveLastReadMessages();
         
-        // Forzar recálculo inmediato del contador
         setTimeout(() => {
           checkForUnreadMessages(chats, messagesByChat);
         }, 0);
@@ -307,8 +477,92 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   };
 
   const backToChats = () => {
+    stopStatusPolling(); // Detener polling
     setSelectedChat(null);
+    setAdoptionStatus(null);
+    setChatUsers(null);
+    setIsOwner(false);
+    setIsInterestedUser(false);
+    setLastStatusUpdate(null);
   };
+
+  // Determinar si mostrar el botón y su texto/estado
+  const getAdoptionButtonInfo = () => {
+    // Si no hay chat seleccionado o está cargando usuarios, no mostrar
+    if (!selectedChat || loadingChatUsers || !chatUsers) {
+      return { show: false };
+    }
+
+    console.log('getAdoptionButtonInfo debug:', { 
+      isOwner, 
+      isInterestedUser, 
+      adoptionStatus,
+      chatUsers,
+      loggedUserId
+    });
+    
+    // Para el owner: mostrar el botón (excepto si ya está completada)
+    if (isOwner) {
+      if (!adoptionStatus) {
+        // Mientras carga el estado, mostrar botón habilitado
+        return {
+          show: true,
+          text: 'Concretar Adopción',
+          enabled: true,
+          variant: 'primary'
+        };
+      }
+      
+      if (!adoptionStatus.exists) {
+        return {
+          show: true,
+          text: 'Concretar Adopción',
+          enabled: true,
+          variant: 'primary'
+        };
+      } else if (adoptionStatus.state === 'pending') {
+        return {
+          show: true,
+          text: 'Esperando Confirmación',
+          enabled: false,
+          variant: 'waiting'
+        };
+      } else if (adoptionStatus.state === 'completed') {
+        return {
+          show: true,
+          text: '¡Adopción Completada!',
+          enabled: false,
+          variant: 'completed'
+        };
+      }
+    } 
+    // Para el usuario interesado: solo mostrar si hay adopción pending o completada
+    else if (isInterestedUser) {
+      if (!adoptionStatus || !adoptionStatus.exists) {
+        return { show: false };
+      }
+      
+      if (adoptionStatus.state === 'pending') {
+        return {
+          show: true,
+          text: 'Confirmar Adopción',
+          enabled: true,
+          variant: 'confirm'
+        };
+      } else if (adoptionStatus.state === 'completed') {
+        return {
+          show: true,
+          text: '¡Adopción Completada!',
+          enabled: false,
+          variant: 'completed'
+        };
+      }
+    }
+
+    return { show: false };
+  };
+
+  const adoptionButtonInfo = getAdoptionButtonInfo();
 
   const ChatIcon = () => (
     <div 
@@ -349,7 +603,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     </div>
   );
 
-  // Siempre mostrar el ícono cuando no está abierto
   if (!isOpen) {
     return <ChatIcon />;
   }
@@ -401,6 +654,12 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
         <h4>
           <button onClick={backToChats} className="back-button" aria-label="Volver a chats">←</button>
           {selectedChat.name || 'Chat'}
+          {loadingChatUsers && <span style={{ fontSize: '12px', marginLeft: '8px' }}>(Cargando...)</span>}
+          {lastStatusUpdate && (
+            <span style={{ fontSize: '10px', color: '#666', marginLeft: '8px' }}>
+              {new Date(lastStatusUpdate).toLocaleTimeString()}
+            </span>
+          )}
         </h4>
         <FaTimes onClick={onClose} className="close-button" aria-label="Cerrar chat" />
       </div>
@@ -448,9 +707,16 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           <input type="file" accept="image/*" style={{ display: 'none' }} id="fileInput" onChange={handleFileChange} />
           <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} id="cameraInput" onChange={handleFileChange} />
 
-          <button onClick={handleAdoptionClick} className="adoption-button">
-            <FaPaw />
-          </button>
+          {adoptionButtonInfo.show && (
+            <button 
+              onClick={adoptionButtonInfo.enabled ? handleAdoptionClick : undefined}
+              disabled={!adoptionButtonInfo.enabled || adoptionLoading}
+              className={`adoption-button adoption-button-${adoptionButtonInfo.variant}`}
+              title={adoptionButtonInfo.text}
+            >
+              <FaPaw />
+            </button>
+          )}
 
           <button onClick={() => document.getElementById('fileInput').click()} className="attach-button" aria-label="Adjuntar archivo"><FaPaperclip /></button>
 
@@ -464,16 +730,37 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
             <FaPaperPlane />
           </button>
         </div>
+
         {showAdoptionModal && (
-        <div className="adoption-modal-container">
-          <div className="adoption-modal">
-            <h4>¿Querés concretar la adopción?</h4>
-            <div className="adoption-buttons">
-              <button onClick={() => handleAdoptionDecision(true)} className="yes-button">Sí</button>
-              <button onClick={() => handleAdoptionDecision(false)} className="no-button">No</button>
+          <div className="adoption-modal-container">
+            <div className="adoption-modal">
+              <h4>
+                {isOwner ? '¿Estás seguro de querer concretar la adopción?' : '¿Queres confirmar la adopción de esta mascota?'}
+              </h4>
+              <p>
+                {isOwner 
+                  ? 'Se notificará al usuario interesado y deberá confirmar para completar el proceso.'
+                  : 'Al confirmar, la adopción quedará finalizada y serás el nuevo dueño de la mascota.'
+                }
+              </p>
+              <div className="adoption-buttons">
+                <button 
+                  onClick={() => handleAdoptionDecision(true)} 
+                  className="yes-button"
+                  disabled={adoptionLoading}
+                >
+                  {adoptionLoading ? 'Procesando...' : 'Sí'}
+                </button>
+                <button 
+                  onClick={() => handleAdoptionDecision(false)} 
+                  className="no-button"
+                  disabled={adoptionLoading}
+                >
+                  No
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
 

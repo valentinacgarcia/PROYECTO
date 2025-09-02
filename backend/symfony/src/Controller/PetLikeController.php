@@ -245,4 +245,36 @@ class PetLikeController extends AbstractController
 
         return $this->json(['success' => true, 'status' => $adoption->getStatus()]);
     }
+
+    #[Route('/chat/find', name: 'find_chat', methods: ['GET'])]
+    public function findChat(Request $request, ChatRepository $chatRepo): JsonResponse
+    {
+        $interestedUserId = $request->query->get('interested_user_id');
+        $petName = $request->query->get('pet_name');
+        
+        if (!$interestedUserId || !$petName) {
+            return $this->json(['error' => 'Missing parameters'], 400);
+        }
+        
+        $interestedUser = $this->userRepository->find($interestedUserId);
+        if (!$interestedUser) {
+            return $this->json(['error' => 'User not found'], 404);
+        }
+        
+        $chat = $chatRepo->findOneBy([
+            'interestedUser' => $interestedUser,
+            'petName' => $petName
+        ]);
+        
+        if (!$chat) {
+            return $this->json(['error' => 'Chat not found'], 404);
+        }
+        
+        return $this->json([
+            'chat_id' => $chat->getId(),
+            'pet_name' => $chat->getPetName(),
+            'owner_name' => $chat->getOwnerUser()->getName(),
+            'interested_name' => $chat->getInterestedUser()->getName()
+        ]);
+    }
 }

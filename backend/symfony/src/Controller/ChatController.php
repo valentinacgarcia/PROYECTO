@@ -212,6 +212,20 @@ class ChatController extends AbstractController
         return $presignedUrl; 
     }
 
+    #[Route('/{chatId}/users', name:'chat_users', methods:['POST'])]
+    public function chatUsers(int $chatId): JsonResponse
+    {
+        $chat = $this->chatRepository->find($chatId);
+        if (!$chat) return $this->json(['error' => 'Chat not found'], 404);
+
+        $owner_id= $chat->getOwnerUser()->getId();
+        $interested_id = $chat->getInterestedUser()->getId();
+
+        return $this->json([
+            'owner_id' => $owner_id,
+            'interested_id' => $interested_id
+        ]);
+    }
 
 
 
