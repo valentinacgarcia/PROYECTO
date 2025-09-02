@@ -163,6 +163,8 @@ class AdoptionController extends AbstractController
 
         // Confirmar la adopción
         $adoption->markAsCompleted();
+        $adoption->getPet()->setOwner($adoption->getUser());
+        $adoption->getPet()->setIsAdopted(false);
         $this->em->flush();
 
         return $this->json([
