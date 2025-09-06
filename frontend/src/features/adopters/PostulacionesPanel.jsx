@@ -6,13 +6,27 @@ import {
   FaUser,
   FaEnvelope,
   FaDog,
-  FaClipboardList
+  FaClipboardList,
+  FaClock,
+  FaCheckCircle,
+  FaHome,
+  FaKey,
+  FaTree,
+  FaShieldAlt,
+  FaUsers,
+  FaChild,
+  FaAllergies,
+  FaFileContract, 
+  FaSyringe,
+  FaBed,
+  FaUserTie
 } from "react-icons/fa";
 import "./PostulacionesPanel.css";
 
 const PostulacionesPanel = () => {
   const [postulaciones, setPostulaciones] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [selectedFrom, setSelectedFrom] = useState(null);
   const [formData, setFormData] = useState(null);
   const [newNotification, setNewNotification] = useState(null);
 
@@ -26,11 +40,13 @@ const PostulacionesPanel = () => {
         petition_id: item.petition_id,
         postulante: { 
           nombre: item.interested_user_name, 
-          email: "email@desconocido.com",
+          email: item.interested_user_email,
           id: item.interested_user_id
         },
-        mascota: { nombre: item.pet_name, tipo: "Desconocido" },
-        estado: "Pendiente"
+        mascota: { nombre: item.pet_name, tipo: item.pet_type },
+        estado: item.status === "PENDING" ? "Pendiente" : 
+               item.status === "APPROVED" ? "Aprobado" : 
+               item.status === "REJECTED" ? "Rechazado" : "Pendiente"
       }));
 
       // Detectar nuevas postulaciones
@@ -49,7 +65,7 @@ const PostulacionesPanel = () => {
     }
   };
 
-  // Traer postulaciones al montar y cada 10s
+  // Traer postulaciones al montar y cada 5s
   useEffect(() => {
     fetchPostulaciones();
     const interval = setInterval(fetchPostulaciones, 5000);
@@ -70,8 +86,9 @@ const PostulacionesPanel = () => {
     fetchFormData();
   }, [selected]);
 
-  const handleSelectPostulacion = (post) => {
+  const handleSelectPostulacion = (post, from) => {
     setSelected(post);
+    setSelectedFrom(from);
     setFormData(null);
   };
 
@@ -91,18 +108,27 @@ const PostulacionesPanel = () => {
         ...prev,
         estado: nuevoEstado === "approved" ? "Aprobado" : "Rechazado"
       }));
-      setSelected(null);
+      setTimeout(() => {
+        setSelected(null);
+        setSelectedFrom(null);
+      }, 1000);
     } catch (err) {
       console.error("Error al actualizar el estado:", err);
     }
   };
 
+  // Filtrar postulaciones
+  const postulacionesPendientes = postulaciones.filter(p => p.estado === "Pendiente");
+  const postulacionesAprobadas = postulaciones.filter(p => p.estado === "Aprobado");
+
   return (
     <div className="postulaciones-wrapper">
-      <h2 className="titulo-panel">Postulaciones de adopción</h2>
-      <p className="descripcion-panel">
-        En este panel podrás visualizar y gestionar todas las postulaciones de adopción recibidas para las mascotas que publicaste.
-      </p>
+      <div className="header-section">
+        <h2 className="titulo-panel">Postulaciones de adopción</h2>
+        <p className="descripcion-panel">
+          En este panel podrás visualizar y gestionar todas las postulaciones de adopción recibidas para las mascotas que publicaste.
+        </p>
+      </div>
 
       {/* Toast de nueva postulación */}
       <AnimatePresence>
@@ -119,30 +145,106 @@ const PostulacionesPanel = () => {
         )}
       </AnimatePresence>
 
-      <div className="postulaciones-container">
+      <div className="postulaciones-container-dual">
+        {/* Lista de postulaciones pendientes */}
         <div className="postulaciones-list">
-          {postulaciones.map((post) => (
-            <div
-              key={post.petition_id}
-              className={`postulacion-card ${post.estado.toLowerCase()}`}
-              onClick={() => handleSelectPostulacion(post)}
-            >
-              <strong>{post.postulante.nombre}</strong> quiere adoptar a <em>{post.mascota.nombre}</em>
-              <span className="estado">{post.estado}</span>
+          <div className="section-header pending-header">
+            <div className="section-icon">
+              <FaClock />
             </div>
-          ))}
+            <div className="section-info">
+              <h3 className="section-title">Pendientes</h3>
+              <span className="section-count">{postulacionesPendientes.length} solicitudes</span>
+            </div>
+          </div>
+          <div className="postulaciones-content">
+            {postulacionesPendientes.map((post) => (
+              <motion.div
+                key={post.petition_id}
+                className={`postulacion-card ${post.estado.toLowerCase()}`}
+                onClick={() => handleSelectPostulacion(post, 'pending')}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="card-content">
+                  <div className="card-main">
+                    <strong className="postulante-name">{post.postulante.nombre}</strong>
+                    <span className="card-text">quiere adoptar a</span>
+                    <em className="mascota-name">{post.mascota.nombre}</em>
+                  </div>
+                  <div className="card-badge pending-badge">
+                    <FaClock className="badge-icon" />
+                    {post.estado}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            {postulacionesPendientes.length === 0 && (
+              <div className="empty-state">
+                <FaClock className="empty-icon" />
+                <p>No hay postulaciones pendientes</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Lista de postulaciones aprobadas */}
+        <div className="postulaciones-list">
+          <div className="section-header approved-header">
+            <div className="section-icon">
+              <FaCheckCircle />
+            </div>
+            <div className="section-info">
+              <h3 className="section-title">Aprobadas</h3>
+              <span className="section-count">{postulacionesAprobadas.length} solicitudes</span>
+            </div>
+          </div>
+          <div className="postulaciones-content">
+            {postulacionesAprobadas.map((post) => (
+              <motion.div
+                key={post.petition_id}
+                className={`postulacion-card ${post.estado.toLowerCase()}`}
+                onClick={() => handleSelectPostulacion(post, 'approved')}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="card-content">
+                  <div className="card-main">
+                    <strong className="postulante-name">{post.postulante.nombre}</strong>
+                    <span className="card-text">quiere adoptar a</span>
+                    <em className="mascota-name">{post.mascota.nombre}</em>
+                  </div>
+                  <div className="card-badge approved-badge">
+                    <FaCheckCircle className="badge-icon" />
+                    {post.estado}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            {postulacionesAprobadas.length === 0 && (
+              <div className="empty-state">
+                <FaCheckCircle className="empty-icon" />
+                <p>No hay postulaciones aprobadas</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {selected && (
           <motion.div
             key={selected.petition_id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
             className="postulacion-detail"
           >
-            <button className="close-btn" onClick={() => setSelected(null)}><FaTimes /></button>
+            <button className="close-btn" onClick={() => {
+              setSelected(null);
+              setSelectedFrom(null);
+            }}><FaTimes /></button>
 
             <h3 className="detalle-titulo">Detalles de la postulación</h3>
             <div className="detalle-info">
@@ -162,31 +264,38 @@ const PostulacionesPanel = () => {
               <h4><FaClipboardList className="icono-titulo" /> Respuestas del formulario</h4>
               {formData ? (
                 <div>
-                  <p><strong>Tipo de vivienda:</strong> {formData.is_house ? "Casa" : "Departamento"}</p>
-                  <p><strong>Es propietario:</strong> {formData.is_owner ? "Sí" : "No"}</p>
-                  <p><strong>Patio/Jardín:</strong> {formData.has_yard ? "Sí" : "No"}</p>
-                  <p><strong>Seguridad:</strong> {formData.has_security ? "Sí" : "No"}</p>
-                  <p><strong>Miembros del hogar:</strong> {formData.household_members}</p>
-                  <p><strong>Niños:</strong> {formData.has_children ? "Sí" : "No"}</p>
-                  <p><strong>Alergias:</strong> {formData.has_allergies ? "Sí" : "No"}</p>
-                  <p><strong>Acuerdo adopción:</strong> {formData.adoption_agreement ? "Sí" : "No"}</p>
-                  <p><strong>Tuvo mascotas antes:</strong> {formData.had_pets_before ? "Sí" : "No"}</p>
-                  <p><strong>Tiene mascotas actualmente:</strong> {formData.has_current_pets ? "Sí" : "No"}</p>
-                  <p><strong>Vacunadas/Castradas:</strong> {formData.pets_vaccinated === null ? "-" : formData.pets_vaccinated ? "Sí" : "No"}</p>
-                  <p><strong>Horas solo por día:</strong> {formData.hours_alone_per_day}</p>
-                  <p><strong>Lugar para dormir:</strong> {formData.sleeping_location}</p>
-                  <p><strong>Responsable:</strong> {formData.caretaker}</p>
-                  <p><strong>Castrar/Vacunar:</strong> {formData.will_neuter_vaccinate ? "Sí" : "No"}</p>
+                  <p><FaHome className="icono-detalle" /> <strong>Tipo de vivienda:</strong> {formData.is_house ? "Casa" : "Departamento"}</p>
+                  <p><FaKey className="icono-detalle" /> <strong>Es propietario:</strong> {formData.is_owner ? "Sí" : "No"}</p>
+                  <p><FaTree className="icono-detalle" /> <strong>Patio/Jardín:</strong> {formData.has_yard ? "Sí" : "No"}</p>
+                  <p><FaShieldAlt className="icono-detalle" /> <strong>Seguridad:</strong> {formData.has_security ? "Sí" : "No"}</p>
+                  <p><FaUsers className="icono-detalle" /> <strong>Miembros del hogar:</strong> {formData.household_members}</p>
+                  <p><FaChild className="icono-detalle" /> <strong>Niños:</strong> {formData.has_children ? "Sí" : "No"}</p>
+                  <p><FaAllergies className="icono-detalle" /> <strong>Alergias:</strong> {formData.has_allergies ? "Sí" : "No"}</p>
+                  <p><FaFileContract className="icono-detalle" /> <strong>Acuerdo adopción:</strong> {formData.adoption_agreement ? "Sí" : "No"}</p>
+                  <p><FaDog className="icono-detalle" /> <strong>Tuvo mascotas antes:</strong> {formData.had_pets_before ? "Sí" : "No"}</p>
+                  <p><FaDog className="icono-detalle" /> <strong>Tiene mascotas actualmente:</strong> {formData.has_current_pets ? "Sí" : "No"}</p>
+                  <p><FaSyringe className="icono-detalle" /> <strong>Vacunadas/Castradas:</strong> {formData.pets_vaccinated === null ? "-" : formData.pets_vaccinated ? "Sí" : "No"}</p>
+                  <p><FaClock className="icono-detalle" /> <strong>Horas solo por día:</strong> {formData.hours_alone_per_day}</p>
+                  <p><FaBed className="icono-detalle" /> <strong>Lugar para dormir:</strong> {
+                    formData.sleeping_location === "INSIDE" ? "Adentro" :
+                    formData.sleeping_location === "OUTSIDE" ? "Afuera" :
+                    formData.sleeping_location
+                  }</p>
+                  <p><FaUserTie className="icono-detalle" /> <strong>Responsable:</strong> {formData.caretaker}</p>
+                  <p><FaSyringe className="icono-detalle" /> <strong>Castrar/Vacunar:</strong> {formData.will_neuter_vaccinate ? "Sí" : "No"}</p>
                 </div>
               ) : (
                 <p>Cargando datos del formulario...</p>
               )}
             </div>
 
-            <div className="acciones">
-              <button className="aprobar" onClick={() => handleActualizarEstado("approved")}>Aprobar</button>
-              <button className="rechazar" onClick={() => handleActualizarEstado("rejected")}>Rechazar</button>
-            </div>
+
+            {selectedFrom === 'pending' && (
+              <div className="acciones">
+                <button className="aprobar" onClick={() => handleActualizarEstado("approved")}>Aprobar</button>
+                <button className="rechazar" onClick={() => handleActualizarEstado("rejected")}>Rechazar</button>
+              </div>
+            )}
           </motion.div>
         )}
       </div>
