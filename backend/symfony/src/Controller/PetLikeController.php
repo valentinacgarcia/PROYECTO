@@ -97,7 +97,6 @@ class PetLikeController extends AbstractController
         return $this->json(['message' => 'Request sent']);
     }
 
-
     /**
      * El dueño ve TODAS las solicitudes para sus mascotas (pendientes, aprobadas)
      */
