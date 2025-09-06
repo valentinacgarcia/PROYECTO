@@ -33,7 +33,7 @@ class PetRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.is_adopted = :adopted')
-            ->setParameter('adopted', false)
+            ->setParameter('adopted', true)
             ->orderBy('p.created_at', 'DESC');
 
         $this->applyFilters($qb, $filters);
@@ -51,7 +51,7 @@ class PetRepository extends ServiceEntityRepository
     ): array {
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.is_adopted = :adopted')
-            ->setParameter('adopted', false)
+            ->setParameter('adopted', true)
             ->orderBy('p.created_at', 'DESC');
 
         $this->applyFilters($qb, $filters);
@@ -208,7 +208,7 @@ class PetRepository extends ServiceEntityRepository
             ->andWhere('p.location != :empty')
             ->andWhere('p.isAdopted = :adopted')
             ->setParameter('empty', '')
-            ->setParameter('adopted', false)
+            ->setParameter('adopted', true)
             ->orderBy('p.location', 'ASC')
             ->getQuery()
             ->getScalarResult();
@@ -220,7 +220,7 @@ class PetRepository extends ServiceEntityRepository
             ->andWhere('p.breed != :empty')
             ->andWhere('p.isAdopted = :adopted')
             ->setParameter('empty', '')
-            ->setParameter('adopted', false)
+            ->setParameter('adopted', true)
             ->orderBy('p.breed', 'ASC')
             ->getQuery()
             ->getScalarResult();
@@ -232,7 +232,7 @@ class PetRepository extends ServiceEntityRepository
             ->andWhere('p.type != :empty')
             ->andWhere('p.isAdopted = :adopted')
             ->setParameter('empty', '')
-            ->setParameter('adopted', false)
+            ->setParameter('adopted', true)
             ->orderBy('p.type', 'ASC')
             ->getQuery()
             ->getScalarResult();
@@ -269,7 +269,7 @@ class PetRepository extends ServiceEntityRepository
                 LOWER(p.description) LIKE LOWER(:search) OR 
                 LOWER(p.location) LIKE LOWER(:search)
             ')
-            ->setParameter('adopted', false)
+            ->setParameter('adopted', true)
             ->setParameter('search', '%' . $searchTerm . '%')
             ->orderBy('p.created_at', 'DESC')
             ->getQuery()

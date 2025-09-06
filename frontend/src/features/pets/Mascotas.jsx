@@ -82,7 +82,7 @@ const PanelMascotas = () => {
       <ListaMascotas
         title="Mascotas en Adopción"
         mascotas={mascotas}
-        detalleRuta="/mascotas-adopcion"
+        detalleRuta="/mis-mascotas"
         isAdopted={1}
       />
     </div>

@@ -91,6 +91,25 @@ class PetController extends AbstractController
         return $this->json(['message' => 'Mascota creada con éxito', 'id' => $pet->getId()], 201);
     }
 
+    /**
+     * El dueño pasa a EN ADOPCION o la saca a su mascota
+     */
+    #[Route('/forAdoption/{petId}', name: 'for_adoption', methods: ['PUT'])]
+    public function forAdoption(string $petId, Request $request, PetRepository $petRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $pet = $petRepository->find($petId);
+        if($data['for_adoption'] ==True){
+            $pet->setIsAdopted(true);
+            $em->flush();
+            return $this->json(['message' => 'Pet marked for adoption']);
+        }else{
+            $pet->setIsAdopted(false);
+            $em->flush();
+            return $this->json(['message' => 'Pet marked as not for adoption']);
+        }
+    }
+
     #[Route('/edit/{id}', name: 'pet_edit', methods: ['PUT', 'POST'])]
     public function edit(Request $request, PetRepository $petRepository, EntityManagerInterface $em, int $id): JsonResponse
     {

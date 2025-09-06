@@ -8,7 +8,7 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
   const [ubicacion, setUbicacion] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false); // Nuevo estado para el modal
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,16 +48,28 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
     setShowModal(true);
   };
   
-  const handleConfirmAdoption = () => {
-    // Llamada al back
-    console.log("Mascota confirmada para adopción:", {
-      mascotaSeleccionada,
-      ubicacion,
-      descripcion
-    });
+  const handleConfirmAdoption = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) throw new Error("Usuario no encontrado");
 
-    setShowModal(false);
-    navigate('/registrar-mascota'); 
+      const res = await fetch(`http://localhost:8000/pet/forAdoption/${mascotaSeleccionada}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ for_adoption: true })
+      });
+
+      const data = await res.json();
+      console.log("Respuesta del backend:", data);
+
+      setShowModal(false);
+      navigate('/registrar-mascota'); 
+    } catch (err) {
+      console.error("Error al marcar mascota para adopción:", err);
+      alert("No se pudo publicar la mascota para adopción. Intenta nuevamente.");
+    }
   };
 
   const getMascotaNameById = (id) => {
@@ -128,7 +140,6 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
         </button>
       </form>
 
-      {/* Modal de confirmación */}
       {showModal && (
         <div className="modal-adopcion-overlay">
           <div className="modal-adopcion-content">
