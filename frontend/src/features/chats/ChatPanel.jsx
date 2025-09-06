@@ -17,6 +17,9 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatsWithNewMessages, setChatsWithNewMessages] = useState(new Set());
   
+  // Estado para el modal
+  const [messageModal, setMessageModal] = useState({ show: false, text: '' });
+
   // Nuevos estados para manejar la información de usuarios del chat
   const [chatUsers, setChatUsers] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -34,6 +37,14 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const loggedUser = JSON.parse(localStorage.getItem('user'));
   const loggedUserId = loggedUser?.id;
 
+  // Funciones del modal
+  const showMessageModal = (text) => {
+    setMessageModal({ show: true, text });
+  };
+
+  const closeMessageModal = () => {
+    setMessageModal({ show: false, text: '' });
+  };
   // Función optimizada para obtener estado completo del chat (usuarios + adopción)
   const fetchChatStatus = async (chatId, isInitialLoad = false) => {
     if (!chatId) return;
@@ -340,25 +351,24 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
         });
         
         if (response.data.success) {
-          // Refrescar el estado de adopción inmediatamente
           await fetchChatStatus(selectedChat.id, false);
-          alert('Proceso de adopción iniciado. El usuario interesado recibirá una notificación.');
+          showMessageModal('Proceso de adopción iniciado. El usuario interesado recibirá una notificación.');
         }
+
       } else if (isInterestedUser && adoptionStatus?.canUserConfirm) {
         const response = await axios.post(`http://localhost:8000/adoption/confirm/${adoptionStatus.adoption_id}`,{
           interested_id: chatUsers.interested_id
         });
         
         if (response.data.success) {
-          // Refrescar el estado de adopción inmediatamente
           await fetchChatStatus(selectedChat.id, false);
-          alert('¡Felicitaciones! La adopción ha sido confirmada exitosamente.');
+          showMessageModal('¡Felicitaciones! La adopción ha sido confirmada exitosamente.');
         }
       }
     } catch (error) {
       console.error('Error processing adoption:', error);
       const errorMessage = error.response?.data?.error || 'Error procesando la adopción';
-      alert(`Error: ${errorMessage}`);
+      showMessageModal(`Error: ${errorMessage}`);
     } finally {
       setAdoptionLoading(false);
       setShowAdoptionModal(false);
@@ -730,6 +740,19 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
             <FaPaperPlane />
           </button>
         </div>
+
+        {/* Modal de mensajes genérico */}
+        {messageModal.show && (
+          <div className="adoption-modal-container">
+            <div className="adoption-modal">
+              <h4>Mensaje</h4>
+              <p>{messageModal.text}</p>
+              <div className="adoption-buttons">
+                <button onClick={closeMessageModal} className="yes-button">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showAdoptionModal && (
           <div className="adoption-modal-container">

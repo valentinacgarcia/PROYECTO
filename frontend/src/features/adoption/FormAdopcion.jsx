@@ -7,7 +7,8 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
   const [mascotaSeleccionada, setMascotaSeleccionada] = useState(null);
   const [ubicacion, setUbicacion] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [loading, setLoading] = useState(true);  // estado para carga
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false); // Nuevo estado para el modal
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,9 +32,9 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
 
   const handleSeleccionMascota = (id) => {
     if (mascotaSeleccionada === id) {
-      setMascotaSeleccionada(null); 
+      setMascotaSeleccionada(null);
     } else {
-      setMascotaSeleccionada(id); 
+      setMascotaSeleccionada(id);
     }
   };
 
@@ -44,14 +45,25 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
       alert("Por favor, seleccioná una mascota para dar en adopción.");
       return;
     }
-
+    setShowModal(true);
+  };
+  
+  const handleConfirmAdoption = () => {
     // Llamada al back
-    console.log({
+    console.log("Mascota confirmada para adopción:", {
       mascotaSeleccionada,
       ubicacion,
       descripcion
     });
+
+    setShowModal(false);
+    navigate('/registrar-mascota'); 
   };
+
+  const getMascotaNameById = (id) => {
+    const selectedPet = mascotas.find(pet => pet.id === id);
+    return selectedPet ? selectedPet.name : "esta mascota";
+  }
 
   return (
     <div className="dar-adopcion-container">
@@ -115,6 +127,18 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
           Publicar en adopción
         </button>
       </form>
+
+      {/* Modal de confirmación */}
+      {showModal && (
+        <div className="modal-adopcion-overlay">
+          <div className="modal-adopcion-content">
+            <h3>Confirmar Adopción</h3>
+            <p>¿Estás seguro de que quieres dar en adopción a {getMascotaNameById(mascotaSeleccionada)}?</p>
+            <button className="boton-aceptar-modal" onClick={handleConfirmAdoption}>Aceptar</button>
+            <button className="boton-cancelar-modal" onClick={() => setShowModal(false)}>Cancelar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
