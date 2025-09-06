@@ -2,39 +2,77 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Mascotas.css';
 
-const ListaMascotas = ({ title, mascotas, detalleRuta, botonTexto, botonClick, isAdopted }) => {
+const ListaMascotas = ({ title, mascotas, detalleRuta, botonTexto, botonClick, isAdopted, onQuitarDeAdopcion }) => {
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [mascotaAEliminar, setMascotaAEliminar] = useState(null);
 
-  // Filtrar según is_adopted (conversión a número para evitar problemas de tipo)
-  const mascotasFiltradas = mascotas.filter(m => Number(m.is_adopted) === Number(isAdopted));
+  const confirmarQuitar = (mascota) => {
+    setMascotaAEliminar(mascota);
+    setShowModal(true);
+  };
+
+  const handleConfirmQuitar = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/pet/forAdoption/${mascotaAEliminar.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ for_adoption: false }),
+        }
+      );
+
+      if (res.ok) {
+        onQuitarDeAdopcion(mascotaAEliminar.id);
+        setShowModal(false);
+      } else {
+        console.error('Error en la respuesta del servidor');
+      }
+    } catch (error) {
+      console.error('Error al quitar de adopción:', error);
+    }
+  };
 
   return (
     <div className="mis-mascotas-container">
       <h2 className="mascotas-titulo">{title}</h2>
 
-      {mascotasFiltradas.length === 0 ? (
+      {mascotas.filter(m => Number(m.is_adopted) === Number(isAdopted)).length === 0 ? (
         <p className="mensaje-vacio">
           {isAdopted ? 'No hay mascotas publicadas en adopción.' : 'Todavía no registraste ninguna mascota.'}
         </p>
       ) : (
         <div className="lista-mascotas">
-          {mascotasFiltradas.map(mascota => (
-            <div
-              key={mascota.id}
-              className="tarjeta-mascota"
-              onClick={() => navigate(`${detalleRuta}/${mascota.id}`)}
-            >
-              <img
-                src={mascota.photos?.[0] || '/placeholder.png'}
-                alt={mascota.name}
-                className="foto-mascota"
-              />
-              <div className="info-mascota">
-                <h3>{mascota.name}</h3>
-                <p className="mascota-genero-tamanio">{mascota.gender} • {mascota.size}</p>
+          {mascotas
+            .filter(m => Number(m.is_adopted) === Number(isAdopted))
+            .map(mascota => (
+              <div key={mascota.id} className="tarjeta-mascota">
+                <img
+                  src={mascota.photos?.[0] || '/placeholder.png'}
+                  alt={mascota.name}
+                  className="foto-mascota"
+                  onClick={() => navigate(`${detalleRuta}/${mascota.id}`)}
+                />
+
+                {isAdopted === 1 && (
+                  <button
+                    className="btn-quitar-adopcion"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmarQuitar(mascota);
+                    }}
+                  >
+                    ✖
+                  </button>
+                )}
+
+                <div className="info-mascota" onClick={() => navigate(`${detalleRuta}/${mascota.id}`)}>
+                  <h3>{mascota.name}</h3>
+                  <p className="mascota-genero-tamanio">{mascota.gender} • {mascota.size}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 
@@ -42,6 +80,24 @@ const ListaMascotas = ({ title, mascotas, detalleRuta, botonTexto, botonClick, i
         <button className="boton-nueva-mascota" onClick={botonClick}>
           {botonTexto}
         </button>
+      )}
+
+      {/* Modal de confirmación */}
+      {showModal && (
+        <div className="modal-adopcion-overlay">
+          <div className="modal-adopcion-content">
+            <h3>Confirmar acción</h3>
+            <p>
+              ¿Seguro que quieres quitar a <b>{mascotaAEliminar?.name}</b> de la lista de adopción?
+            </p>
+            <button className="boton-aceptar-modal" onClick={handleConfirmQuitar}>
+              Sí, quitar
+            </button>
+            <button className="boton-cancelar-modal" onClick={() => setShowModal(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -58,13 +114,14 @@ const PanelMascotas = () => {
 
     fetch(`http://localhost:8000/pet/list/${user.id}`)
       .then(res => res.json())
-      .then(data => {
-        console.log('Mascotas recibidas:', data); // Para debug
-        setMascotas(data);
-      })
+      .then(data => setMascotas(data))
       .catch(err => console.error('Error al cargar mascotas:', err))
       .finally(() => setLoading(false));
   }, []);
+
+  const quitarDeAdopcion = (idMascota) => {
+    setMascotas(prev => prev.map(m => m.id === idMascota ? { ...m, is_adopted: 0 } : m));
+  };
 
   if (loading) return <p>Cargando mascotas...</p>;
 
@@ -77,6 +134,7 @@ const PanelMascotas = () => {
         botonTexto="Registrar una nueva mascota"
         botonClick={() => navigate('/registrar-mascota/nueva')}
         isAdopted={0}
+        onQuitarDeAdopcion={quitarDeAdopcion}
       />
 
       <ListaMascotas
@@ -84,6 +142,7 @@ const PanelMascotas = () => {
         mascotas={mascotas}
         detalleRuta="/mis-mascotas"
         isAdopted={1}
+        onQuitarDeAdopcion={quitarDeAdopcion}
       />
     </div>
   );
