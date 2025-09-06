@@ -99,22 +99,25 @@ class PetLikeController extends AbstractController
 
 
     /**
-     * El dueño ve las solicitudes pendientes para sus mascotas
+     * El dueño ve TODAS las solicitudes para sus mascotas (pendientes, aprobadas)
      */
     #[Route('/notifications/{userId}', name: 'adoption_notifications', methods: ['GET'])]
     public function getPendingNotifications(string $userId): JsonResponse
     {
         $user = $this->userRepository->find($userId);
 
-        $pendingRequests = $this->petLikeRepository->findPendingByOwner($user);
+        $pendingRequests = $this->petLikeRepository->findAllByOwner($user);
 
         $data = [];
         foreach ($pendingRequests as $request) {
             $data[] = [
                 'petition_id' => $request->getId(),
                 'pet_name' => $request->getPet()->getName(),
+                'pet_type' => $request->getPet()->getType(),
                 'interested_user_name' => $request->getInterestedUser()->getName(),
+                'interested_user_email' => $request->getInterestedUser()->getEmail(),
                 'interested_user_id' => $request->getInterestedUser()->getId(),
+                'status' => $request->getStatus()
             ];
         }
 
