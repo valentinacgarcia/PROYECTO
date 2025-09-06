@@ -134,3 +134,69 @@
   text-decoration: underline; 
   cursor: pointer;
 }
+
+
+/* Estilos para el Modal de Confirmación */
+.modal-adopcion-overlay {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  background-color: #fbf7f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-adopcion-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal-adopcion-content h3 {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.modal-adopcion-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.boton-aceptar-modal,
+.boton-cancelar-modal {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  margin: 0 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.boton-aceptar-modal {
+  background-color: #53a57d;
+  color: white;
+}
+
+.boton-aceptar-modal:hover {
+  background-color: #428e6a;
+  transform: scale(1.05);
+}
+
+.boton-cancelar-modal {
+  background-color: #f44336;
+  color: white;
+}
+
+.boton-cancelar-modal:hover {
+  background-color: #da190b;
+  transform: scale(1.05);
+}
