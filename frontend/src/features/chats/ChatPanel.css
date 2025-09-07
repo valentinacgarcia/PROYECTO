@@ -286,7 +286,10 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-.attach-button:hover, .camera-button:hover, .adoption-button:hover { background: #428e6a; }
+.attach-button:hover, .camera-button:hover, .adoption-button:hover { 
+  background-color: #4CAF50; 
+  color: white;
+  border-color: #45a049; }
 
 /* Preview archivo */
 .file-preview {
@@ -410,12 +413,6 @@
   color: #666;
 }
 
-.adoption-button:hover:not(.disabled) {
-  background-color: #4CAF50; /* Verde en hover */
-  color: white;
-  border-color: #45a049;
-}
-
 .adoption-button.success {
   background-color: #4CAF50;
   color: white;
@@ -521,4 +518,21 @@
   background-color: #4CAF50;
   color: white;
   border-color: #45a049;
+}
+
+.chat-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ddd; 
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.chat-date-divider {
+  text-align: center;
+  font-size: 0.75rem; 
+  color: #999;         
+  margin: 12px 0;      
+  font-weight: 500;
 }

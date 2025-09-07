@@ -153,7 +153,7 @@ const PostulacionesPanel = () => {
               <FaClock />
             </div>
             <div className="section-info">
-              <h3 className="section-title">Pendientes</h3>
+              <h3 className="section-postulacion-title">Pendientes</h3>
               <span className="section-count">{postulacionesPendientes.length} solicitudes</span>
             </div>
           </div>
@@ -196,7 +196,7 @@ const PostulacionesPanel = () => {
               <FaCheckCircle />
             </div>
             <div className="section-info">
-              <h3 className="section-title">Aprobadas</h3>
+              <h3 className="section-postulacion-title">Aprobadas</h3>
               <span className="section-count">{postulacionesAprobadas.length} solicitudes</span>
             </div>
           </div>

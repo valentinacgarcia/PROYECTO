@@ -37,6 +37,29 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const loggedUser = JSON.parse(localStorage.getItem('user'));
   const loggedUserId = loggedUser?.id;
 
+  // Tiempo relativo
+  const timeAgo = (dateString) => {
+  if (!dateString) return '';
+  const dateUtc = new Date(dateString);
+  const dateArg = new Date(dateUtc.getTime() - 3 * 60 * 60 * 1000);
+  const now = new Date();
+  const diff = Math.floor((now - dateArg) / 1000);
+  if (diff < 0) return 'justo ahora'; 
+  if (diff < 60) return `${diff} seg`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} h`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} d`;
+  return `${Math.floor(diff / 604800)} sem`;
+  };
+
+  //Transformación de hora UTC a hora ARG
+  const formatTimeARG = (dateString) => {
+  if (!dateString) return '';
+  const dateUtc = new Date(dateString); 
+  const dateArg = new Date(dateUtc.getTime() - 3 * 60 * 60 * 1000);
+  return dateArg.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   // Funciones del modal
   const showMessageModal = (text) => {
     setMessageModal({ show: true, text });
@@ -618,43 +641,61 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   }
 
   if (!selectedChat) {
-    return (
-      <div className="chat-panel chat-list-panel">
-        <div className="chat-header">
-          <h4>Mis Chats</h4>
-          <FaTimes onClick={onClose} className="close-button" aria-label="Cerrar chat" />
-        </div>
-        {chats.length === 0 ? (
-          <p className="no-chats">Cargando chats...</p>
-        ) : (
-          <div className="chat-list">
-            {chats.map(chat => {
-              const hasNewMessages = chatsWithNewMessages.has(chat.id);
-              const lastMessage = messagesByChat[chat.id]?.slice(-1)[0] || {};
-              return (
-                <div 
-                  key={chat.id} 
-                  className={`chat-item ${hasNewMessages ? 'chat-item-unread' : ''}`}
-                  onClick={() => selectChat(chat)}
-                >
-                  <div className="chat-info">
-                    <strong>{chat.name || `Chat con ${chat.petName} 🐾`}</strong>
-                    <small>{lastMessage.content || 'Sin mensajes'}</small>
-                  </div>
-                  <div className="chat-meta">
-                    <div className="chat-time">
-                      {lastMessage.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString() : ''}
-                    </div>
-                    {hasNewMessages && <div className="chat-unread-indicator"></div>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+  // Ordenamiento de chats por último mensaje
+  const sortedChats = [...chats].sort((a, b) => {
+    const lastMsgA = messagesByChat[a.id]?.slice(-1)[0];
+    const lastMsgB = messagesByChat[b.id]?.slice(-1)[0];
+
+    const timeA = lastMsgA ? new Date(lastMsgA.createdAt).getTime() : 0;
+    const timeB = lastMsgB ? new Date(lastMsgB.createdAt).getTime() : 0;
+
+    return timeB - timeA; 
+  });
+
+  return (
+    <div className="chat-panel chat-list-panel">
+      <div className="chat-header">
+        <h4>Mis Chats</h4>
+        <FaTimes onClick={onClose} className="close-button" aria-label="Cerrar chat" />
       </div>
-    );
-  }
+      {chats.length === 0 ? (
+        <p className="no-chats">Cargando chats...</p>
+      ) : (
+        <div className="chat-list">
+          {sortedChats.map(chat => {
+            const hasNewMessages = chatsWithNewMessages.has(chat.id);
+            const lastMessage = messagesByChat[chat.id]?.slice(-1)[0] || {};
+            return (
+              <div 
+                key={chat.id} 
+                className={`chat-item ${hasNewMessages ? 'chat-item-unread' : ''}`}
+                onClick={() => selectChat(chat)}
+              >
+                {/* Aca deberia ir la foto de la mascota que se trae del back (chat.photo?) */}
+                <div className="chat-avatar-placeholder"></div>
+                
+                <div className="chat-info">
+                  <strong>{chat.name || `Chat con ${chat.otherUserName}`}</strong>
+                  <small>{lastMessage.content || 'Sin mensajes'}</small>
+                </div>
+                <div className="chat-meta">
+                  <div className="chat-time">
+                    <div className="chat-time">
+                      {timeAgo(lastMessage.createdAt)}
+                    </div>
+                  </div>
+                  {hasNewMessages && <div className="chat-unread-indicator"></div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
   const currentMessages = messagesByChat[selectedChat.id] || [];
 
@@ -665,11 +706,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           <button onClick={backToChats} className="back-button" aria-label="Volver a chats">←</button>
           {selectedChat.name || 'Chat'}
           {loadingChatUsers && <span style={{ fontSize: '12px', marginLeft: '8px' }}>(Cargando...)</span>}
-          {lastStatusUpdate && (
-            <span style={{ fontSize: '10px', color: '#666', marginLeft: '8px' }}>
-              {new Date(lastStatusUpdate).toLocaleTimeString()}
-            </span>
-          )}
         </h4>
         <FaTimes onClick={onClose} className="close-button" aria-label="Cerrar chat" />
       </div>
@@ -679,25 +715,46 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           {currentMessages.length === 0 ? (
             <div className="no-messages">No hay mensajes aún</div>
           ) : (
-            currentMessages.map(message => {
+            currentMessages.map((message, index) => {
               const isMine = message.senderId === loggedUserId;
+
+              // Formatear la fecha del mensaje
+              const messageDate = new Date(message.createdAt);
+              const parts = messageDate.toLocaleDateString('es-AR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              }).split(' ');
+              const messageDateStr = parts.filter(p => p !== 'de').join(' ');
+
+              // Comparar con el mensaje anterior para mostrar separador de fecha
+              const prevMessage = currentMessages[index - 1];
+              const prevMessageDate = prevMessage ? new Date(prevMessage.createdAt) : null;
+              const shouldShowDate = !prevMessageDate || messageDate.toDateString() !== prevMessageDate.toDateString();
+
               return (
-                <div key={message.id} className={`message ${isMine ? 'own-message' : 'other-message'}`}>
-                  <div className="message-content">
-                    {message.fileUrl && (
-                      <img
-                        src={message.fileUrl}
-                        alt="Adjunto"
-                        className="message-image"
-                        onError={(e) => e.target.style.display = 'none'}
-                      />
-                    )}
-                    {message.content && <div>{message.content}</div>}
+                <React.Fragment key={message.id}>
+                  {shouldShowDate && (
+                    <div className="chat-date-divider">{messageDateStr}</div>
+                  )}
+
+                  <div className={`message ${isMine ? 'own-message' : 'other-message'}`}>
+                    <div className="message-content">
+                      {message.fileUrl && (
+                        <img
+                          src={message.fileUrl}
+                          alt="Adjunto"
+                          className="message-image"
+                          onError={(e) => e.target.style.display = 'none'}
+                        />
+                      )}
+                      {message.content && <div>{message.content}</div>}
+                    </div>
+                    <div className="message-time">
+                      {formatTimeARG(message.createdAt)}
+                    </div>
                   </div>
-                  <div className="message-time">
-                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
+                </React.Fragment>
               );
             })
           )}
