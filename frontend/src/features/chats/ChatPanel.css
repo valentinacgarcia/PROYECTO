@@ -536,3 +536,136 @@
   margin: 12px 0;      
   font-weight: 500;
 }
+
+/* Contenedor para el botón de recepción */
+.reception-button-container {
+  padding: 10px 15px 0px 15px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #f0f0f0;
+  background: #fbf7f4;
+}
+
+/* Botón de recepción - estilo alargado y ovalado */
+.reception-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #53a57d, #428e6a);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(83, 165, 125, 0.3);
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.reception-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.reception-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(83, 165, 125, 0.4);
+  background: linear-gradient(135deg, #428e6a, #357a5a);
+}
+
+.reception-button:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.reception-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(83, 165, 125, 0.3);
+}
+
+.reception-button:disabled {
+  background: #ccc;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.reception-button svg {
+  font-size: 16px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
+}
+
+/* Animación para cuando aparece el botón */
+.reception-button-container {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Variante del botón de adopción para estado waiting cuando es para el usuario interesado */
+.adoption-button-waiting {
+  background-color: #ffa726 !important;
+  color: white !important;
+  border-color: #ff9800 !important;
+  animation: pulse-orange 2s infinite;
+}
+
+@keyframes pulse-orange {
+  0% { 
+    background-color: #ffa726;
+    box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7);
+  }
+  70% {
+    background-color: #ff9800;
+    box-shadow: 0 0 0 10px rgba(255, 167, 38, 0);
+  }
+  100% {
+    background-color: #ffa726;
+    box-shadow: 0 0 0 0 rgba(255, 167, 38, 0);
+  }
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+  .reception-button {
+    min-width: 180px;
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .reception-button-container {
+    padding: 8px 15px 0px 15px;
+  }
+}

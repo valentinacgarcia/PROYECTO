@@ -108,6 +108,11 @@ class Adoption
         return $this->state === 'pending';
     }
 
+    public function isWaiting(): bool
+    {
+        return $this->state === 'waiting';
+    }
+
     public function isCompleted(): bool
     {
         return $this->state === 'completed';
@@ -121,6 +126,14 @@ class Adoption
     public function markAsCompleted(): static
     {
         $this->state = 'completed';
+        $this->adoptionDate = new \DateTimeImmutable();
+        
+        return $this;
+    }
+
+    public function markAsWaiting(): static
+    {
+        $this->state = 'waiting';
         $this->adoptionDate = new \DateTimeImmutable();
         
         return $this;
