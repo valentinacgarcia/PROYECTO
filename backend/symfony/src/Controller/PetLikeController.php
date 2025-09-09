@@ -82,10 +82,17 @@ class PetLikeController extends AbstractController
             return $this->json(['message' => 'Request already sent'], 409);
         }
 
+        // Verificar que la mascota tenga dueño asignado
+        $owner = $pet->getOwner();
+        if (!$owner) {
+            return $this->json(['error' => 'Pet has no owner'], 400);
+        }
+
         // Crear nueva solicitud
         $petLike = new PetLike();
         $petLike->setPet($pet);
         $petLike->setInterestedUser($user);
+        $petLike->setOwnerUser($pet->getOwner());
         $petLike->setStatus('pending');
         $petLike->setCreatedAt(new \DateTime());
 
@@ -238,6 +245,7 @@ class PetLikeController extends AbstractController
                 $chat->setOwnerUser($ownerUser);
                 $chat->setInterestedUser($interestedUser);
                 $chat->setPetName($adoption->getPet()->getName());
+                $chat->setPetId($adoption->getPet()->getId());
                 $chat->setCreatedAt(new \DateTime());
 
                 $em->persist($chat);

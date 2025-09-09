@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera, FaPaw, FaComments } from 'react-icons/fa';
+import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera, FaPaw, FaComments, FaTruck } from 'react-icons/fa';
 import './ChatPanel.css';
 
 const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
@@ -12,11 +12,16 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const [loading, setLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [showAdoptionModal, setShowAdoptionModal] = useState(false);
+  const [showReceptionModal, setShowReceptionModal] = useState(false);
   const [adoptionStatus, setAdoptionStatus] = useState(null);
   const [adoptionLoading, setAdoptionLoading] = useState(false);
+  const [receptionLoading, setReceptionLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatsWithNewMessages, setChatsWithNewMessages] = useState(new Set());
   
+  // Nuevo estado para las fotos de mascotas
+  const [petPhotos, setPetPhotos] = useState({});
+
   // Estado para el modal
   const [messageModal, setMessageModal] = useState({ show: false, text: '' });
 
@@ -59,6 +64,41 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const dateArg = new Date(dateUtc.getTime() - 3 * 60 * 60 * 1000);
   return dateArg.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+  
+// Función para obtener la primera foto de una mascota
+  const fetchPetPhoto = async (petId) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/pet/detail/${petId}`);
+      return response.data.photos?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching pet photo:', error);
+      return null;
+    }
+  };
+
+  // Función para cargar las fotos de todas las mascotas de los chats
+  const loadPetPhotos = async (chatList) => {
+    const photoPromises = chatList.map(async (chat) => {
+      if (chat.petId && !petPhotos[chat.petId]) {
+        const photo = await fetchPetPhoto(chat.petId);
+        return { petId: chat.petId, photo };
+      }
+      return null;
+    });
+
+    const results = await Promise.all(photoPromises);
+    
+    const newPhotos = {};
+    results.forEach(result => {
+      if (result && result.photo) {
+        newPhotos[result.petId] = result.photo;
+      }
+    });
+
+    if (Object.keys(newPhotos).length > 0) {
+      setPetPhotos(prev => ({ ...prev, ...newPhotos }));
+    }
+  };
 
   // Funciones del modal
   const showMessageModal = (text) => {
@@ -68,6 +108,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const closeMessageModal = () => {
     setMessageModal({ show: false, text: '' });
   };
+  
   // Función optimizada para obtener estado completo del chat (usuarios + adopción)
   const fetchChatStatus = async (chatId, isInitialLoad = false) => {
     if (!chatId) return;
@@ -275,6 +316,13 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     return () => clearInterval(chatInterval);
   }, [userId]);
   
+  // Efecto para cargar las fotos cuando cambian los chats
+  useEffect(() => {
+    if (chats.length > 0) {
+      loadPetPhotos(chats);
+    }
+  }, [chats]);
+  
   useEffect(() => {
     if (chats.length > 0) {
       const messageIntervals = chats.map(chat => {
@@ -357,6 +405,10 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     setShowAdoptionModal(true);
   };
 
+  const handleReceptionClick = () => {
+    setShowReceptionModal(true);
+  };
+
   const handleAdoptionDecision = async (decision) => {
     if (!decision) {
       setShowAdoptionModal(false);
@@ -395,6 +447,33 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     } finally {
       setAdoptionLoading(false);
       setShowAdoptionModal(false);
+    }
+  };
+
+  const handleReceptionDecision = async (decision) => {
+    if (!decision) {
+      setShowReceptionModal(false);
+      return;
+    }
+
+    setReceptionLoading(true);
+    
+    try {
+      const response = await axios.post(`http://localhost:8000/adoption/confirm/reception/${adoptionStatus.adoption_id}`, {
+        interested_id: chatUsers.interested_id
+      });
+      
+      if (response.data.success) {
+        await fetchChatStatus(selectedChat.id, false);
+        showMessageModal('¡Felicitaciones! Has confirmado la recepción de tu nueva mascota.');
+      }
+    } catch (error) {
+      console.error('Error confirming reception:', error);
+      const errorMessage = error.response?.data?.error || 'Error confirmando la recepción';
+      showMessageModal(`Error: ${errorMessage}`);
+    } finally {
+      setReceptionLoading(false);
+      setShowReceptionModal(false);
     }
   };
 
@@ -560,6 +639,13 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           enabled: false,
           variant: 'waiting'
         };
+      } else if (adoptionStatus.state === 'waiting') {
+        return {
+          show: true,
+          text: 'Esperando Recepción',
+          enabled: false,
+          variant: 'waiting'
+        };
       } else if (adoptionStatus.state === 'completed') {
         return {
           show: true,
@@ -582,6 +668,13 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           enabled: true,
           variant: 'confirm'
         };
+      } else if (adoptionStatus.state === 'waiting') {
+        return {
+          show: true,
+          text: 'Esperando mi confirmación',
+          enabled: false,
+          variant: 'waiting'
+        };
       } else if (adoptionStatus.state === 'completed') {
         return {
           show: true,
@@ -595,7 +688,27 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     return { show: false };
   };
 
+  // Determinar si mostrar el botón de recepción
+  const getReceptionButtonInfo = () => {
+    if (!selectedChat || loadingChatUsers || !chatUsers || !adoptionStatus) {
+      return { show: false };
+    }
+
+    // Solo mostrar para el usuario interesado cuando la adopción está en estado "waiting"
+    if (isInterestedUser && adoptionStatus.exists && adoptionStatus.state === 'waiting') {
+      return {
+        show: true,
+        text: 'Recibí mi Mascota',
+        enabled: true,
+        variant: 'reception'
+      };
+    }
+
+    return { show: false };
+  };
+
   const adoptionButtonInfo = getAdoptionButtonInfo();
+  const receptionButtonInfo = getReceptionButtonInfo();
 
   const ChatIcon = () => (
     <div 
@@ -671,8 +784,24 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
                 className={`chat-item ${hasNewMessages ? 'chat-item-unread' : ''}`}
                 onClick={() => selectChat(chat)}
               >
-                {/* Aca deberia ir la foto de la mascota que se trae del back (chat.photo?) */}
-                <div className="chat-avatar-placeholder"></div>
+                {/* Avatar con foto de mascota */}
+                <div className="chat-avatar-container">
+                  {petPhotos[chat.petId] ? (
+                    <img 
+                      src={petPhotos[chat.petId]} 
+                      alt="Mascota" 
+                      className="chat-avatar"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="chat-avatar-placeholder" 
+                    style={{display: petPhotos[chat.petId] ? 'none' : 'block'}}
+                  />
+                </div>
                 
                 <div className="chat-info">
                   <strong>{chat.name || `Chat con ${chat.otherUserName}`}</strong>
@@ -694,8 +823,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     </div>
   );
 }
-
-
 
   const currentMessages = messagesByChat[selectedChat.id] || [];
 
@@ -760,6 +887,21 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           )}
         </div>
 
+        {/* Botón de recepción - Se muestra arriba del input cuando corresponde */}
+        {receptionButtonInfo.show && (
+          <div className="reception-button-container">
+            <button
+              onClick={handleReceptionClick}
+              disabled={!receptionButtonInfo.enabled || receptionLoading}
+              className="reception-button"
+              title={receptionButtonInfo.text}
+            >
+              <FaTruck />
+              <span>{receptionButtonInfo.text}</span>
+            </button>
+          </div>
+        )}
+
         <div className="message-input-container">
           <textarea
             value={newMessage}
@@ -815,7 +957,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
           <div className="adoption-modal-container">
             <div className="adoption-modal">
               <h4>
-                {isOwner ? '¿Estás seguro de querer concretar la adopción?' : '¿Queres confirmar la adopción de esta mascota?'}
+                {isOwner ? '¿Estás seguro de querer concretar la adopción?' : '¿Quieres confirmar la adopción de esta mascota?'}
               </h4>
               <p>
                 {isOwner 
@@ -837,6 +979,34 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
                   disabled={adoptionLoading}
                 >
                   No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showReceptionModal && (
+          <div className="adoption-modal-container">
+            <div className="adoption-modal">
+              <h4>¿Estás seguro de que recibiste tu mascota?</h4>
+              <p>
+                Al confirmar la recepción, completarás oficialmente la adopción y 
+                la mascota quedará registrada como tuya.
+              </p>
+              <div className="adoption-buttons">
+                <button 
+                  onClick={() => handleReceptionDecision(true)} 
+                  className="yes-button"
+                  disabled={receptionLoading}
+                >
+                  {receptionLoading ? 'Procesando...' : 'Sí, la recibí'}
+                </button>
+                <button 
+                  onClick={() => handleReceptionDecision(false)} 
+                  className="no-button"
+                  disabled={receptionLoading}
+                >
+                  Cancelar
                 </button>
               </div>
             </div>

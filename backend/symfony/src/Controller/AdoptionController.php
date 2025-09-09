@@ -161,7 +161,42 @@ class AdoptionController extends AbstractController
             return $this->json(['error' => 'Adoption is not in pending state'], 400);
         }
 
-        // Confirmar la adopción
+        // pasar a waiting 
+        $adoption->markAsWaiting();
+        $this->em->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Adoption confirmed successfully!',
+        ]);
+    }
+
+    /**
+     * POST /adoption/confirm/reception/{adoptionId}
+     * El usuario interesado confirma la recepcion
+     */
+    #[Route('/confirm/reception/{adoptionId}', name: 'adoption_confirm_reception', methods: ['POST'])]
+    public function confirmReception(int $adoptionId, Request $request): JsonResponse
+    {
+        $adoption = $this->adoptionRepository->find($adoptionId);
+        if (!$adoption) {
+            return $this->json(['error' => 'Adoption not found'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        // Verificar que el usuario actual sea el interesado
+        $currentUser = $data['interested_id'] ?? null;
+        if (!$currentUser || $currentUser !== $adoption->getUser()->getId()) {
+            return $this->json(['error' => 'Only the interested user can confirm reception'], 403);
+        }
+
+        // Verificar que esté en estado waiting
+        if (!$adoption->isWaiting()) {
+            return $this->json(['error' => 'Adoption is not in waiting state'], 400);
+        }
+
+        // pasar a completed 
         $adoption->markAsCompleted();
         $adoption->getPet()->setOwner($adoption->getUser());
         $adoption->getPet()->setIsAdopted(false);
@@ -169,9 +204,8 @@ class AdoptionController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'message' => 'Adoption confirmed successfully!',
-            'adoption_date' => $adoption->getAdoptionDate()?->format('Y-m-d H:i:s')
-        ]);
+            'message' => 'Reception confirmed successfully!',
+            'adoption_date' => $adoption->getAdoptionDate()?->format('Y-m-d H:i:s')        ]);
     }
 
 }
