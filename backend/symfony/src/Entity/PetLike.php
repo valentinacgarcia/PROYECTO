@@ -19,6 +19,10 @@ class PetLike
     #[ORM\JoinColumn(nullable: false)]
     private ?User $interestedUser = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $ownerUser = null;
+
     #[ORM\ManyToOne(targetEntity: Pet::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Pet $pet = null;
@@ -47,6 +51,17 @@ class PetLike
     public function setInterestedUser(?User $interestedUser): self
     {
         $this->interestedUser = $interestedUser;
+        return $this;
+    }
+
+    public function getOwnerUser(): ?User
+    {
+        return $this->ownerUser; 
+    }
+
+    public function setOwnerUser(?User $ownerUser): self
+    {
+        $this->ownerUser = $ownerUser; 
         return $this;
     }
 
