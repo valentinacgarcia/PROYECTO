@@ -85,6 +85,7 @@ class ChatController extends AbstractController
                 'lastMessage' => $lastMessage ? $lastMessage->getContent() : '',
                 'lastMessageAt' => $lastMessage ? $lastMessage->getCreatedAt()->format('Y-m-d H:i:s') : null,
                 'petName' => $chat->getPetName(),
+                'petId' => $chat->getPetId()
             ];
         }
 

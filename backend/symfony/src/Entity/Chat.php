@@ -29,6 +29,9 @@ class Chat
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $petName = null;
 
+    #[ORM\Column(type: "integer", nullable: true)]
+    private ?string $petId = null;
+
     #[ORM\Column(type: "datetime")]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -95,6 +98,17 @@ class Chat
     public function setPetName(?string $petName): self
     {
         $this->petName = $petName;
+        return $this;
+    }
+    
+    public function getPetId(): ?int
+    {
+        return $this->petId;
+    }
+
+    public function setPetId(?int $petId): self
+    {
+        $this->petId = $petId;
         return $this;
     }
 

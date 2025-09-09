@@ -238,6 +238,7 @@ class PetLikeController extends AbstractController
                 $chat->setOwnerUser($ownerUser);
                 $chat->setInterestedUser($interestedUser);
                 $chat->setPetName($adoption->getPet()->getName());
+                $chat->setPetId($adoption->getPet()->getId());
                 $chat->setCreatedAt(new \DateTime());
 
                 $em->persist($chat);

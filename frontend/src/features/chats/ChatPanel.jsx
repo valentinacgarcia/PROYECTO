@@ -19,6 +19,9 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatsWithNewMessages, setChatsWithNewMessages] = useState(new Set());
   
+  // Nuevo estado para las fotos de mascotas
+  const [petPhotos, setPetPhotos] = useState({});
+
   // Estado para el modal
   const [messageModal, setMessageModal] = useState({ show: false, text: '' });
 
@@ -60,6 +63,41 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   const dateUtc = new Date(dateString); 
   const dateArg = new Date(dateUtc.getTime() - 3 * 60 * 60 * 1000);
   return dateArg.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+  
+// Función para obtener la primera foto de una mascota
+  const fetchPetPhoto = async (petId) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/pet/detail/${petId}`);
+      return response.data.photos?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching pet photo:', error);
+      return null;
+    }
+  };
+
+  // Función para cargar las fotos de todas las mascotas de los chats
+  const loadPetPhotos = async (chatList) => {
+    const photoPromises = chatList.map(async (chat) => {
+      if (chat.petId && !petPhotos[chat.petId]) {
+        const photo = await fetchPetPhoto(chat.petId);
+        return { petId: chat.petId, photo };
+      }
+      return null;
+    });
+
+    const results = await Promise.all(photoPromises);
+    
+    const newPhotos = {};
+    results.forEach(result => {
+      if (result && result.photo) {
+        newPhotos[result.petId] = result.photo;
+      }
+    });
+
+    if (Object.keys(newPhotos).length > 0) {
+      setPetPhotos(prev => ({ ...prev, ...newPhotos }));
+    }
   };
 
   // Funciones del modal
@@ -277,6 +315,13 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     const chatInterval = setInterval(fetchChats, 5000);
     return () => clearInterval(chatInterval);
   }, [userId]);
+  
+  // Efecto para cargar las fotos cuando cambian los chats
+  useEffect(() => {
+    if (chats.length > 0) {
+      loadPetPhotos(chats);
+    }
+  }, [chats]);
   
   useEffect(() => {
     if (chats.length > 0) {
@@ -739,8 +784,24 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
                 className={`chat-item ${hasNewMessages ? 'chat-item-unread' : ''}`}
                 onClick={() => selectChat(chat)}
               >
-                {/* Aca deberia ir la foto de la mascota que se trae del back (chat.photo?) */}
-                <div className="chat-avatar-placeholder"></div>
+                {/* Avatar con foto de mascota */}
+                <div className="chat-avatar-container">
+                  {petPhotos[chat.petId] ? (
+                    <img 
+                      src={petPhotos[chat.petId]} 
+                      alt="Mascota" 
+                      className="chat-avatar"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="chat-avatar-placeholder" 
+                    style={{display: petPhotos[chat.petId] ? 'none' : 'block'}}
+                  />
+                </div>
                 
                 <div className="chat-info">
                   <strong>{chat.name || `Chat con ${chat.otherUserName}`}</strong>
@@ -762,8 +823,6 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     </div>
   );
 }
-
-
 
   const currentMessages = messagesByChat[selectedChat.id] || [];
 
