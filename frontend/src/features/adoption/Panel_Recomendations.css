@@ -255,6 +255,46 @@
   border-left-color: #fff;
 }
 
+.recommendations-reasons li::before {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-size: 1.2em;
+  transition: opacity 0.2s;
+  /* Por defecto */
+  content: "✨";
+}
+
+/* Niños */
+.recommendations-reasons li[data-reason*="niños"]::before {
+  content: "👶";
+}
+/* Departamento */
+.recommendations-reasons li[data-reason*="departamento"]::before {
+  content: "🏢";
+}
+/* Vacunado */
+.recommendations-reasons li[data-reason*="vacunado"]::before,
+.recommendations-reasons li[data-reason*="saludable"]::before {
+  content: "💉";
+}
+/* Perros */
+.recommendations-reasons li[data-reason*="perros"]::before {
+  content: "🐶";
+}
+/* Gatos */
+.recommendations-reasons li[data-reason*="gatos"]::before {
+  content: "🐱";
+}
+/* Patio */
+.recommendations-reasons li[data-reason*="patio"]::before {
+  content: "🌳";
+}
+/* Compatible */
+.recommendations-reasons li[data-reason*="compatible"]::before {
+  content: "🤝";
+}
+
 /* Loading */
 .recommendations-loading-container { text-align: center; padding: 60px 20px; }
 

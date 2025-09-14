@@ -144,7 +144,9 @@ const Panel_Recommendations = () => {
                   {pet.reasons && pet.reasons.length > 0 && (
                     <ul className="recommendations-reasons">
                       {pet.reasons.map((reason, i) => (
-                        <li key={i}>{reason}</li>
+                        <li key={i} data-reason={reason.toLowerCase()}>
+                          {reason}
+                        </li>
                       ))}
                     </ul>
                   )}
