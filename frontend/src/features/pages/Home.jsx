@@ -29,7 +29,7 @@ const Home = () => {
     {
       id: 1,
       pregunta: '¿Cómo puedo adoptar una mascota en Petmatch?',
-      respuesta: 'Para adoptar, navega por nuestra sección de "Adoptar", filtra según tus preferencias y contacta al refugio o persona que tenga la mascota. Asegúrate de cumplir con los requisitos de adopción.',
+      respuesta: 'Para adoptar, navega por nuestra sección de "Adoptar", filtra según tus preferencias y completa el formulario de adopción para la mascota que elijas. Una vez completado, el dueño de la mascota tendrá la posibilidad de aceptar tu solicitud para abrir un chat privado, donde podran ponerse de acuerdo para la adopcion de la mascota.',
     },
     {
       id: 2,
@@ -39,7 +39,7 @@ const Home = () => {
     {
       id: 3,
       pregunta: '¿Ofrecen servicios de paseadores y cuidadores profesionales?',
-      respuesta: 'Sí, en nuestra sección de "Servicios" puedes encontrar profesionales verificados, desde veterinarios y peluqueros hasta paseadores y adiestradores, para el cuidado de tu mascota.',
+      respuesta: 'En Petmatch, podes encontrar una variedad de servicios para el cuidado de tu mascota, incluyendo paseadores y cuidadores profesionales. Navega por nuestra sección de "Servicios" para más detalles.',
     },
     {
       id: 4,
@@ -59,6 +59,9 @@ const Home = () => {
     navigate('/formulario_nueva_adopcion');
   };
 
+  const handleClickServicios = () => {
+    navigate('/servicios');
+  }
   const handleFaqClick = (id) => {
     setOpenFaqId(openFaqId === id ? null : id);
   };
