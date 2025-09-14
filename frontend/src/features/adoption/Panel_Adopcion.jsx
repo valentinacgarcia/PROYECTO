@@ -171,8 +171,22 @@ const PetMatch = () => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
+  const goToRecommendations = () => {
+  navigate('/recomendaciones');
+  };
+
+
   return (
     <div className="petmatch-container">
+      <button 
+        className="recommendations-btn" 
+        onClick={goToRecommendations}
+        aria-label="Ver recomendaciones"
+      >
+        <span role="img" aria-label="estrella" style={{ marginRight: 8 }}>⭐</span>
+        Ver mascotas recomendadas
+      </button>
+
       <h1>Mascotas en adopción cerca tuyo!</h1>
 
       <div className="main-content">
