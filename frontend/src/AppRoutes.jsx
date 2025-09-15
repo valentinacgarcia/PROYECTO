@@ -14,6 +14,8 @@ import VistaMascota from './features/adoption/Pet_View';
 import FormularioAdopcion from './features/adoption/formAdoptante';
 import FormularioNuevaAdopcion from './features/adoption/FormAdopcion';
 import PostulacionesPanel from './features/adopters/PostulacionesPanel';
+import RegistrarServicio from './features/services/RegistrarServicio';
+import Servicios from './features/services/Servicios';
 import Panel_Recomendations from './features/adoption/Panel_Recomendations';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
@@ -49,7 +51,9 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/formulario_adopcion/:id" element={<FormularioAdopcion isLoggedIn={isLoggedIn} />} />
         <Route path="/postulaciones" element={<PostulacionesPanel  isLoggedIn={isLoggedIn} />} />
         <Route path="/formulario_nueva_adopcion" element={<FormularioNuevaAdopcion />} />
+        <Route path="/registrar-servicio" element={<RegistrarServicio />} />
         <Route path="/recomendaciones" element={<Panel_Recomendations  isLoggedIn={isLoggedIn} />} />
+
       </Routes>
     </>
   );
