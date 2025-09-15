@@ -310,3 +310,52 @@ h1 {
 .pagination-button:disabled .pagination-arrow {
     color: #ccc;
 }
+
+.star-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: radial-gradient(circle at center, gold 0%, orange 70%);
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0px 0px 15px rgba(255, 215, 0, 0.8);
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s;
+  z-index: 1000;
+}
+
+.star-button:hover {
+  transform: scale(1.1) rotate(10deg);
+  box-shadow: 0px 0px 25px rgba(255, 215, 0, 1);
+}
+
+.recommendations-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #53a57d 60%, #6db890 100%);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 28px;
+  font-size: 1.1em;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(83, 165, 125, 0.18);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.3s;
+  z-index: 1000;
+}
+
+.recommendations-btn:hover {
+  transform: scale(1.07) translateY(-2px);
+  background: linear-gradient(135deg, #6db890 60%, #53a57d 100%);
+  box-shadow: 0 8px 24px rgba(83, 165, 125, 0.28);
+}
+   

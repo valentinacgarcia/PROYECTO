@@ -359,4 +359,95 @@ class PetController extends AbstractController
      
         return mb_convert_encoding($str, 'UTF-8', 'UTF-8');
     }
+
+   #[Route('/list-preferences/{userId}', methods: ['GET'])]
+    public function findRecommendedForUser(
+        int $userId,
+        UserRepository $userRepository,
+        EntityManagerInterface $em,
+        PetRepository $petRepository,
+        Request $request
+    ): JsonResponse {
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            return $this->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        $limit = max(1, (int) $request->query->get('limit', 10));
+
+        // 1. AdoptionRequest del usuario
+        $adoptionRequest = $em->getRepository(AdoptionRequest::class)
+                            ->findOneBy(['user' => $user]);
+
+        // 2. Historial de likes 
+        $likes = $em->getRepository(PetLike::class)
+                    ->createQueryBuilder('pl')
+                    ->where('pl.interestedUser = :user')
+                    ->setParameter('user', $user)
+                    ->getQuery()
+                    ->getResult();
+
+        // 3. Generar perfil de keywords a partir de descripciones de mascotas que le gustaron
+        $keywords = [];
+        foreach ($likes as $like) {
+            $desc = strtolower($like->getPet()->getDescription() ?? '');
+            foreach (preg_split('/\W+/', $desc) as $word) {
+                if (strlen($word) > 3) {
+                    $keywords[$word] = ($keywords[$word] ?? 0) + 1;
+                }
+            }
+        }
+
+        // 4. Buscar mascotas candidatas (todas en adopción que no sean del mismo user)
+        $qb = $petRepository->createQueryBuilder('p')
+            ->andWhere('p.is_adopted = 1')
+            ->andWhere('p.owner != :user')
+            ->setParameter('user', $user);
+
+        $pets = $qb->getQuery()->getResult();
+
+        // 5. Scoring manual
+        $scored = [];
+        foreach ($pets as $pet) {
+            $score = 0;
+
+            // Reglas según AdoptionRequest
+            if ($adoptionRequest) {
+                if ($adoptionRequest->getHasChildren() && $pet->getCompatibility() && !in_array('niños', $pet->getCompatibility())) {
+                    continue; 
+                }
+                if (!$adoptionRequest->getHasYard() && $pet->getSize() === 'grande') {
+                    $score -= 20;
+                }
+            }
+
+            // Match con keywords
+            $desc = strtolower($pet->getDescription() ?? '');
+            foreach (array_keys($keywords) as $kw) {
+                if (str_contains($desc, $kw)) {
+                    $score += $keywords[$kw];
+                }
+            }
+
+            // Bonus por tipo/género según likes pasados
+            foreach ($likes as $like) {
+                if ($like->getPet()->getType() === $pet->getType()) {
+                    $score += 5;
+                }
+            }
+
+            $scored[] = ['pet' => $pet, 'score' => $score];
+        }
+
+        // 6. Ordenar y limitar
+        usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+        $scored = array_slice($scored, 0, $limit);
+
+        // 7. Serializar
+        $data = array_map(fn($row) => $this->serializePetNormalized($row['pet']), $scored);
+
+        return $this->json(['success' => true, 'data' => $data]);
+    }
+
+
 }
