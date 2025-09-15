@@ -1,0 +1,135 @@
+/* Colores de la paleta */
+:root {
+  --primary-color: #53a57d;
+  --secondary-color: #fbf7f4;
+  --dark-text: #333;
+  --light-text: #fff;
+  --border-color: #e5e7eb;
+  --hover-color: #3b7454;
+}
+
+/* Contenedor principal de la página */
+.service-form__container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: var(--secondary-color);
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Contenedor del formulario */
+.service-form__wrapper {
+  background-color: var(--light-text);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 700px;
+}
+
+.service-form__title {
+  text-align: center;
+  color: var(--dark-text);
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.service-form__subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 30px;
+}
+
+/* Secciones del formulario */
+.service-form__section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 25px;
+  margin-bottom: 25px;
+}
+
+.service-form__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.service-form__section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 20px;
+}
+
+/* Grupos de campos del formulario */
+.service-form__group {
+  margin-bottom: 20px;
+}
+
+.service-form__group label {
+  display: block;
+  font-weight: 500;
+  color: var(--dark-text);
+  margin-bottom: 8px;
+}
+
+.service-form__group input,
+.service-form__group textarea,
+.service-form__group select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-form__group input:focus,
+.service-form__group textarea:focus,
+.service-form__group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(83, 165, 125, 0.2);
+}
+
+.service-form__group textarea {
+  resize: vertical;
+}
+
+/* Estilo del botón de envío */
+.service-form__submit-button {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background-color: var(--primary-color);
+  color: var(--light-text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  text-transform: uppercase;
+}
+
+.service-form__submit-button:hover {
+  background-color: var(--hover-color);
+  transform: translateY(-2px);
+}
+
+/* Responsividad */
+@media (max-width: 600px) {
+  .service-form__wrapper {
+    padding: 25px;
+  }
+
+  .service-form__title {
+    font-size: 1.8rem;
+  }
+
+  .service-form__section-title {
+    font-size: 1.2rem;
+  }
+}
