@@ -16,6 +16,7 @@ import FormularioNuevaAdopcion from './features/adoption/FormAdopcion';
 import PostulacionesPanel from './features/adopters/PostulacionesPanel';
 import Panel_Recomendations from './features/adoption/Panel_Recomendations';
 import RegistrarServicio from './features/services/RegistrarServicio';
+import PanelServicios from './features/services/PanelServicios';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -51,7 +52,8 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/postulaciones" element={<PostulacionesPanel  isLoggedIn={isLoggedIn} />} />
         <Route path="/formulario_nueva_adopcion" element={<FormularioNuevaAdopcion />} />
         <Route path="/recomendaciones" element={<Panel_Recomendations  isLoggedIn={isLoggedIn} />} />
-        <Route path="/registrar-servicio" element={<RegistrarServicio />} />
+        <Route path="/registrar_servicio" element={<RegistrarServicio />} isLoggedIn={isLoggedIn} />
+        <Route path="/panel_servicios" element={<PanelServicios />} isLoggedIn={isLoggedIn} />
       </Routes>
     </>
   );
