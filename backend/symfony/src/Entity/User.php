@@ -36,6 +36,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $address = null;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $lat = null;
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $lon = null;
+
+
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
 
@@ -271,6 +278,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getLat(): ?float
+    {
+        return $this->lat;
+    }
+
+    public function setLat(?float $lat): static
+    {
+        $this->lat = $lat;
+        return $this;
+    }
+
+    public function getLon(): ?float
+    {
+        return $this->lon;
+    }
+
+    public function setLon(?float $lon): static
+    {
+        $this->lon = $lon;
+        return $this;
+    }
 
     // Métodos requeridos por UserInterface
     public function eraseCredentials(): void
