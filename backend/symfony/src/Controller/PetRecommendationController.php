@@ -675,6 +675,7 @@ class PetRecommendationController extends AbstractController
             'sterilized' => method_exists($pet, 'getSterilized') ? $pet->getSterilized() : null,
             'vaccinated' => method_exists($pet, 'getVaccinated') ? $pet->getVaccinated() : null,
             'location' => method_exists($pet, 'getLocation') ? $pet->getLocation() : null,
+            'created_at' => $pet->getCreatedAt()->format('Y-m-d H:i:s'),
             'photos' => $photos,
         ];
     }

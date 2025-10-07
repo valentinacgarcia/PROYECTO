@@ -34,7 +34,7 @@ class PetRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.is_adopted = :adopted')
             ->setParameter('adopted', true)
-            ->orderBy('p.created_at', 'DESC');
+            ->orderBy('p.created_at', 'ASC');
 
         $this->applyFilters($qb, $filters);
 
@@ -52,7 +52,7 @@ class PetRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.is_adopted = :adopted')
             ->setParameter('adopted', true)
-            ->orderBy('p.created_at', 'DESC');
+            ->orderBy('p.created_at', 'ASC');
 
         $this->applyFilters($qb, $filters);
 
@@ -271,7 +271,7 @@ class PetRepository extends ServiceEntityRepository
             ')
             ->setParameter('adopted', true)
             ->setParameter('search', '%' . $searchTerm . '%')
-            ->orderBy('p.created_at', 'DESC')
+            ->orderBy('p.created_at', 'ASC')
             ->getQuery()
             ->getResult();
     }

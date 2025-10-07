@@ -182,6 +182,7 @@ h1 {
   flex-direction: column;
   padding: 0;
   min-height: 340px;
+  position: relative;
 }
 
 .pet-card:hover {
@@ -192,7 +193,7 @@ h1 {
 .pet-card img {
   width: 100%;
   height: 180px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 16px 16px 0 0;
   background: #f3f3f3;
 }
@@ -247,6 +248,29 @@ h1 {
   font-size: 0.95em;
   color: #6db890;
   font-weight: 500;
+}
+
+/* Cartelito de días en espera */
+.days-waiting-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 4px;
+  z-index: 10;
+  top: 145px; /* Posicionado apenas más arriba sobre la imagen */
+}
+
+.days-waiting-text {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* SECCIÓN DE PAGINACIÓN */
