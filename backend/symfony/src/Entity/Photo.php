@@ -17,8 +17,12 @@ class Photo
     private string $url;
 
     #[ORM\ManyToOne(targetEntity: Pet::class, inversedBy: 'photos')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Pet $pet = null;
+
+    #[ORM\ManyToOne(targetEntity: Service::class, inversedBy: 'photos')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Service $service = null;
 
     public function getId(): ?int
     {
@@ -45,6 +49,18 @@ class Photo
     public function setPet(?Pet $pet): static
     {
         $this->pet = $pet;
+
+        return $this;
+    }
+
+    public function getService(): ?Service
+    {
+        return $this->service;
+    }
+
+    public function setService(?Service $service): static
+    {
+        $this->service = $service;
 
         return $this;
     }

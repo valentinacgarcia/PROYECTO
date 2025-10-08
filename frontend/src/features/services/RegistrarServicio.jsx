@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import axios from 'axios';
 // Este import hace que los estilos en CSS Modules se apliquen solo a este componente
 import styles from './RegistrarServicio.module.css';
 
@@ -37,6 +38,8 @@ const ServiceForm = () => {
     priceType: 'por_hora',
     modality: '',
     location: '',
+    latitude: '',
+    longitude: '',
     observations: '',
     photos: [],
     availability: {
@@ -47,6 +50,39 @@ const ServiceForm = () => {
       },
     },
   });
+
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  // Función para geocodificar la dirección
+  const geocodeAddress = async (address) => {
+    if (address.length < 10) return; // Solo geocodificar si tiene al menos 10 caracteres
+    
+    // Agregar ", Córdoba" al final de la dirección para asegurar búsqueda local
+    const addressWithCordoba = address.toLowerCase().includes('córdoba') || 
+                              address.toLowerCase().includes('cordoba') ? 
+                              address : `${address}, Córdoba`;
+    
+    setIsGeocoding(true);
+    console.log('Geocodificando:', addressWithCordoba);
+    try {
+      const response = await axios.post('http://localhost:8000/api/geocode', {
+        address: addressWithCordoba
+      });
+      
+      if (response.data.success) {
+        setFormData(prev => ({
+          ...prev,
+          latitude: response.data.data.lat.toString(),
+          longitude: response.data.data.lng.toString()
+        }));
+        console.log('Coordenadas obtenidas:', response.data.data.lat, response.data.data.lng);
+      }
+    } catch (error) {
+      console.log('Error en geocodificación:', error);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked, files } = e.target;
@@ -81,12 +117,83 @@ const ServiceForm = () => {
       ...prev,
       [name]: type === 'file' ? Array.from(files) : value,
     }));
+
+    // Geocodificar automáticamente cuando cambie la dirección
+    if (name === 'location') {
+      // Usar setTimeout para evitar demasiadas llamadas
+      setTimeout(() => {
+        geocodeAddress(value);
+      }, 1000);
+    }
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Datos del formulario:', formData);
-    alert('¡Servicio registrado con éxito! 🐾');
+    
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        alert('Debes estar logueado para registrar un servicio');
+        return;
+      }
+
+      const formDataToSend = new FormData();
+      
+      // Datos básicos
+      formDataToSend.append('provider_id', user.id);
+      formDataToSend.append('serviceName', formData.serviceName);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('address', formData.location); // Usar location como address
+      formDataToSend.append('latitude', formData.latitude);
+      formDataToSend.append('longitude', formData.longitude);
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('priceType', formData.priceType);
+      formDataToSend.append('modalities', JSON.stringify([formData.modality]));
+      formDataToSend.append('availabilityDays', JSON.stringify(formData.availability.days));
+      
+      // Fotos
+      if (formData.photos && formData.photos.length > 0) {
+        formData.photos.forEach((photo, index) => {
+          formDataToSend.append(`photos[${index}]`, photo);
+        });
+      }
+
+      const response = await axios.post('http://localhost:8000/services/create', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      alert('¡Servicio registrado con éxito! 🐾');
+      // Resetear formulario
+      setFormData({
+        serviceName: '',
+        category: '',
+        description: '',
+        price: '',
+        priceType: 'por_hora',
+        modality: '',
+        location: '',
+        latitude: '',
+        longitude: '',
+        observations: '',
+        photos: [],
+        availability: { days: [], time: { from: '', to: '' } }
+      });
+    } catch (error) {
+      console.error('Error al registrar servicio:', error);
+      if (error.response) {
+        // Error del servidor
+        alert(`Error: ${error.response.data.error || 'Error al registrar el servicio'}`);
+      } else if (error.request) {
+        // Error de red
+        alert('Error de conexión. Verifica tu conexión a internet.');
+      } else {
+        // Otro error
+        alert('Error inesperado. Inténtalo de nuevo.');
+      }
+    }
   };
 
   return (
@@ -153,8 +260,10 @@ const ServiceForm = () => {
                   <option value="domicilio">A domicilio</option>
                 </select>
               </FormField>
-              <FormField id="location" label="Ubicación">
-                <input type="text" id="location" name="location" value={formData.location} onChange={handleChange} placeholder="Ej: Palermo, CABA" required />
+              <FormField id="location" label="Dirección">
+                <div style={{ position: 'relative' }}>
+                  <input type="text" id="location" name="location" value={formData.location} onChange={handleChange} placeholder="Ej: Duarte Quirós 3000" required />
+                </div>
               </FormField>
             </div>
             
