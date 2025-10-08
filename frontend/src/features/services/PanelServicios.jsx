@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import styles from './PanelServicios.module.css';
 
 // --- Constantes y Datos de Configuración ---
@@ -36,7 +38,7 @@ const ServiceCard = ({ service }) => (
       <h4 className={styles.cardTitle}>{service.serviceName}</h4>
       <p className={styles.cardDescription}>{service.description}</p>
       <div className={styles.cardLocation}>
-        <span role="img" aria-label="location pin">📍</span> {service.location}
+        <span role="img" aria-label="location pin">📍</span> {service.address}
       </div>
     </div>
   </div>
@@ -53,14 +55,6 @@ const CardSkeleton = () => (
   </div>
 );
 
-const dummyService = {
-  id: 'dummy-1',
-  serviceName: 'Paseador de Perros - Juan',
-  category: 'Paseo de Mascotas',
-  description: 'Ofrezco paseos grupales e individuales llenos de energía y diversión...',
-  location: 'Caballito, CABA',
-  photos: ['https://images.pexels.com/photos/58997/pexels-photo-58997.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'],
-};
 
 // --- Componente Principal ---
 const ServicePanel = () => {
@@ -70,6 +64,9 @@ const ServicePanel = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' o 'map'
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
   
   const [filters, setFilters] = useState({
     category: '',
@@ -88,11 +85,11 @@ const ServicePanel = () => {
         limit: CARDS_PER_PAGE,
         search: searchTerm || undefined,
         category: filters.category || undefined,
-        modality: filters.modality.length > 0 ? JSON.stringify(filters.modality) : undefined,
+        modality: filters.modality.length > 0 ? filters.modality[0] : undefined, // Solo el primer valor
         minPrice: filters.priceRange.min || undefined,
         maxPrice: filters.priceRange.max || undefined,
-        priceType: filters.priceType.length > 0 ? JSON.stringify(filters.priceType) : undefined,
-        availabilityDays: filters.availabilityDays.length > 0 ? JSON.stringify(filters.availabilityDays) : undefined,
+        priceType: filters.priceType.length > 0 ? filters.priceType[0] : undefined, // Solo el primer valor
+        availabilityDays: filters.availabilityDays.length > 0 ? JSON.stringify(filters.availabilityDays) : undefined, // Enviar todos los días como JSON
       };
       const response = await axios.get(API_ENDPOINT, { params });
       if (response.data.success) {
@@ -141,6 +138,255 @@ const ServicePanel = () => {
 
   const totalPages = Math.ceil(totalServices / CARDS_PER_PAGE);
 
+  // Funciones para el mapa
+  const getCategoryColor = (category) => {
+    const colors = {
+      'paseo': '#4CAF50',
+      'veterinaria': '#F44336',
+      'adiestramiento': '#FF9800',
+      'traslados': '#2196F3',
+      'guarderia': '#9C27B0',
+      'otros': '#607D8B'
+    };
+    return colors[category] || '#607D8B';
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'paseo': '🐕',
+      'veterinaria': '🏥',
+      'adiestramiento': '🎓',
+      'traslados': '🚗',
+      'guarderia': '🏠',
+      'otros': '🔧'
+    };
+    return icons[category] || '📍';
+  };
+
+  const initializeMap = () => {
+    if (mapInstanceRef.current || !mapRef.current) return;
+
+    // Configurar iconos de Leaflet
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+      iconUrl: require('leaflet/dist/images/marker-icon.png'),
+      shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+    });
+
+    // Inicializar mapa
+    const map = L.map(mapRef.current).setView([-31.4201, -64.1888], 12);
+    mapInstanceRef.current = map;
+
+    // Agregar capa de tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+  };
+
+  const updateMapMarkers = () => {
+    if (!mapInstanceRef.current) return;
+
+    console.log('Actualizando marcadores con servicios:', services.length, services);
+    console.log('Filtros aplicados:', filters);
+
+    // Limpiar marcadores existentes
+    mapInstanceRef.current.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        mapInstanceRef.current.removeLayer(layer);
+      }
+    });
+
+    // Agregar nuevos marcadores
+    services.forEach(service => {
+      if (service.latitude && service.longitude) {
+        const customIcon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div style="
+            background-color: ${getCategoryColor(service.category)};
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            border: 3px solid white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+          ">${getCategoryIcon(service.category)}</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const leafletMarker = L.marker([parseFloat(service.latitude), parseFloat(service.longitude)], { icon: customIcon })
+          .addTo(mapInstanceRef.current)
+          .bindPopup(`
+            <div style="
+              min-width: 280px; 
+              max-width: 320px; 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: white;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            ">
+              <!-- Foto del servicio -->
+              <div style="
+                width: 100%; 
+                height: 120px; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+              ">
+                ${service.photos && service.photos.length > 0 ? 
+                  `<img src="${service.photos[0]}" style="width: 100%; height: 100%; object-fit: cover;" alt="${service.serviceName}" />` :
+                  `<div style="
+                    color: white; 
+                    font-size: 48px; 
+                    opacity: 0.8;
+                  ">${getCategoryIcon(service.category)}</div>`
+                }
+                <!-- Badge de categoría -->
+                <div style="
+                  position: absolute;
+                  top: 8px;
+                  left: 8px;
+                  background: rgba(0,0,0,0.7);
+                  color: white;
+                  padding: 4px 8px;
+                  border-radius: 12px;
+                  font-size: 11px;
+                  font-weight: 500;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                ">${service.category}</div>
+              </div>
+              
+              <!-- Contenido -->
+              <div style="padding: 16px;">
+                <!-- Título -->
+                <h3 style="
+                  margin: 0 0 8px 0; 
+                  color: #1a1a1a; 
+                  font-size: 18px; 
+                  font-weight: 600;
+                  line-height: 1.3;
+                ">${service.serviceName}</h3>
+                
+                <!-- Dirección -->
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  margin: 8px 0;
+                  color: #666;
+                  font-size: 13px;
+                ">
+                  <span style="margin-right: 6px; font-size: 14px;">📍</span>
+                  <span>${service.address}</span>
+                </div>
+                
+                <!-- Precio -->
+                ${service.price ? `
+                  <div style="
+                    background: #f0f8f0;
+                    border: 1px solid #28a745;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    margin: 12px 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  ">
+                    <span style="color: #28a745; font-weight: 600; font-size: 16px;">
+                      $${service.price}
+                    </span>
+                    <span style="color: #666; font-size: 12px; text-transform: capitalize;">
+                      ${service.priceType}
+                    </span>
+                  </div>
+                ` : ''}
+                
+                <!-- Descripción -->
+                ${service.description ? `
+                  <p style="
+                    margin: 12px 0; 
+                    color: #555; 
+                    font-size: 13px; 
+                    line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                  ">${service.description}</p>
+                ` : ''}
+                
+                <!-- Botón Ver Detalle -->
+                <button onclick="window.openServiceDetail(${service.id})" style="
+                  width: 100%;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  border: none;
+                  padding: 12px 16px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                  margin-top: 8px;
+                " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                  Ver Detalle
+                </button>
+              </div>
+            </div>
+          `);
+      }
+    });
+  };
+
+  // Efecto para inicializar el mapa
+  useEffect(() => {
+    if (viewMode === 'map' && mapRef.current && !mapInstanceRef.current) {
+      setTimeout(() => {
+        initializeMap();
+        // Actualizar marcadores inmediatamente con los servicios filtrados
+        if (services.length > 0) {
+          updateMapMarkers();
+        }
+      }, 100);
+    }
+  }, [viewMode]);
+
+  // Efecto para actualizar marcadores cuando cambien los servicios
+  useEffect(() => {
+    if (viewMode === 'map' && mapInstanceRef.current) {
+      updateMapMarkers();
+    }
+  }, [services, viewMode]);
+
+  // Efecto para actualizar marcadores cuando se cambie a modo mapa
+  useEffect(() => {
+    if (viewMode === 'map' && mapInstanceRef.current) {
+      // Pequeño delay para asegurar que el mapa esté completamente renderizado
+      setTimeout(() => {
+        updateMapMarkers();
+      }, 200);
+    }
+  }, [viewMode]);
+
+  // Función global para el botón "Ver Detalle"
+  useEffect(() => {
+    window.openServiceDetail = (serviceId) => {
+      console.log('Abrir detalle del servicio:', serviceId);
+      // TODO: Implementar navegación al detalle del servicio
+      alert(`Próximamente: Detalle del servicio ${serviceId}`);
+    };
+  }, []);
+
   return (
     <div className={styles.panelContainer}>
       <header className={styles.header}>
@@ -148,6 +394,19 @@ const ServicePanel = () => {
         <p>Busca entre paseadores, veterinarias, adiestradores y más profesionales cerca tuyo.</p>
         <div className={styles.searchBar}>
           <input type="text" placeholder="Buscar por nombre del servicio..." value={searchTerm} onChange={handleSearchChange} />
+        </div>
+        <div className={styles.viewToggle}>
+          <label className={styles.toggleLabel}>
+            <input 
+              type="checkbox" 
+              checked={viewMode === 'map'} 
+              onChange={(e) => setViewMode(e.target.checked ? 'map' : 'cards')}
+            />
+            <span className={styles.toggleSlider}></span>
+            <span className={styles.toggleText}>
+              {viewMode === 'cards' ? 'Ver en mapa' : 'Ver en tarjetas'}
+            </span>
+          </label>
         </div>
       </header>
       
@@ -211,12 +470,17 @@ const ServicePanel = () => {
 
         <main className={styles.resultsPanel}>
           {error && <p className={styles.error}>{error}</p>}
-          <div className={styles.grid}>
-            <ServiceCard service={dummyService} />
-            {loading && Array.from({ length: CARDS_PER_PAGE }).map((_, i) => <CardSkeleton key={i} />)}
-            {!loading && !error && services.map(service => <ServiceCard key={service.id} service={service} />)}
-          </div>
-          {!loading && services.length === 0 && !error && (
+          {viewMode === 'cards' ? (
+            <div className={styles.grid}>
+              {loading && Array.from({ length: CARDS_PER_PAGE }).map((_, i) => <CardSkeleton key={i} />)}
+              {!loading && !error && services.map(service => <ServiceCard key={service.id} service={service} />)}
+            </div>
+          ) : (
+            <div className={styles.mapView}>
+              <div ref={mapRef} className={styles.mapContainer}></div>
+            </div>
+          )}
+          {!loading && services.length === 0 && !error && viewMode === 'cards' && (
             <p className={styles.noResults}>No se encontraron servicios con estos criterios.</p>
           )}
         </main>
