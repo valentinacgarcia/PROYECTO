@@ -99,6 +99,7 @@
   padding: 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .postulacion-card:hover {
@@ -402,5 +403,134 @@
 
   .detalle-respuestas div {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Puntaje de compatibilidad */
+.compatibility-score {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: linear-gradient(135deg, #53a57d, #6db890);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(83, 165, 125, 0.3);
+  z-index: 10;
+  transition: all 0.3s ease;
+  min-width: 40px;
+  justify-content: center;
+}
+
+.compatibility-score:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(83, 165, 125, 0.4);
+}
+
+.score-icon {
+  font-size: 1em;
+}
+
+.score-value {
+  font-size: 1em;
+  font-weight: 700;
+}
+
+/* Tooltip personalizado */
+.compatibility-score::after {
+  content: "Puntaje de compatibilidad (0-100)";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.compatibility-score:hover::after {
+  opacity: 1;
+}
+
+/* Header del detalle con puntaje */
+.detalle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* Puntaje de compatibilidad en detalle (formato pequeño) */
+.detalle-header .compatibility-score-detail {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #53a57d, #6db890) !important;
+  color: white !important;
+  padding: 6px 16px !important;
+  border-radius: 20px !important;
+  font-size: 0.9em !important;
+  font-weight: bold !important;
+  box-shadow: 0 1px 3px rgba(83, 165, 125, 0.3) !important;
+  transition: all 0.3s ease !important;
+  width: auto !important;
+  min-width: 16px !important;
+  height: 28px !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+.compatibility-score-detail:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(83, 165, 125, 0.4);
+}
+
+/* Tooltip para el detalle */
+.compatibility-score-detail::after {
+  content: "Puntaje de compatibilidad (0-100)";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.compatibility-score-detail:hover::after {
+  opacity: 1;
+}
+
+
+/* Responsive para puntaje */
+@media (max-width: 768px) {
+  .compatibility-score {
+    top: 4px;
+    right: 8px;
+    padding: 3px 6px;
+    font-size: 0.7em;
   }
 }

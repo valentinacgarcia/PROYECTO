@@ -67,6 +67,7 @@ const Panel_Recommendations = () => {
     return 'pet-grid';
   };
 
+
   useEffect(() => {
     fetchRecommendations();
   }, []);

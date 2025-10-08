@@ -52,7 +52,8 @@ class PetLikeRepository extends ServiceEntityRepository
     public function findAllByOwner(User $owner): array
     {
         return $this->createQueryBuilder('pl')
-            ->where('pl.ownerUser = :owner')
+            ->join('pl.pet', 'p')
+            ->where('p.owner = :owner')
             ->setParameter('owner', $owner)
             ->orderBy('pl.createdAt', 'DESC')
             ->getQuery()

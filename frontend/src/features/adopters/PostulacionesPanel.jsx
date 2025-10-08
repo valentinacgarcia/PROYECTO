@@ -19,7 +19,8 @@ import {
   FaFileContract, 
   FaSyringe,
   FaBed,
-  FaUserTie
+  FaUserTie,
+  FaPaw
 } from "react-icons/fa";
 import "./PostulacionesPanel.css";
 
@@ -29,6 +30,120 @@ const PostulacionesPanel = () => {
   const [selectedFrom, setSelectedFrom] = useState(null);
   const [formData, setFormData] = useState(null);
   const [newNotification, setNewNotification] = useState(null);
+  const [compatibilityScores, setCompatibilityScores] = useState({});
+
+  // Función para calcular puntaje de compatibilidad
+  const calculateCompatibilityScore = (formData, petData) => {
+    if (!formData || !petData) return 0;
+    
+    let score = 0;
+    let maxScore = 100;
+
+    // 1. Compatibilidad con niños (20 puntos)
+    if (petData.compatibility) {
+      if (petData.compatibility.includes('Niños')) {
+        // Si es compatible con niños, siempre suma (tenga o no niños)
+        score += 20;
+      } else if (petData.compatibility.includes('No niños') && formData.has_children) {
+        // Solo penaliza si específicamente dice "No niños" Y la persona tiene niños
+        score -= 20;
+      }
+    }
+    
+    // Bonus adicional si tiene niños Y la mascota es compatible
+    if (formData.has_children && petData.compatibility && petData.compatibility.includes('Niños')) {
+      score += 10; // Bonus extra
+    }
+
+    // 2. Espacio y vivienda (25 puntos)
+    const isHouse = formData.is_house;
+    const hasYard = formData.has_yard;
+    const petSize = petData.size?.toLowerCase();
+    
+    if (petSize === 'grande') {
+      if (isHouse && hasYard) {
+        score += 25; // Perfecto
+      } else if (isHouse && !hasYard) {
+        score += 10; // Aceptable
+      } else {
+        score -= 15; // Problemático
+      }
+    } else if (petSize === 'mediano') {
+      if (isHouse) {
+        score += hasYard ? 20 : 15;
+      } else {
+        score += hasYard ? 10 : 5; // Depto aceptable
+      }
+    } else if (petSize === 'pequeño') {
+      score += 20; // Siempre bueno
+      if (!isHouse) {
+        score += 5; // Bonus para departamentos
+      }
+    }
+
+    // 3. Experiencia previa (15 puntos)
+    if (formData.had_pets_before) {
+      score += 15;
+    } else {
+      // Penalizar razas difíciles para principiantes
+      const difficultBreeds = ['husky', 'pastor alemán', 'rottweiler', 'doberman', 'pit bull', 'dogo'];
+      const petBreed = petData.breed?.toLowerCase() || '';
+      if (difficultBreeds.some(breed => petBreed.includes(breed))) {
+        score -= 10;
+      }
+    }
+
+    // 4. Tiempo disponible (15 puntos)
+    const hoursAlone = formData.hours_alone_per_day;
+    if (hoursAlone <= 4) {
+      score += 15;
+    } else if (hoursAlone > 8) {
+      score -= 10;
+      // Penalizar cachorros si está mucho tiempo solo
+      const petAge = petData.age_years || 0;
+      if (petAge < 1) {
+        score -= 15;
+      }
+    }
+
+    // 5. Compatibilidad con mascotas actuales (10 puntos)
+    if (formData.has_current_pets) {
+      if (petData.compatibility && 
+          (petData.compatibility.includes('Perros') || petData.compatibility.includes('Gatos'))) {
+        score += 10;
+      } else {
+        score -= 15;
+      }
+    }
+
+    // 6. Alergias (10 puntos)
+    if (formData.has_allergies) {
+      const hypoallergenicBreeds = ['poodle', 'caniche', 'bichon frise', 'schnauzer'];
+      const petBreed = petData.breed?.toLowerCase() || '';
+      if (hypoallergenicBreeds.some(breed => petBreed.includes(breed))) {
+        score += 10;
+      } else if (petData.type === 'gato') {
+        score += 5; // Gatos de pelo corto
+      } else {
+        score -= 5;
+      }
+    }
+
+    // 7. Seguridad (5 puntos)
+    if (formData.has_security) {
+      score += 5;
+    } else {
+      if (petSize === 'grande') {
+        score -= 5;
+      }
+    }
+
+    // Normalizar a escala 0-100
+    const normalizedScore = Math.max(0, Math.min(100, (score / maxScore) * 100));
+    const finalScore = Math.round(normalizedScore); // Puntaje entero del 0-100
+    
+    return finalScore;
+  };
 
   // Función para traer postulaciones
   const fetchPostulaciones = async () => {
@@ -43,8 +158,17 @@ const PostulacionesPanel = () => {
           email: item.interested_user_email,
           id: item.interested_user_id
         },
-        mascota: { nombre: item.pet_name, tipo: item.pet_type },
-        estado: item.status === "PENDING" ? "Pendiente" : 
+        mascota: { 
+          nombre: item.pet_name, 
+          tipo: item.pet_type,
+          id: item.pet_id,
+          size: item.pet_size,
+          breed: item.pet_breed,
+          age_years: item.pet_age_years,
+          compatibility: item.pet_compatibility,
+          type: item.pet_type
+        },
+        estado: item.status === "pending" ? "Pendiente" : 
                item.status === "APPROVED" ? "Aprobado" : 
                item.status === "REJECTED" ? "Rechazado" : "Pendiente"
       }));
@@ -60,9 +184,31 @@ const PostulacionesPanel = () => {
       }
 
       setPostulaciones(mapped);
+      
+      // Cargar puntajes de compatibilidad
+      loadCompatibilityScores(mapped);
     } catch (err) {
       console.error("Error al traer postulaciones:", err);
     }
+  };
+
+  // Función para cargar puntajes de compatibilidad
+  const loadCompatibilityScores = async (postulaciones) => {
+    const scores = {};
+    
+    for (const post of postulaciones) {
+      try {
+        const res = await axios.get(`http://localhost:8000/adoption/form/user/${post.postulante.id}`);
+        const userFormData = res.data;
+        const score = calculateCompatibilityScore(userFormData, post.mascota);
+        scores[post.petition_id] = score;
+      } catch (err) {
+        console.error(`Error al cargar formulario para postulación ${post.petition_id}:`, err);
+        scores[post.petition_id] = 0;
+      }
+    }
+    
+    setCompatibilityScores(scores);
   };
 
   // Traer postulaciones al montar y cada 5s
@@ -261,7 +407,18 @@ const PostulacionesPanel = () => {
             </div>
 
             <div className="detalle-respuestas">
-              <h4><FaClipboardList className="icono-titulo" /> Respuestas del formulario</h4>
+              <div className="detalle-header">
+                <h4><FaClipboardList className="icono-titulo" /> Respuestas del formulario</h4>
+                {/* Puntaje de compatibilidad */}
+                {compatibilityScores[selected.petition_id] !== undefined && (
+                  <div className="compatibility-score-detail" title="Puntaje de compatibilidad con la mascota">
+                    <FaPaw className="score-icon" />
+                    <span className="score-value">
+                      {compatibilityScores[selected.petition_id]}
+                    </span>
+                  </div>
+                )}
+              </div>
               {formData ? (
                 <div>
                   <p><FaHome className="icono-detalle" /> <strong>Tipo de vivienda:</strong> {formData.is_house ? "Casa" : "Departamento"}</p>

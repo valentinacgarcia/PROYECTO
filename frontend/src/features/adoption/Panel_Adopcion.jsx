@@ -171,6 +171,16 @@ const PetMatch = () => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
+  // Función para calcular días en espera
+  const getDaysWaiting = (createdAt) => {
+    if (!createdAt) return 0;
+    const createdDate = new Date(createdAt);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate - createdDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   const goToRecommendations = () => {
   navigate('/recomendaciones');
   };
@@ -472,6 +482,14 @@ const PetMatch = () => {
                       src={pet.photos && pet.photos.length > 0 ? pet.photos[0] : 'default.png'} 
                       alt={pet.name} 
                     />
+                    
+                    {/* Cartelito de días en espera */}
+                    <div className="days-waiting-badge">
+                      <span className="days-waiting-text">
+                        {getDaysWaiting(pet.created_at)} días esperando
+                      </span>
+                    </div>
+
                     <div className="pet-info">
                       <div className="pet-name-row">
                         <span className="pet-name">{pet.name}</span>

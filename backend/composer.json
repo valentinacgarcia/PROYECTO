@@ -6,6 +6,8 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "aws/aws-sdk-php": "^3.351",
         "symfony/mime": "^6.1",
-        "nelmio/cors-bundle": "^2.5"
+        "nelmio/cors-bundle": "^2.5",
+        "symfony/validator": "*",
+        "symfony/http-client": "^6.2"
     }
 }

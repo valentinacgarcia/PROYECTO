@@ -118,8 +118,13 @@ class PetLikeController extends AbstractController
         foreach ($pendingRequests as $request) {
             $data[] = [
                 'petition_id' => $request->getId(),
+                'pet_id' => $request->getPet()->getId(),
                 'pet_name' => $request->getPet()->getName(),
                 'pet_type' => $request->getPet()->getType(),
+                'pet_size' => $request->getPet()->getSize(),
+                'pet_breed' => $request->getPet()->getBreed(),
+                'pet_age_years' => $request->getPet()->getAgeYears(),
+                'pet_compatibility' => $request->getPet()->getCompatibility(),
                 'interested_user_name' => $request->getInterestedUser()->getName(),
                 'interested_user_email' => $request->getInterestedUser()->getEmail(),
                 'interested_user_id' => $request->getInterestedUser()->getId(),

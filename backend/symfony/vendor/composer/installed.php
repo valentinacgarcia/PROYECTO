@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => 'dev-main',
-        'version' => 'dev-main',
-        'reference' => '414d25ba43a629726e3d16bb73c0b0a8f8eeb16b',
+        'pretty_version' => '1.0.0+no-version-set',
+        'version' => '1.0.0.0',
+        'reference' => null,
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => '414d25ba43a629726e3d16bb73c0b0a8f8eeb16b',
+            'pretty_version' => '1.0.0+no-version-set',
+            'version' => '1.0.0.0',
+            'reference' => null,
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -226,6 +226,18 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'php-http/async-client-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '*',
+            ),
+        ),
+        'php-http/client-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '*',
+            ),
+        ),
         'psr/cache' => array(
             'pretty_version' => '3.0.0',
             'version' => '3.0.0.0',
@@ -371,13 +383,10 @@
             'dev_requirement' => false,
         ),
         'symfony/cache-contracts' => array(
-            'pretty_version' => 'v3.5.1',
-            'version' => '3.5.1.0',
-            'reference' => '15a4f8e5cd3bce9aeafc882b1acab39ec8de2c1b',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../symfony/cache-contracts',
-            'aliases' => array(),
             'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v3.6.0',
+            ),
         ),
         'symfony/cache-implementation' => array(
             'dev_requirement' => false,
@@ -412,6 +421,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/contracts' => array(
+            'pretty_version' => 'v3.6.0',
+            'version' => '3.6.0.0',
+            'reference' => '6e489617c52619f6a4f92986dfd19eb52d83de1f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/contracts',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/dependency-injection' => array(
             'pretty_version' => 'v7.2.6',
             'version' => '7.2.6.0',
@@ -422,13 +440,10 @@
             'dev_requirement' => false,
         ),
         'symfony/deprecation-contracts' => array(
-            'pretty_version' => 'v3.5.1',
-            'version' => '3.5.1.0',
-            'reference' => '74c71c939a79f7d5bf3c1ce9f5ea37ba0114c6f6',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../symfony/deprecation-contracts',
-            'aliases' => array(),
             'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v3.6.0',
+            ),
         ),
         'symfony/doctrine-bridge' => array(
             'pretty_version' => 'v7.2.6',
@@ -467,13 +482,10 @@
             'dev_requirement' => false,
         ),
         'symfony/event-dispatcher-contracts' => array(
-            'pretty_version' => 'v3.5.1',
-            'version' => '3.5.1.0',
-            'reference' => '7642f5e970b672283b7823222ae8ef8bbc160b9f',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../symfony/event-dispatcher-contracts',
-            'aliases' => array(),
             'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v3.6.0',
+            ),
         ),
         'symfony/event-dispatcher-implementation' => array(
             'dev_requirement' => false,
@@ -516,6 +528,27 @@
             'install_path' => __DIR__ . '/../symfony/framework-bundle',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'symfony/http-client' => array(
+            'pretty_version' => 'v7.2.9',
+            'version' => '7.2.9.0',
+            'reference' => 'e26182d286135dad99f58ad57c56eef41362d452',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/http-client',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/http-client-contracts' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v3.6.0',
+            ),
+        ),
+        'symfony/http-client-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '3.0',
+            ),
         ),
         'symfony/http-foundation' => array(
             'pretty_version' => 'v7.2.6',
@@ -746,13 +779,10 @@
             'dev_requirement' => false,
         ),
         'symfony/service-contracts' => array(
-            'pretty_version' => 'v3.5.1',
-            'version' => '3.5.1.0',
-            'reference' => 'e53260aabf78fb3d63f8d79d69ece59f80d5eda0',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../symfony/service-contracts',
-            'aliases' => array(),
             'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v3.6.0',
+            ),
         ),
         'symfony/service-implementation' => array(
             'dev_requirement' => false,
@@ -777,6 +807,12 @@
             'install_path' => __DIR__ . '/../symfony/string',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'symfony/translation-contracts' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => 'v3.6.0',
+            ),
         ),
         'symfony/type-info' => array(
             'pretty_version' => 'v7.2.5',
