@@ -1,0 +1,213 @@
+/* PanelServicios.module.css */
+
+:root {
+  --primary-color: #53a57d;
+  --primary-dark: #3b7454;
+  --bg-color: #fbf7f4;
+  --surface-color: #ffffff;
+  --text-dark: #2c3e50;
+  --text-light: #7f8c8d;
+  --border-color: #e0e0e0;
+}
+
+.panelContainer {
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+/* --- MODIFICADO: Contenedor visual para el Header --- */
+.header {
+  text-align: center;
+  margin-bottom: 30px; /* Espacio entre este contenedor y el de abajo */
+  padding: 2rem 2.5rem;
+  background-color: var(--surface-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+.header h1 {
+  font-size: 2.5rem;
+  color: var(--text-dark);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+.header p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.searchBar {
+  max-width: 500px;
+  margin: 0 auto;
+}
+.searchBar input {
+  width: 100%;
+  padding: 15px 25px;
+  border-radius: 30px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color); /* Un color de fondo sutil */
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+.searchBar input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(83, 165, 127, 0.2);
+}
+
+.mainContent {
+  display: flex;
+  gap: 30px;
+}
+
+/* --- Contenedor visual para la Sidebar (sin cambios) --- */
+.sidebar {
+  flex: 0 0 280px;
+  padding: 20px;
+  background-color: var(--surface-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(20, 20, 20, 0.1);
+  align-self: flex-start;
+}
+/* ... (el resto de los estilos de la sidebar se mantienen igual) ... */
+.findMatchCard {
+  background: linear-gradient(135deg, #53a57d, #6db890);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+.findMatchCard h3 {
+  font-size: 1.6em;
+  margin: 0;
+}
+.filterSection {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+.filterSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+.filterSection h3 {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 10px;
+}
+.filterSection select,
+.filterSection input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.priceRange {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.priceRange input { text-align: center; }
+.priceRange input::placeholder { color: #aaa; }
+.priceRange span { color: #aaa; }
+.filterSection label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #555;
+  gap: 8px;
+}
+.filterSection input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #bbb;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.filterSection input[type="checkbox"]:hover { border-color: var(--primary-color); }
+.filterSection input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.filterSection input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
+}
+
+/* --- MODIFICADO: Contenedor visual para el Panel de Resultados --- */
+.resultsPanel {
+  flex: 1;
+  background-color: var(--surface-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+/* ... (el resto de los estilos de las tarjetas, esqueleto, etc. se mantienen igual) ... */
+.card {
+  background-color: var(--surface-color);
+  border-radius: 16px;
+  /* La tarjeta ahora tiene un borde para diferenciarla del contenedor */
+  border: 1px solid var(--border-color);
+  box-shadow: none; /* Le quitamos la sombra, ya que el contenedor la tiene */
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex; 
+  flex-direction: row; 
+  min-height: 220px;
+}
+.card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-color);
+}
+.cardImage {
+  flex: 0 0 250px;
+  width: 250px;
+  height: auto; 
+  object-fit: cover;
+  background-color: #f0f0f0;
+  border-radius: 16px 0 0 16px;
+}
+.cardInfo { padding: 1.5rem 2rem; display: flex; flex-direction: column; flex: 1; }
+.cardCategory { display: inline-block; background-color: rgba(83, 165, 127, 0.1); color: var(--primary-dark); padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; }
+.cardTitle { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin: 0 0 0.5rem 0; }
+.cardDescription { font-size: 1rem; color: var(--text-light); margin-bottom: auto; padding-bottom: 1rem; }
+.cardLocation { font-weight: 500; color: var(--primary-color); font-size: 1rem; }
+.skeleton { display: flex; flex-direction: row;}
+.skeletonImage { flex: 0 0 250px; width: 250px; height: 220px; }
+.skeletonLine { background-color: #e0e0e0; height: 20px; border-radius: 4px; margin-bottom: 0.75rem; animation: pulse 1.5s infinite ease-in-out; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+.error, .noResults { text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--text-light); }
+@media (max-width: 768px) {
+  .mainContent { flex-direction: column; }
+  .card { flex-direction: column; min-height: auto; }
+  .cardImage { width: 100%; height: 200px; flex-basis: auto; border-radius: 16px 16px 0 0; }
+  .cardInfo { padding: 1.25rem; }
+  .resultsPanel { padding: 1.5rem; }
+  .header { padding: 1.5rem; }
+}
