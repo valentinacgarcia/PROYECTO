@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../../config/api';
 import './Mascotas.css';
 
 const ListaMascotas = ({ title, mascotas, detalleRuta, botonTexto, botonClick, isAdopted, onQuitarDeAdopcion }) => {
@@ -15,7 +16,7 @@ const ListaMascotas = ({ title, mascotas, detalleRuta, botonTexto, botonClick, i
   const handleConfirmQuitar = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/pet/forAdoption/${mascotaAEliminar.id}`,
+        buildApiUrl(`/pet/forAdoption/${mascotaAEliminar.id}`),
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -112,7 +113,7 @@ const PanelMascotas = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) return setLoading(false);
 
-    fetch(`http://localhost:8000/pet/list/${user.id}`)
+    fetch(buildApiUrl(`/pet/list/${user.id}`))
       .then(res => res.json())
       .then(data => setMascotas(data))
       .catch(err => console.error('Error al cargar mascotas:', err))

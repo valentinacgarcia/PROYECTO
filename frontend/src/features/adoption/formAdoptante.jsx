@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import './FormAdoptante.css';
 import profilePhoto from '../../assets/foto1.jpg';
@@ -135,11 +136,11 @@ const FormularioAdopcion = () => {
 
         try {
             // Guardar formulario
-            await axios.post('http://localhost:8000/adoption/submit', requestData);
+            await axios.post(buildApiUrl('/adoption/submit'), requestData);
 
             // Solicitud de adopción con pet_id
             const petId = window.location.pathname.split('/').pop();
-            await axios.post('http://localhost:8000/adoptions/request', {
+            await axios.post(buildApiUrl('/adoptions/request'), {
                 pet_id: parseInt(petId),
                 user_id: userData.id
             });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../../config/api';
 import './RegistrarMascota.css';
 import perro from '../../assets/perro.png';
 import gato from '../../assets/gato.png';
@@ -141,17 +142,32 @@ const RegistroMascota = () => {
     formData.fotos.forEach((foto) => data.append('photos[]', foto));
 
     try {
-      const response = await fetch('http://localhost:8000/pet/create', {
+      console.log('🔍 Enviando datos de mascota:', {
+        ownerId,
+        tipo: formData.tipo,
+        nombre: formData.nombre,
+        fotos: formData.fotos.length
+      });
+      
+      const response = await fetch(buildApiUrl('/pet/create'), {
         method: 'POST',
         body: data,
       });
 
-      if (!response.ok) throw new Error('Error al registrar la mascota');
-      await response.json();
+      console.log('🔍 Respuesta del servidor:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error del servidor:', errorText);
+        throw new Error(`Error al registrar la mascota: ${response.status} - ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Mascota registrada exitosamente:', result);
       setRegistroExitoso(true);
     } catch (err) {
-      console.error(err);
-      setError('Hubo un error al registrar la mascota.');
+      console.error('❌ Error completo:', err);
+      setError(`Hubo un error al registrar la mascota: ${err.message}`);
     }
   };
 

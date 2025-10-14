@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { buildApiUrl } from "../../config/api";
 import "./FormAdopcion.css";
 
 const DarEnAdopcion = ({ mascotasRegistradas }) => {
@@ -18,7 +19,7 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
       return;
     }
 
-    fetch(`http://localhost:8000/pet/list/${user.id}`)
+    fetch(buildApiUrl(`/pet/list/${user.id}`))
       .then((res) => res.json())
       .then((data) => {
         setMascotas(data);
@@ -53,7 +54,7 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) throw new Error("Usuario no encontrado");
 
-      const res = await fetch(`http://localhost:8000/pet/forAdoption/${mascotaSeleccionada}`, {
+      const res = await fetch(buildApiUrl(`/pet/forAdoption/${mascotaSeleccionada}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

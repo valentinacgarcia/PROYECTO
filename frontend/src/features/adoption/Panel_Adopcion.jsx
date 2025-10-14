@@ -4,6 +4,7 @@ import './Panel_Adopcion.css';
 import perro from '../../assets/perro.png';
 import gato from '../../assets/gato.png';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../../config/api';
 
 const cardsPerPage = 12;
 
@@ -27,6 +28,8 @@ const PetMatch = () => {
     compatibilidad: [],
     tipo: []
   });
+
+  const [showFilters, setShowFilters] = useState(false); // Estado para menú móvil
 
   // Función para obtener el user_id del localStorage
   const getCurrentUserId = () => {
@@ -69,10 +72,16 @@ const PetMatch = () => {
 
   // Manejo especial para el filtro de tipo
   const handleTypeFilter = (type) => {
-    setFilters(prev => ({
-      ...prev,
-      tipo: prev.tipo.includes(type) ? [] : [type]
-    }));
+    setFilters(prev => {
+      const selected = prev.tipo;
+      const newSelected = selected.includes(type)
+        ? selected.filter(item => item !== type)
+        : [...selected, type];
+      return {
+        ...prev,
+        tipo: newSelected
+      };
+    });
     setCurrentPage(1);
   };
 
@@ -95,7 +104,7 @@ const PetMatch = () => {
         }
       }
 
-      const response = await axios.get('http://localhost:8000/pet/list-all', { params });
+      const response = await axios.get(buildApiUrl('/pet/list-all'), { params });
 
       if (response.data.success) {
         // Normalizar datos antes de setear el estado
@@ -199,6 +208,288 @@ const PetMatch = () => {
 
       <h1>Mascotas en adopción cerca tuyo!</h1>
 
+      {/* === BOTÓN FLOTANTE SOLO EN MOBILE === */}
+      <button className="filters-toggle-btn" onClick={() => setShowFilters(true)}>
+        🔍 Filtros
+      </button>
+
+      {/* === PANEL LATERAL MOBILE === */}
+      {showFilters && (
+        <div className="filters-overlay" onClick={() => setShowFilters(false)}>
+          <aside
+            className="filters-drawer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="filters-header">
+              <h2>Filtros</h2>
+              <button className="close-filters" onClick={() => setShowFilters(false)}>✖</button>
+            </div>
+
+            <div className="filters-content">
+              {/* Filtro de tipo */}
+              <div className="filter-section">
+                <h3>Tipo</h3>
+                <div className="icon-selector">
+                  <div
+                    className={`icon-option ${filters.tipo.includes('perro') ? 'selected' : ''}`}
+                    onClick={() => handleTypeFilter('perro')}
+                  >
+                    <img src={perro} alt="Perro" />
+                    <span>Perro</span>
+                  </div>
+                  <div
+                    className={`icon-option ${filters.tipo.includes('gato') ? 'selected' : ''}`}
+                    onClick={() => handleTypeFilter('gato')}
+                  >
+                    <img src={gato} alt="Gato" />
+                    <span>Gato</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filtro de región */}
+              <div className="filter-section">
+                <h3>Región</h3>
+                <select
+                  value={filters.region[0] || ''}
+                  onChange={e => handleSelectChange('region', e)}
+                >
+                  <option value="">Selecciona una región</option>
+                  <option value="norte">Norte</option>
+                  <option value="sur">Sur</option>
+                  <option value="centro">Centro</option>
+                </select>
+              </div>
+
+              {/* Filtro de raza */}
+              <div className="filter-section">
+                <h3>Raza</h3>
+                <select
+                  value={filters.raza[0] || ''}
+                  onChange={e => handleSelectChange('raza', e)}
+                >
+                  <option value="">Selecciona una raza</option>
+                  <option value="labrador">Labrador</option>
+                  <option value="bulldog">Bulldog</option>
+                  <option value="pastor">Pastor Alemán</option>
+                </select>
+              </div>
+
+              {/* Filtro de género */}
+              <div className="filter-section">
+                <h3>Género</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.genero.includes('Macho')}
+                    onChange={() => handleCheckboxChange('genero', 'Macho')}
+                  />
+                  <span>Macho</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.genero.includes('Hembra')}
+                    onChange={() => handleCheckboxChange('genero', 'Hembra')}
+                  />
+                  <span>Hembra</span>
+                </label>
+              </div>
+
+              {/* Filtro de edad */}
+              <div className="filter-section">
+                <h3>Edad</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.edad.includes('Cachorro')}
+                    onChange={() => handleCheckboxChange('edad', 'Cachorro')}
+                  />
+                  <span>Cachorro</span> (0-1 año)
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.edad.includes('Joven')}
+                    onChange={() => handleCheckboxChange('edad', 'Joven')}
+                  />
+                  <span>Joven</span> (1-3 años)
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.edad.includes('Adulto')}
+                    onChange={() => handleCheckboxChange('edad', 'Adulto')}
+                  />
+                  <span>Adulto</span> (3-8 años)
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.edad.includes('Senior')}
+                    onChange={() => handleCheckboxChange('edad', 'Senior')}
+                  />
+                  <span>Senior</span> (8 años o más)
+                </label>
+              </div>
+
+              {/* Filtro de tamaño */}
+              <div className="filter-section">
+                <h3>Tamaño</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.tamaño.includes('Pequeño')}
+                    onChange={() => handleCheckboxChange('tamaño', 'Pequeño')}
+                  />
+                  <span>Pequeño</span> (5-12 kg)
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.tamaño.includes('Mediano')}
+                    onChange={() => handleCheckboxChange('tamaño', 'Mediano')}
+                  />
+                  <span>Mediano</span> (12-25 kg)
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.tamaño.includes('Grande')}
+                    onChange={() => handleCheckboxChange('tamaño', 'Grande')}
+                  />
+                  <span>Grande</span> (25 kg o más)
+                </label>
+              </div>
+
+              {/* Filtro de color del pelaje */}
+              <div className="filter-section">
+                <h3>Color del pelaje</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.colors.includes('Blanco')}
+                    onChange={() => handleCheckboxChange('colors', 'Blanco')}
+                  />
+                  <span>Blanco</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.colors.includes('Negro')}
+                    onChange={() => handleCheckboxChange('colors', 'Negro')}
+                  />
+                  <span>Negro</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.colors.includes('Marrón')}
+                    onChange={() => handleCheckboxChange('colors', 'Marrón')}
+                  />
+                  <span>Marrón</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.colors.includes('Otro')}
+                    onChange={() => handleCheckboxChange('colors', 'Otro')}
+                  />
+                  <span>Otro</span>
+                </label>
+              </div>
+
+              {/* Filtro de largo del pelaje */}
+              <div className="filter-section">
+                <h3>Largo del pelaje</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.largoPelaje.includes('Corto')}
+                    onChange={() => handleCheckboxChange('largoPelaje', 'Corto')}
+                  />
+                  <span>Corto</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.largoPelaje.includes('Medio')}
+                    onChange={() => handleCheckboxChange('largoPelaje', 'Medio')}
+                  />
+                  <span>Medio</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.largoPelaje.includes('Largo')}
+                    onChange={() => handleCheckboxChange('largoPelaje', 'Largo')}
+                  />
+                  <span>Largo</span>
+                </label>
+              </div>
+
+              {/* Filtro de castrado */}
+              <div className="filter-section">
+                <h3>Castrado/a</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.castrado.includes('Sí')}
+                    onChange={() => handleCheckboxChange('castrado', 'Sí')}
+                  />
+                  <span>Sí</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.castrado.includes('No')}
+                    onChange={() => handleCheckboxChange('castrado', 'No')}
+                  />
+                  <span>No</span>
+                </label>
+              </div>
+
+              {/* Filtro de compatibilidad */}
+              <div className="filter-section">
+                <h3>Compatibilidad</h3>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.compatibilidad.includes('Niños')}
+                    onChange={() => handleCheckboxChange('compatibilidad', 'Niños')}
+                  />{' '}
+                  Niños
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.compatibilidad.includes('Perros')}
+                    onChange={() => handleCheckboxChange('compatibilidad', 'Perros')}
+                  />{' '}
+                  Perros
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filters.compatibilidad.includes('Gatos')}
+                    onChange={() => handleCheckboxChange('compatibilidad', 'Gatos')}
+                  />{' '}
+                  Gatos
+                </label>
+              </div>
+            </div>
+            
+            {/* Botón aplicar filtros */}
+            <button 
+              className="apply-filters-btn"
+              onClick={() => setShowFilters(false)}
+            >
+              Aplicar Filtros
+            </button>
+          </aside>
+        </div>
+      )}
+
       <div className="main-content">
         <aside className="sidebar">
           <div className="find-match-card">
@@ -259,16 +550,16 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.genero.includes('Macho')}
                 onChange={() => handleCheckboxChange('genero', 'Macho')}
-              />{' '}
-              Macho
+              />
+              <span>Macho</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.genero.includes('Hembra')}
                 onChange={() => handleCheckboxChange('genero', 'Hembra')}
-              />{' '}
-              Hembra
+              />
+              <span>Hembra</span>
             </label>
           </div>
 
@@ -279,32 +570,32 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.edad.includes('Cachorro')}
                 onChange={() => handleCheckboxChange('edad', 'Cachorro')}
-              />{' '}
-              Cachorro (0-1 año)
+              />
+              <span>Cachorro (0-1 año)</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.edad.includes('Joven')}
                 onChange={() => handleCheckboxChange('edad', 'Joven')}
-              />{' '}
-              Joven (1-3 años)
+              />
+              <span>Joven (1-3 años)</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.edad.includes('Adulto')}
                 onChange={() => handleCheckboxChange('edad', 'Adulto')}
-              />{' '}
-              Adulto (3-8 años)
+              />
+              <span>Adulto (3-8 años)</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.edad.includes('Senior')}
                 onChange={() => handleCheckboxChange('edad', 'Senior')}
-              />{' '}
-              Senior (8 años o más)
+              />
+              <span>Senior (8 años o más)</span>
             </label>
           </div>
 
@@ -315,24 +606,24 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.tamaño.includes('Pequeño')}
                 onChange={() => handleCheckboxChange('tamaño', 'Pequeño')}
-              />{' '}
-              Pequeño (5-12 kg)
+              />
+              <span>Pequeño (5-12 kg)</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.tamaño.includes('Mediano')}
                 onChange={() => handleCheckboxChange('tamaño', 'Mediano')}
-              />{' '}
-              Mediano (12-25 kg)
+              />
+              <span>Mediano (12-25 kg)</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.tamaño.includes('Grande')}
                 onChange={() => handleCheckboxChange('tamaño', 'Grande')}
-              />{' '}
-              Grande (25 kg o más)
+              />
+              <span>Grande (25 kg o más)</span>
             </label>
           </div>
 
@@ -343,32 +634,32 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.colors.includes('Blanco')}
                 onChange={() => handleCheckboxChange('colors', 'Blanco')}
-              />{' '}
-              Blanco
+              />
+              <span>Blanco</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.colors.includes('Negro')}
                 onChange={() => handleCheckboxChange('colors', 'Negro')}
-              />{' '}
-              Negro
+              />
+              <span>Negro</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.colors.includes('Marrón')}
                 onChange={() => handleCheckboxChange('colors', 'Marrón')}
-              />{' '}
-              Marrón
+              />
+              <span>Marrón</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.colors.includes('Otro')}
                 onChange={() => handleCheckboxChange('colors', 'Otro')}
-              />{' '}
-              Otro
+              />
+              <span>Otro</span>
             </label>
           </div>
 
@@ -379,24 +670,24 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.largoPelaje.includes('Corto')}
                 onChange={() => handleCheckboxChange('largoPelaje', 'Corto')}
-              />{' '}
-              Corto
+              />
+              <span>Corto</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.largoPelaje.includes('Medio')}
                 onChange={() => handleCheckboxChange('largoPelaje', 'Medio')}
-              />{' '}
-              Medio
+              />
+              <span>Medio</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.largoPelaje.includes('Largo')}
                 onChange={() => handleCheckboxChange('largoPelaje', 'Largo')}
-              />{' '}
-              Largo
+              />
+              <span>Largo</span>
             </label>
           </div>
 
@@ -407,16 +698,16 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.castrado.includes('Sí')}
                 onChange={() => handleCheckboxChange('castrado', 'Sí')}
-              />{' '}
-              Sí
+              />
+              <span>Sí</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.castrado.includes('No')}
                 onChange={() => handleCheckboxChange('castrado', 'No')}
-              />{' '}
-              No
+              />
+              <span>No</span>
             </label>
           </div>
 
@@ -427,24 +718,24 @@ const PetMatch = () => {
                 type="checkbox"
                 checked={filters.compatibilidad.includes('Niños')}
                 onChange={() => handleCheckboxChange('compatibilidad', 'Niños')}
-              />{' '}
-              Niños
+              />
+              <span>Niños</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.compatibilidad.includes('Perros')}
                 onChange={() => handleCheckboxChange('compatibilidad', 'Perros')}
-              />{' '}
-              Perros
+              />
+              <span>Perros</span>
             </label>
             <label>
               <input
                 type="checkbox"
                 checked={filters.compatibilidad.includes('Gatos')}
                 onChange={() => handleCheckboxChange('compatibilidad', 'Gatos')}
-              />{' '}
-              Gatos
+              />
+              <span>Gatos</span>
             </label>
           </div>
         </aside>

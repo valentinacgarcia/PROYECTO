@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 import './Panel_Recomendations.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -32,7 +33,7 @@ const Panel_Recommendations = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8000/recommendations/list-preferences/${userId}`
+        buildApiUrl(`/recommendations/list-preferences/${userId}`)
       );
 
       if (response.data.success) {

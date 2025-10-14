@@ -1,0 +1,166 @@
+/* === BURBUJA DE CHAT MÓVIL === */
+.mobile-chat-bubble {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #53a57d, #6db890);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(83, 165, 125, 0.3);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  animation: chatBubblePulse 2s infinite;
+}
+
+.mobile-chat-bubble:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(83, 165, 125, 0.4);
+}
+
+.chat-bubble-icon {
+  color: white;
+  font-size: 24px;
+}
+
+.chat-bubble-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* === OVERLAY DEL CHAT MÓVIL === */
+.mobile-chat-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
+}
+
+.mobile-chat-panel {
+  background: white;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideUpFromBottom 0.3s ease;
+}
+
+.mobile-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 16px 16px 0 0;
+}
+
+.mobile-chat-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.mobile-chat-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.mobile-chat-close:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.mobile-chat-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === ANIMACIONES === */
+@keyframes chatBubblePulse {
+  0% {
+    box-shadow: 0 4px 12px rgba(83, 165, 125, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(83, 165, 125, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(83, 165, 125, 0.3);
+  }
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 480px) {
+  .mobile-chat-bubble {
+    width: 55px;
+    height: 55px;
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .chat-bubble-icon {
+    font-size: 22px;
+  }
+  
+  .mobile-chat-overlay {
+    padding: 10px;
+  }
+  
+  .mobile-chat-panel {
+    max-height: 85vh;
+  }
+}
+
+/* === OCULTAR EN DESKTOP === */
+@media (min-width: 769px) {
+  .mobile-chat-bubble,
+  .mobile-chat-overlay {
+    display: none !important;
+  }
+}

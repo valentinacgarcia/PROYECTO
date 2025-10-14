@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 import './Datos.css';
 import profilePhoto from '../../assets/foto1.jpg';
 
@@ -112,53 +113,52 @@ const Datos = () => {
   };
 
   const handleSaveClick = () => {
-  // Validaciones generales
-  if (!formData.nombre.trim()) {
-    showFeedback('El nombre es obligatorio');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
-  if (!formData.email.trim()) {
-    showFeedback('El email es obligatorio');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
-  if (!emailRegex.test(formData.email)) {
-    showFeedback('Por favor ingrese un email válido');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
-  if (formData.telefono && !phoneRegex.test(formData.telefono)) {
-    showFeedback('Por favor ingrese un teléfono válido (Argentina)');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
+    // Validaciones generales
+    if (!formData.nombre.trim()) {
+      showFeedback('El nombre es obligatorio');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
+    if (!formData.email.trim()) {
+      showFeedback('El email es obligatorio');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
+    if (!emailRegex.test(formData.email)) {
+      showFeedback('Por favor ingrese un email válido');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
+    if (formData.telefono && !phoneRegex.test(formData.telefono)) {
+      showFeedback('Por favor ingrese un teléfono válido (Argentina)');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
 
-  // Validaciones obligatorias de dirección
-  if (!formData.direccion.calle.trim()) {
-    showFeedback('La calle es obligatoria');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
-  if (!formData.direccion.numero.trim()) {
-    showFeedback('El número es obligatorio');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
+    // Validaciones obligatorias de dirección
+    if (!formData.direccion.calle.trim()) {
+      showFeedback('La calle es obligatoria');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
+    if (!formData.direccion.numero.trim()) {
+      showFeedback('El número es obligatorio');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
 
-  setEditMode(false);
+    setEditMode(false);
 
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (!user) {
-    showFeedback('No hay usuario logueado');
-    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
-    return;
-  }
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      showFeedback('No hay usuario logueado');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      return;
+    }
 
-  const direccionCompleta = `${formData.direccion.calle} ${formData.direccion.numero}, ${formData.direccion.ciudad}, CP ${formData.direccion.codigoPostal}, ${formData.direccion.provincia}, ${formData.direccion.pais}`;
+    const direccionCompleta = `${formData.direccion.calle} ${formData.direccion.numero}, ${formData.direccion.ciudad}, CP ${formData.direccion.codigoPostal}, ${formData.direccion.provincia}, ${formData.direccion.pais}`;
 
-  axios
-    .put(`http://localhost:8000/user/edit/${user.id}`, {
+    axios.put(buildApiUrl(`/user/edit/${user.id}`), {
       name: formData.nombre,
       last_name: formData.apellido,
       email: formData.email,
@@ -186,8 +186,7 @@ const Datos = () => {
       showFeedback('Hubo un error al actualizar los datos');
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
     });
-};
-
+  };
 
   return (
     <div className="datos-container-usuario">
