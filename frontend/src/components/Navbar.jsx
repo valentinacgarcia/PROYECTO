@@ -16,13 +16,15 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const [deleteError, setDeleteError] = useState(null);
 
   const handleLoginClick = () => navigate('/login');
+  const handleRegistrarServicios = () => { setActiveDropdown(null); navigate('/servicios'); };
+  const handleServiciosClick = () => navigate('/panel_servicios');
   const handleRegisterClick = () => navigate('/register');
   const handleClickNuevaAdopcion = () => navigate('/formulario_nueva_adopcion');
   const handleDatosClick = () => { setActiveDropdown(null); navigate('/datos'); };
   const handleRegistrarMascota = () => { setActiveDropdown(null); navigate('/registrar-mascota'); };
   const handleHomeClick = () => navigate('/home');
   const handleMisSolicitudes = () => { setActiveDropdown(null); navigate('/postulaciones'); };
-  const handleClickAdoptar = () => navigate('/panel_adopcion');
+  const handleClickAdoptar = () => navigate('/mis-servicios');
 
   const handleDeleteAccount = () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -76,7 +78,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
         <span className="nav-item" onClick={handleHomeClick}>Inicio</span>
         <span className="nav-item" onClick={handleClickAdoptar}>Adopta</span>
         <span className="nav-item" onClick={handleClickNuevaAdopcion}>Da en adopción</span>
-        <span className="nav-item">Servicios</span>
+        <span className="nav-item" onClick={handleServiciosClick}>Servicios</span>
         <span className="nav-item">Nosotros</span>
       </div>
 
@@ -122,8 +124,9 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 <span onClick={handleDatosClick}>Mis datos</span>
                 <span onClick={handleRegistrarMascota}>Mis mascotas</span>
                 <span onClick={handleMisSolicitudes}>Mis solicitudes</span>
-                <hr className="dropdown-separator" />
                 <span>Favoritos</span>
+                <hr className="dropdown-separator" />
+                <span onClick={handleRegistrarServicios}>Mis Servicios</span>
                 <hr className="dropdown-separator" />
                 <span onClick={handleLogout}>Cerrar sesión</span>
                 <span

@@ -5,6 +5,7 @@ import styles from './RegistrarServicio.module.css';
 
 // --- Constantes ---
 const CATEGORIES = [
+  { value: 'peluquería', label: 'Peluquería' },
   { value: 'paseo', label: 'Paseo de Mascotas' },
   { value: 'veterinaria', label: 'Veterinaria' },
   { value: 'adiestramiento', label: 'Adiestramiento' },

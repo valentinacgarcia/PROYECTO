@@ -5,6 +5,7 @@
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .datos-container-usuario h2 {
@@ -20,7 +21,7 @@
   color: #333;
 }
 
-.datos-container-usuario .datos-form-usuario input {
+.datos-form-usuario input {
   width: 100%;
   padding: 10px;
   margin-top: 5px;
@@ -32,11 +33,10 @@
   box-sizing: border-box;
 }
 
-.datos-container-usuario .datos-form-usuario input:disabled {
+.datos-form-usuario input:disabled {
   background-color: #f0f0f0;
   color: #777;
 }
-
 
 .botones {
   display: flex;
@@ -84,7 +84,7 @@
   border: 2px solid #53a57d;
 }
 
-
+/* --- Feedback --- */
 .feedback-message {
   position: absolute;
   top: 20px;
@@ -93,8 +93,8 @@
   padding: 15px 25px;
   border-radius: 8px;
   font-weight: 500;
-  color: #721c24; 
-  background-color: #f8d7da; 
+  color: #721c24;
+  background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   z-index: 9999;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
@@ -108,10 +108,54 @@
   border: 1px solid #c3e6cb;
 }
 
-/* Animación para que aparezca y desaparezca */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
   10% { opacity: 1; transform: translateX(-50%) translateY(0); }
   90% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
+
+/* --- Dirección (acordeón) --- */
+.direccion-section {
+  margin-top: 20px;
+}
+
+.direccion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #e9f5ef;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #333;
+  transition: background-color 0.3s;
+}
+
+.direccion-header:hover {
+  background-color: #d8efe4;
+}
+
+.direccion-fields {
+  margin-top: 10px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
+}
+
+.direccion-fields.visible {
+  max-height: 600px;
+  opacity: 1;
+}
+
+.direccion-fields label {
+  margin-bottom: 12px;
+  display: block;
+}
+
+.arrow {
+  font-size: 14px;
+  color: #53a57d;
 }

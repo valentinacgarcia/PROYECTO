@@ -9,121 +9,192 @@ const Datos = () => {
     apellido: '',
     email: '',
     telefono: '',
-    direccion: '',
+    direccion: {
+      calle: '',
+      numero: '',
+      ciudad: '',
+      codigoPostal: '',
+      provincia: '',
+      pais: '',
+    },
   });
 
   const [editMode, setEditMode] = useState(false);
   const [feedback, setFeedback] = useState({ message: '', type: '' });
+  const [direccionVisible, setDireccionVisible] = useState(false);
 
   // Regex para validaciones
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^(?:\+54|0)?[1-9]\d{9,10}$/;
 
-  // Cargar datos desde localStorage al montar el componente
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
+      const direccionSeparada = user.address
+        ? parseDireccion(user.address)
+        : {
+            calle: '',
+            numero: '',
+            ciudad: '',
+            codigoPostal: '',
+            provincia: '',
+            pais: '',
+          };
       setFormData({
         nombre: user.name || '',
         apellido: user.last_name || '',
         email: user.email || '',
         telefono: user.phone || '',
-        direccion: user.address || '',
+        direccion: direccionSeparada,
       });
     }
   }, []);
 
+  const parseDireccion = (address) => {
+    const partes = address.split(',').map(p => p.trim());
+    return {
+      calle: partes[0] || '',
+      numero: '',
+      ciudad: partes[1] || '',
+      codigoPostal: partes[2]?.replace('CP ', '') || '',
+      provincia: partes[3] || '',
+      pais: partes[4] || '',
+    };
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name.startsWith('direccion.')) {
+      const field = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        direccion: {
+          ...prev.direccion,
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleEditClick = () => {
-    setEditMode(true);
-  };
-
+  const handleEditClick = () => setEditMode(true);
   const handleCancelClick = () => {
     setEditMode(false);
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
+      const direccionSeparada = user.address
+        ? parseDireccion(user.address)
+        : {
+            calle: '',
+            numero: '',
+            ciudad: '',
+            codigoPostal: '',
+            provincia: '',
+            pais: '',
+          };
       setFormData({
         nombre: user.name || '',
         apellido: user.last_name || '',
         email: user.email || '',
         telefono: user.phone || '',
-        direccion: user.address || '',
+        direccion: direccionSeparada,
       });
     }
   };
 
-  // Función para mostrar mensajes de feedback
   const showFeedback = (message, type = 'error') => {
     setFeedback({ message, type });
     setTimeout(() => {
       setFeedback({ message: '', type: '' });
-    }, 3000); // desaparece después de 3s
+    }, 3000);
   };
 
   const handleSaveClick = () => {
-    // Validaciones
-    if (!formData.nombre.trim()) {
-      showFeedback('El nombre es obligatorio');
-      return;
-    }
+  // Validaciones generales
+  if (!formData.nombre.trim()) {
+    showFeedback('El nombre es obligatorio');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
+  if (!formData.email.trim()) {
+    showFeedback('El email es obligatorio');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
+  if (!emailRegex.test(formData.email)) {
+    showFeedback('Por favor ingrese un email válido');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
+  if (formData.telefono && !phoneRegex.test(formData.telefono)) {
+    showFeedback('Por favor ingrese un teléfono válido (Argentina)');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
 
-    if (!formData.email.trim()) {
-      showFeedback('El email es obligatorio');
-      return;
-    }
+  // Validaciones obligatorias de dirección
+  if (!formData.direccion.calle.trim()) {
+    showFeedback('La calle es obligatoria');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
+  if (!formData.direccion.numero.trim()) {
+    showFeedback('El número es obligatorio');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
 
-    if (!emailRegex.test(formData.email)) {
-      showFeedback('Por favor ingrese un email válido');
-      return;
-    }
+  setEditMode(false);
 
-    if (formData.telefono && !phoneRegex.test(formData.telefono)) {
-      showFeedback('Por favor ingrese un teléfono válido (Argentina)');
-      return;
-    }
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user) {
+    showFeedback('No hay usuario logueado');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    return;
+  }
 
-    setEditMode(false);
+  const direccionCompleta = `${formData.direccion.calle} ${formData.direccion.numero}, ${formData.direccion.ciudad}, CP ${formData.direccion.codigoPostal}, ${formData.direccion.provincia}, ${formData.direccion.pais}`;
 
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-      showFeedback('No hay usuario logueado');
-      return;
-    }
-
-    axios.put(`http://localhost:8000/user/edit/${user.id}`, {
+  axios
+    .put(`http://localhost:8000/user/edit/${user.id}`, {
       name: formData.nombre,
       last_name: formData.apellido,
       email: formData.email,
       phone: formData.telefono,
-      address: formData.direccion,
+      address: direccionCompleta,
     })
     .then(response => {
       const updatedUser = response.data;
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      const direccionSeparada = updatedUser.address
+        ? parseDireccion(updatedUser.address)
+        : formData.direccion;
       setFormData({
         nombre: updatedUser.name || '',
         apellido: updatedUser.last_name || '',
         email: updatedUser.email || '',
         telefono: updatedUser.phone || '',
-        direccion: updatedUser.address || '',
+        direccion: direccionSeparada,
       });
       showFeedback('Datos actualizados con éxito', 'success');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
     })
     .catch(error => {
       console.error('Error al actualizar:', error);
       showFeedback('Hubo un error al actualizar los datos');
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
     });
-  };
+};
+
 
   return (
     <div className="datos-container-usuario">
-      {/* Mensaje de feedback */}
       {feedback.message && (
-        <div className={`feedback-message ${feedback.type === 'success' ? 'success' : ''}`}>
+        <div
+          className={`feedback-message ${feedback.type === 'success' ? 'success' : ''}`}
+        >
           {feedback.message}
         </div>
       )}
@@ -178,16 +249,79 @@ const Datos = () => {
           />
         </label>
 
-        <label>
-          Dirección:
-          <input
-            type="text"
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
-            disabled={!editMode}
-          />
-        </label>
+        {/* BLOQUE DE DIRECCIÓN */}
+        <div className="direccion-section">
+          <div
+            className="direccion-header"
+            onClick={() => setDireccionVisible(!direccionVisible)}
+          >
+            <span>Dirección</span>
+            <span className="arrow">{direccionVisible ? '▲' : '▼'}</span>
+          </div>
+
+          <div className={`direccion-fields ${direccionVisible ? 'visible' : 'hidden'}`}>
+            <label>
+              Calle:
+              <input
+                type="text"
+                name="direccion.calle"
+                value={formData.direccion.calle}
+                onChange={handleChange}
+                disabled={!editMode}
+              />
+            </label>
+            <label>
+              Número:
+              <input
+                type="text"
+                name="direccion.numero"
+                value={formData.direccion.numero}
+                onChange={handleChange}
+                disabled={!editMode}
+              />
+            </label>
+            <label>
+              Ciudad:
+              <input
+                type="text"
+                name="direccion.ciudad"
+                value={formData.direccion.ciudad}
+                onChange={handleChange}
+                disabled={!editMode}
+              />
+            </label>
+            <label>
+              Código Postal:
+              <input
+                type="text"
+                name="direccion.codigoPostal"
+                value={formData.direccion.codigoPostal}
+                onChange={handleChange}
+                disabled={!editMode}
+              />
+            </label>
+            <label>
+              Provincia:
+              <input
+                type="text"
+                name="direccion.provincia"
+                value={formData.direccion.provincia}
+                onChange={handleChange}
+                disabled={!editMode}
+              />
+            </label>
+            <label>
+              País:
+              <input
+                type="text"
+                name="direccion.pais"
+                value={formData.direccion.pais}
+                onChange={handleChange}
+                disabled={!editMode}
+              />
+            </label>
+          </div>
+        </div>
 
         <div className="botones">
           {!editMode ? (

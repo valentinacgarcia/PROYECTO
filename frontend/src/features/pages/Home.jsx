@@ -60,7 +60,7 @@ const Home = () => {
   };
 
   const handleClickServicios = () => {
-    navigate('/servicios');
+    navigate('/panel_servicios');
   }
   const handleFaqClick = (id) => {
     setOpenFaqId(openFaqId === id ? null : id);
@@ -165,7 +165,7 @@ const Home = () => {
           <h2 className="section-title">
             Servicios para el cuidado de tu mascota
           </h2>
-          <button className="home-button more">Conocer más</button>
+          <button className="home-button more" onClick={handleClickServicios}>Conocer más</button>
         </div>
         <Slider {...sliderSettings}>
           {servicios.map((servicio) => (

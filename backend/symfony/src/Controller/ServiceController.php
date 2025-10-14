@@ -66,6 +66,56 @@ class ServiceController extends AbstractController
         ]);
     }
 
+    #[Route('/user/{userId}', name: 'service_list_by_user', methods: ['GET'])]
+    public function listByUser(
+        int $userId,
+        UserRepository $userRepository,
+        ServiceRepository $serviceRepository
+    ): JsonResponse {
+        $user = $userRepository->find($userId);
+
+        if (!$user) {
+            error_log("Usuario $userId no encontrado");
+            return $this->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        error_log("Buscando servicios del usuario $userId (entity id={$user->getId()})");
+
+        // Buscar servicios activos del usuario
+        $services = $serviceRepository->findBy(['provider' => $user, 'isActive' => true]);
+
+        error_log("Servicios encontrados: " . count($services));
+
+        // Para debug: IDs de los servicios
+        $ids = array_map(fn($s) => $s->getId(), $services);
+        error_log("IDs encontrados: " . json_encode($ids));
+
+        $data = array_map(fn($service) => [
+            'id' => $service->getId(),
+            'serviceName' => $service->getServiceName(),
+            'description' => $service->getDescription(),
+            'category' => $service->getCategory(),
+            'address' => $service->getAddress(),
+            'latitude' => $service->getLatitude(),
+            'longitude' => $service->getLongitude(),
+            'price' => $service->getPrice(),
+            'priceType' => $service->getPriceType(),
+            'modalities' => $service->getModalities(),
+            'availabilityDays' => $service->getAvailabilityDays(),
+            'photos' => array_map(
+                fn($photo) => $this->getPresignedUrl($photo->getUrl()),
+                $service->getPhotos()->toArray()
+            ),
+            'createdAt' => $service->getCreatedAt()->format('Y-m-d H:i:s'),
+        ], $services);
+
+        return $this->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
+
     #[Route('/detail/{id}', name: 'service_detail', methods: ['GET'])]
     public function detail(ServiceRepository $serviceRepository, int $id): JsonResponse
     {
