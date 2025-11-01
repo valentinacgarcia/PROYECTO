@@ -24,7 +24,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const handleRegistrarMascota = () => { setActiveDropdown(null); navigate('/registrar-mascota'); };
   const handleHomeClick = () => navigate('/home');
   const handleMisSolicitudes = () => { setActiveDropdown(null); navigate('/postulaciones'); };
-  const handleClickAdoptar = () => navigate('/mis-servicios');
+  const handleClickAdoptar = () => navigate('/panel_adopcion');
 
   const handleDeleteAccount = () => {
     const user = JSON.parse(localStorage.getItem('user'));

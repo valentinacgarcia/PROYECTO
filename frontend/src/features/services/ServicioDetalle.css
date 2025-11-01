@@ -1,0 +1,196 @@
+/* General */
+.detalle-servicio-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: #fbf7f4;
+  min-height: 100vh;
+}
+
+.tarjeta-detalle {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 900px;
+  padding: 30px;
+  animation: fadeIn 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  border-top: 6px solid #53a57d;
+}
+
+/* Header */
+.detalle-header {
+  display: flex;
+  gap: 25px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.detalle-foto {
+  width: 240px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 3px solid #53a57d;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.detalle-info-principal {
+  flex: 1;
+}
+
+.detalle-nombre {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3d8f6a;
+  margin-bottom: 8px;
+}
+
+.detalle-categoria {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icono {
+  color: #53a57d;
+}
+
+.detalle-tarifa {
+  font-weight: 600;
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.detalle-modalidad,
+.detalle-ubicacion {
+  font-size: 1rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Cuerpo */
+.detalle-cuerpo h3 {
+  font-size: 1.3rem;
+  color: #3d8f6a;
+  margin-top: 10px;
+}
+
+.detalle-descripcion {
+  margin-top: 6px;
+  line-height: 1.6;
+  color: #444;
+  background: #fdfcfb;
+  border-left: 5px solid #53a57d;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 0.98rem;
+}
+
+.detalle-datos-extra {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  margin-top: 25px;
+}
+
+.detalle-datos-extra h4 {
+  color: #3d8f6a;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detalle-email {
+  color: #53a57d;
+  font-size: 0.95rem;
+}
+
+/* Galería */
+.detalle-galeria {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.detalle-galeria-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.detalle-foto-extra {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+  border: 2px solid #53a57d;
+}
+
+.detalle-foto-extra:hover {
+  transform: scale(1.05);
+}
+
+.icono-camara {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: white;
+  background: rgba(61, 143, 106, 0.7);
+  padding: 5px;
+  border-radius: 8px;
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botones de acción */
+/* Contenedor de botones de acción */
+.detalle-botones {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* Botones de acción */
+.boton-contratar,
+.boton-volver {
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.boton-contratar:hover,
+.boton-volver:hover {
+  background-color: #3d8f6a;
+}

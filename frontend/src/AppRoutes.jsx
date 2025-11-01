@@ -18,6 +18,8 @@ import Panel_Recomendations from './features/adoption/Panel_Recomendations';
 import RegistrarServicio from './features/services/RegistrarServicio';
 import PanelServicios from './features/services/PanelServicios';
 import MisServicios from './features/services/Servicios';
+import DetalleServicio from './features/services/ServicioDetalle';
+import ModificarServicio from './features/services/ModificarServicio';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -56,6 +58,8 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/registrar_servicio" element={<RegistrarServicio />} isLoggedIn={isLoggedIn} />
         <Route path="/panel_servicios" element={<PanelServicios />} isLoggedIn={isLoggedIn} />
         <Route path="/servicios" element={<MisServicios />} isLoggedIn={isLoggedIn} />
+        <Route path="/servicios/:id" element={<DetalleServicio />} isLoggedIn={isLoggedIn} />
+        <Route path="servicios/modificar_servicio/:id" element={<ModificarServicio />} isLoggedIn={isLoggedIn} />
       </Routes>
     </>
   );

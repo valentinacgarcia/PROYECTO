@@ -125,7 +125,10 @@ class ServiceController extends AbstractController
             return $this->json(['error' => 'Servicio no encontrado'], 404);
         }
 
-        return $this->json($this->serializeService($service));
+        return $this->json([
+            'success' => true,
+            'data' => $this->serializeService($service)
+        ]);
     }
 
     #[Route('/create', name: 'service_create', methods: ['POST'])]
