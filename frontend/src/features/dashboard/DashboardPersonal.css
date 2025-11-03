@@ -1,0 +1,173 @@
+.dashboard-personal-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fbf7f4;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.dashboard-title {
+  text-align: center;
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.filtro-mes {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.filtro-mes label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.filtro-mes select {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.stats-grid-horizontal {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.advanced-metrics {
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 150px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.stat-card p {
+  font-size: 1.4rem;
+  color: #53a57d;
+  font-weight: bold;
+}
+
+.stat-card small {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.charts-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.chart-large {
+  flex: 2;
+  min-width: 400px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.chart-small-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 250px;
+}
+
+.chart-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.engagement-card {
+  flex: 1;
+  min-width: 250px;
+  text-align: center;
+}
+
+.circular-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.circular-progress {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.circular-inner {
+  background: white;
+  border-radius: 50%;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.circular-inner p {
+  font-size: 1.6rem;
+  color: #53a57d;
+  margin: 0;
+}
+
+.circular-inner small {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+}
+
+/* Opcional: mejorar tooltip de recharts */
+.recharts-tooltip-wrapper {
+  background: white !important;
+  border-radius: 8px !important;
+  border: 1px solid #ccc !important;
+  font-size: 0.85rem !important;
+  color: #333 !important;
+  padding: 5px !important;
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 900px) {
+  .charts-row {
+    flex-direction: column;
+  }
+  .chart-large, .chart-small-column, .engagement-card {
+    min-width: 100%;
+  }
+}

@@ -20,6 +20,7 @@ import PanelServicios from './features/services/PanelServicios';
 import MisServicios from './features/services/Servicios';
 import DetalleServicio from './features/services/ServicioDetalle';
 import ModificarServicio from './features/services/ModificarServicio';
+import DashboardPersonal from './features/dashboard/DashboardPersonal';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/servicios" element={<MisServicios />} isLoggedIn={isLoggedIn} />
         <Route path="/servicios/:id" element={<DetalleServicio />} isLoggedIn={isLoggedIn} />
         <Route path="servicios/modificar_servicio/:id" element={<ModificarServicio />} isLoggedIn={isLoggedIn} />
+        <Route path="/dashboard_adopciones" element={<DashboardPersonal />} isLoggedIn={isLoggedIn} />
       </Routes>
     </>
   );
