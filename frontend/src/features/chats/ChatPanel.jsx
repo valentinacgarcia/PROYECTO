@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 import { FaTimes, FaPaperPlane, FaPaperclip, FaCamera, FaPaw, FaComments, FaTruck } from 'react-icons/fa';
 import './ChatPanel.css';
 
@@ -68,7 +69,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
 // Función para obtener la primera foto de una mascota
   const fetchPetPhoto = async (petId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/pet/detail/${petId}`);
+      const response = await axios.get(buildApiUrl(`/pet/detail/${petId}`));
       return response.data.photos?.[0] || null;
     } catch (error) {
       console.error('Error fetching pet photo:', error);
@@ -120,8 +121,8 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     try {
       // Usar los endpoints que ya tienes
       const [usersResponse, adoptionResponse] = await Promise.all([
-        axios.post(`http://localhost:8000/chats/${chatId}/users`),
-        axios.get(`http://localhost:8000/adoption/status/${chatId}`).catch(() => ({ data: null }))
+        axios.post(buildApiUrl(`/chats/${chatId}/users`)),
+        axios.get(buildApiUrl(`/adoption/status/${chatId}`)).catch(() => ({ data: null }))
       ]);
       
       const { owner_id, interested_id } = usersResponse.data;
@@ -254,7 +255,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   // Cargar el estado de la adopción cuando se selecciona un chat
   const fetchAdoptionStatus = async (chatId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/adoption/status/${chatId}`);
+      const response = await axios.get(buildApiUrl(`/adoption/status/${chatId}`));
       setAdoptionStatus(response.data);
     } catch (error) {
       console.error('Error fetching adoption status:', error);
@@ -264,7 +265,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
 
   const fetchChats = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/chats/user/${userId}`);
+      const response = await axios.get(buildApiUrl(`/chats/user/${userId}`));
       setChats(response.data);
     } catch (error) {
       console.error('Error fetching chats:', error);
@@ -273,7 +274,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
 
   const fetchMessagesForChat = async (chatId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/chats/${chatId}/messages`);
+      const response = await axios.get(buildApiUrl(`/chats/${chatId}/messages`));
       const backendMessages = response.data.map(msg => ({
         id: msg.messageId,
         chatId,
@@ -312,6 +313,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   useEffect(() => {
     if (!userId) return;
     fetchChats();
+    // Polling rápido para todos los dispositivos (Cloudflare no tiene límites)
     const chatInterval = setInterval(fetchChats, 5000);
     return () => clearInterval(chatInterval);
   }, [userId]);
@@ -325,9 +327,11 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
   
   useEffect(() => {
     if (chats.length > 0) {
+      // Detectar si es móvil para ajustar el polling
+      const isMobile = window.innerWidth <= 768;
       const messageIntervals = chats.map(chat => {
         fetchMessagesForChat(chat.id);
-        return setInterval(() => fetchMessagesForChat(chat.id), 3000);
+        return setInterval(() => fetchMessagesForChat(chat.id), isMobile ? 15000 : 3000);
       });
 
       return () => {
@@ -420,7 +424,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     try {
       if (isOwner && !adoptionStatus?.exists) {
         // Owner inicia el proceso
-        const response = await axios.post('http://localhost:8000/adoption/initiate', {
+        const response = await axios.post(buildApiUrl('/adoption/initiate'), {
           chat_id: selectedChat.id,
           owner_id: chatUsers.owner_id
         });
@@ -431,7 +435,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
         }
 
       } else if (isInterestedUser && adoptionStatus?.canUserConfirm) {
-        const response = await axios.post(`http://localhost:8000/adoption/confirm/${adoptionStatus.adoption_id}`,{
+        const response = await axios.post(buildApiUrl(`/adoption/confirm/${adoptionStatus.adoption_id}`), {
           interested_id: chatUsers.interested_id
         });
         
@@ -459,7 +463,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
     setReceptionLoading(true);
     
     try {
-      const response = await axios.post(`http://localhost:8000/adoption/confirm/reception/${adoptionStatus.adoption_id}`, {
+      const response = await axios.post(buildApiUrl(`/adoption/confirm/reception/${adoptionStatus.adoption_id}`), {
         interested_id: chatUsers.interested_id
       });
       
@@ -528,7 +532,7 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
       if (selectedFile) formData.append('file', selectedFile);
 
       const response = await axios.post(
-        `http://localhost:8000/chats/${selectedChat.id}/message/send`,
+        buildApiUrl(`/chats/${selectedChat.id}/message/send`),
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
@@ -772,7 +776,11 @@ const ChatPanel = ({ userId, onClose, isOpen, onToggle }) => {
         <FaTimes onClick={onClose} className="close-button" aria-label="Cerrar chat" />
       </div>
       {chats.length === 0 ? (
-        <p className="no-chats">Cargando chats...</p>
+        <div className="no-chats-container">
+          <div className="no-chats-icon">💬</div>
+          <p className="no-chats">No tienes chats aún</p>
+          <p className="no-chats-subtitle">Cuando tengas conversaciones sobre adopciones, aparecerán aquí</p>
+        </div>
       ) : (
         <div className="chat-list">
           {sortedChats.map(chat => {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 import './Pet_View.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -32,24 +33,31 @@ const PetAdoptionPost = ({ pet }) => {
 
     try {
       const user = JSON.parse(localStorage.getItem('user'));
+      console.log('🔍 Usuario obtenido:', user);
       if (!user) {
         setSubmissionMessage({ text: 'Debes iniciar sesión para adoptar', type: 'error' });
         return;
       }
 
+      console.log('🔍 Verificando formulario para usuario:', user.id);
       const formCheck = await axios.get(
-        `http://localhost:8000/adoption/check-form/${user.id}`
+        buildApiUrl(`/adoption/check-form/${user.id}`)
       );
+      console.log('🔍 Respuesta del formulario:', formCheck.data);
 
       if (!formCheck.data.has_form) {
+        console.log('🔍 No tiene formulario, redirigiendo...');
         navigate(`/formulario_adopcion/${pet.id}`);
         return;
       }
 
+      console.log('🔍 Enviando solicitud de adopción:', { pet_id: pet.id, user_id: user.id });
+      console.log('🔍 URL de la petición:', buildApiUrl('/adoptions/request'));
       const adoptionResponse = await axios.post(
-        'http://localhost:8000/adoptions/request',
+        buildApiUrl('/adoptions/request'),
         { pet_id: pet.id, user_id: user.id }
       );
+      console.log('🔍 Respuesta de adopción:', adoptionResponse.data);
 
       setSubmissionMessage({
         text: `¡Tu solicitud para adoptar a ${pet.name} ha sido enviada! Pronto te contactaremos.`,
@@ -58,13 +66,19 @@ const PetAdoptionPost = ({ pet }) => {
       setTimeout(() => navigate('/panel_adopcion'), 3000);
 
     } catch (error) {
-      console.error('Error en el proceso de adopción:', error);
+      console.error('❌ Error en el proceso de adopción:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error data:', error.response?.data);
 
       if (error.response?.status === 404) {
+        console.log('🔍 Error 404, redirigiendo al formulario...');
         navigate(`/formulario_adopcion/${pet.id}`);
       } else if (error.response?.status === 409) {
+        console.log('🔍 Error 409, ya solicitó adoptar esta mascota');
         setSubmissionMessage({ text: 'Ya has solicitado adoptar esta mascota', type: 'error' });
       } else {
+        console.log('🔍 Error genérico:', error.message);
         setSubmissionMessage({ text: 'Error al procesar tu solicitud. Por favor inténtalo nuevamente.', type: 'error' });
       }
     } finally {
@@ -168,7 +182,7 @@ const PetAdoptionPost = ({ pet }) => {
               <li><strong>Largo de Pelaje:</strong> {pet.furLength}</li>
               <li>
                 <strong>Esterilizado:</strong>{' '}
-                {pet.sterilized ? (
+                {pet.sterilized === 'Sí' ? (
                   <span className="status-positive">Sí <FaSyringe /></span>
                 ) : (
                   <span className="status-negative">No</span>
@@ -176,7 +190,7 @@ const PetAdoptionPost = ({ pet }) => {
               </li>
               <li>
                 <strong>Vacunado:</strong>{' '}
-                {pet.vaccinated ? (
+                {pet.vaccinated === 'Sí' ? (
                   <span className="status-positive">Sí <FaStethoscope /></span>
                 ) : (
                   <span className="status-negative">No</span>
@@ -242,7 +256,7 @@ const PetDetailView = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:8000/pet/detail/${id}`);
+        const res = await fetch(buildApiUrl(`/pet/detail/${id}`));
         if (!res.ok) {
           throw new Error(`Error de red o el servidor respondió con estado: ${res.status}`);
         }

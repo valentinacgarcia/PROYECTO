@@ -6,6 +6,7 @@ import LoginForm from './features/auth/Login/LoginForm';
 import Home from './features/pages/Home';
 import Datos from './features/upd/Datos';
 import Navbar from './components/Navbar';
+import MobileChatBubble from './components/MobileChatBubble';
 import MisMascotas from './features/pets/Mascotas';
 import RegistrarMascota from './features/pets/RegistrarMascota';
 import DatosMascota from './features/pets/DatosMascota';
@@ -17,6 +18,7 @@ import PostulacionesPanel from './features/adopters/PostulacionesPanel';
 import Panel_Recomendations from './features/adoption/Panel_Recomendations';
 import RegistrarServicio from './features/services/RegistrarServicio';
 import PanelServicios from './features/services/PanelServicios';
+import MisServicios from './features/services/Servicios';
 
 const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -54,7 +56,14 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="/recomendaciones" element={<Panel_Recomendations  isLoggedIn={isLoggedIn} />} />
         <Route path="/registrar_servicio" element={<RegistrarServicio />} isLoggedIn={isLoggedIn} />
         <Route path="/panel_servicios" element={<PanelServicios />} isLoggedIn={isLoggedIn} />
+        <Route path="/servicios" element={<MisServicios />} isLoggedIn={isLoggedIn} />
       </Routes>
+      
+      {/* Burbuja de chat móvil */}
+      <MobileChatBubble 
+        userId={JSON.parse(localStorage.getItem('user'))?.id}
+        isLoggedIn={isLoggedIn}
+      />
     </>
   );
 };

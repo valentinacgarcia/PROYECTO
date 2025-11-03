@@ -1,0 +1,9 @@
+# PetMatch - Sincronización automática de imágenes
+# Ejecutar cada minuto
+* * * * * cd /var/www/backend/symfony && php bin/console app:sync-temp-images --full-sync >> /var/log/petmatch_sync.log 2>&1
+
+# Limpiar cache expirado diariamente a las 2 AM
+0 2 * * * cd /var/www/backend/symfony && php bin/console app:sync-temp-images --clean-cache --max-age=7 >> /var/log/petmatch_cleanup.log 2>&1
+
+# Rotar logs semanalmente (lunes a las 3 AM)
+0 3 * * 1 cd /var/www/backend/symfony && find /var/log -name "petmatch_*.log" -mtime +7 -delete

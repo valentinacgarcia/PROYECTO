@@ -11,3 +11,24 @@
 /var/cache/
 /var/log/
 ###< symfony/framework-bundle ###
+
+###> PetMatch - Cache y archivos temporales ###
+# Cache de imágenes (se regenera automáticamente)
+/var/cache/images/*
+!/var/cache/images/.gitkeep
+/var/cache/images/services/*
+!/var/cache/images/services/.gitkeep
+/var/cache/images/chats/*
+!/var/cache/images/chats/.gitkeep
+
+# Subidas temporales desde celular
+/var/uploads/temp/*
+!/var/uploads/temp/.gitkeep
+/var/uploads/temp/services/*
+!/var/uploads/temp/services/.gitkeep
+/var/uploads/temp/chats/*
+!/var/uploads/temp/chats/.gitkeep
+
+# Logs específicos de la aplicación
+/var/log/petmatch.log
+###< PetMatch - Cache y archivos temporales ###

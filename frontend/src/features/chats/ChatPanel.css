@@ -157,7 +157,36 @@
   flex-shrink: 0;
 }
 
-.no-chats { text-align: center; padding: 40px 20px; color: #666; }
+.no-chats-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  height: 100%;
+}
+
+.no-chats-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.no-chats {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.no-chats-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+  max-width: 280px;
+}
 
 /* Mensajes */
 .chat-messages-container { 
