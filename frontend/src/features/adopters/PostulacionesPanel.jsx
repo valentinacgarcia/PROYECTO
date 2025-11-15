@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { buildApiUrl } from '../../config/api';
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaTimes,
@@ -149,7 +150,7 @@ const PostulacionesPanel = () => {
   const fetchPostulaciones = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      const res = await axios.get(`http://localhost:8000/adoptions/notifications/${user.id}`);
+      const res = await axios.get(buildApiUrl(`/adoptions/notifications/${user.id}`));
       const mapped = res.data.map((item) => ({
         id: item.petition_id,
         petition_id: item.petition_id,
@@ -198,7 +199,7 @@ const PostulacionesPanel = () => {
     
     for (const post of postulaciones) {
       try {
-        const res = await axios.get(`http://localhost:8000/adoption/form/user/${post.postulante.id}`);
+        const res = await axios.get(buildApiUrl(`/adoption/form/user/${post.postulante.id}`));
         const userFormData = res.data;
         const score = calculateCompatibilityScore(userFormData, post.mascota);
         scores[post.petition_id] = score;
@@ -214,6 +215,7 @@ const PostulacionesPanel = () => {
   // Traer postulaciones al montar y cada 5s
   useEffect(() => {
     fetchPostulaciones();
+    // Polling rápido para todos los dispositivos (Cloudflare no tiene límites)
     const interval = setInterval(fetchPostulaciones, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -223,7 +225,7 @@ const PostulacionesPanel = () => {
     const fetchFormData = async () => {
       if (!selected) return;
       try {
-        const res = await axios.get(`http://localhost:8000/adoption/form/user/${selected.postulante.id}`);
+        const res = await axios.get(buildApiUrl(`/adoption/form/user/${selected.postulante.id}`));
         setFormData(res.data);
       } catch (err) {
         console.error("Error al traer formulario del postulante:", err);
@@ -241,7 +243,7 @@ const PostulacionesPanel = () => {
   const handleActualizarEstado = async (nuevoEstado) => {
     if (!selected) return;
     try {
-      await axios.put(`http://localhost:8000/adoptions/status/${selected.petition_id}`, {
+      await axios.put(buildApiUrl(`/adoptions/status/${selected.petition_id}`), {
         status: nuevoEstado
       });
       setPostulaciones(prev => 

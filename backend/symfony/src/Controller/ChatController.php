@@ -190,11 +190,32 @@ class ChatController extends AbstractController
     private function getPresignedUrl(string $key): string
     {
         $bucket = 'chats';
-
+        
+        // Detectar si el request viene desde Cloudflare Tunnel (celular) o localhost (PC)
+        $request = $this->container->get('request_stack')->getCurrentRequest();
+        $host = $request ? $request->getHost() : '';
+        $forwardedHost = $request ? $request->headers->get('X-Forwarded-Host') : '';
+        $originalHost = $request ? $request->headers->get('Host') : '';
+        
+        // Debug temporal
+        error_log("🔍 Chat - Host detectado: " . $host);
+        error_log("🔍 Chat - X-Forwarded-Host: " . $forwardedHost);
+        error_log("🔍 Chat - Host header: " . $originalHost);
+        
+        // Si viene desde Cloudflare Tunnel, usar el proxy público
+        if (str_contains($host, 'trycloudflare.com') || str_contains($forwardedHost, 'trycloudflare.com') || str_contains($originalHost, 'trycloudflare.com')) {
+            $publicEndpoint = $_ENV['MINIO_PUBLIC_ENDPOINT'] ?? null;
+            if ($publicEndpoint) {
+                // Usar el proxy unificado para imágenes de chat
+                return $publicEndpoint . '/proxy-image/chats/' . $key;
+            }
+        }
+        
+        // Para localhost: generar URL pre-firmada de MinIO directamente
         $s3 = new S3Client([
             'version' => 'latest',
             'region' => 'us-east-1',
-            'endpoint' => 'http://localhost:9000', 
+            'endpoint' => 'http://localhost:9000',
             'use_path_style_endpoint' => true,
             'credentials' => [
                 'key' => 'petmatch',
@@ -211,6 +232,56 @@ class ChatController extends AbstractController
         $presignedUrl = (string) $request->getUri();
 
         return $presignedUrl; 
+    }
+
+    /**
+     * Subir imagen temporal de chat desde el celular
+     */
+    #[Route('/upload-temp', name: 'chat_upload_temp', methods: ['POST'])]
+    public function uploadTemp(Request $request): JsonResponse
+    {
+        try {
+            $file = $request->files->get('photo');
+            if (!$file) {
+                return $this->json(['error' => 'Archivo no encontrado'], 400);
+            }
+
+            // Validar tipo de archivo
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!in_array($file->getMimeType(), $allowedTypes)) {
+                return $this->json(['error' => 'Tipo de archivo no permitido'], 400);
+            }
+
+            // Validar tamaño (máximo 10MB)
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                return $this->json(['error' => 'Archivo demasiado grande (máximo 10MB)'], 400);
+            }
+
+            $tempDir = '/var/uploads/temp/chats';
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0777, true);
+            }
+
+            // Generar nombre único para el archivo temporal
+            $filename = 'temp_chat_' . uniqid() . '_' . time() . '.' . $file->guessExtension();
+            $filePath = $tempDir . '/' . $filename;
+            
+            // Mover archivo a directorio temporal
+            $file->move($tempDir, $filename);
+
+            error_log("📱 Imagen temporal de chat guardada desde celular: " . $filename);
+
+            return $this->json([
+                'success' => true,
+                'temp_filename' => $filename,
+                'message' => 'Imagen de chat guardada temporalmente. Se sincronizará con MinIO automáticamente.',
+                'sync_status' => 'pending'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("❌ Error en upload temporal de chat: " . $e->getMessage());
+            return $this->json(['error' => 'Error al subir archivo: ' . $e->getMessage()], 500);
+        }
     }
 
     #[Route('/{chatId}/users', name:'chat_users', methods:['POST'])]

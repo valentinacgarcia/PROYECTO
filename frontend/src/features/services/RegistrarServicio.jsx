@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 // Este import hace que los estilos en CSS Modules se apliquen solo a este componente
 import styles from './RegistrarServicio.module.css';
 
@@ -66,7 +67,7 @@ const ServiceForm = () => {
     setIsGeocoding(true);
     console.log('Geocodificando:', addressWithCordoba);
     try {
-      const response = await axios.post('http://localhost:8000/api/geocode', {
+      const response = await axios.post(buildApiUrl('/api/geocode'), {
         address: addressWithCordoba
       });
       
@@ -160,7 +161,7 @@ const ServiceForm = () => {
         });
       }
 
-      const response = await axios.post('http://localhost:8000/services/create', formDataToSend, {
+      const response = await axios.post(buildApiUrl('/services/create'), formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

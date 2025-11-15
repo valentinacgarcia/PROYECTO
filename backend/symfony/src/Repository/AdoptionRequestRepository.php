@@ -22,10 +22,13 @@ class AdoptionRequestRepository extends ServiceEntityRepository
      */
     public function findOneByUser(User $user): ?AdoptionRequest
     {
-        return $this->createQueryBuilder('ar')
+        $results = $this->createQueryBuilder('ar')
             ->andWhere('ar.user = :user')
             ->setParameter('user', $user)
+            ->orderBy('ar.id', 'DESC') // Obtener el más reciente
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
+            
+        return $results ? $results[0] : null;
     }
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../../config/api';
 import './DatosMascota.css';
 import perroIcon from '../../assets/perro.png';
 import gatoIcon from '../../assets/gato.png';
@@ -42,7 +43,7 @@ const DatosMascota = () => {
     ];
 
     useEffect(() => {
-        fetch(`http://localhost:8000/pet/detail/${id}`)
+        fetch(buildApiUrl(`/pet/detail/${id}`))
             .then((res) => res.json())
             .then((data) => {
                 setMascota(data);
@@ -154,7 +155,7 @@ const DatosMascota = () => {
         if (!confirmacion) return;
 
         try {
-            const response = await fetch(`http://localhost:8000/pet/delete/${id}`, {
+            const response = await fetch(buildApiUrl(`/pet/delete/${id}`), {
                 method: 'DELETE',
             });
 
@@ -214,7 +215,7 @@ const DatosMascota = () => {
         };
 
         try {
-            const responseJson = await fetch(`http://localhost:8000/pet/edit/${id}`, {
+            const responseJson = await fetch(buildApiUrl(`/pet/edit/${id}`), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,7 +228,7 @@ const DatosMascota = () => {
                 throw new Error(errorData.message || 'Error al guardar los datos de la mascota.');
             }
 
-            const updated = await fetch(`http://localhost:8000/pet/detail/${id}`);
+            const updated = await fetch(buildApiUrl(`/pet/detail/${id}`));
             const updatedMascota = await updated.json();
 
             setMascota(updatedMascota);
@@ -448,7 +449,7 @@ const DatosMascota = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <input type="text" value={mascota.sterilized || 'No informado'} disabled />
+                                <input type="text" value={mascota.sterilized === 'Sí' ? 'Sí' : mascota.sterilized === 'No' ? 'No' : 'No informado'} disabled />
                             )}
 
                             <label>Vacunas al día:</label>
@@ -465,7 +466,7 @@ const DatosMascota = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <input type="text" value={mascota.vaccinated || 'No informado'} disabled />
+                                <input type="text" value={mascota.vaccinated === 'Sí' ? 'Sí' : mascota.vaccinated === 'No' ? 'No' : 'No informado'} disabled />
                             )}
 
                             <label>Compatibilidad:</label>

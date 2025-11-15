@@ -6,6 +6,7 @@ import LoginForm from './features/auth/Login/LoginForm';
 import Home from './features/pages/Home';
 import Datos from './features/upd/Datos';
 import Navbar from './components/Navbar';
+import MobileChatBubble from './components/MobileChatBubble';
 import MisMascotas from './features/pets/Mascotas';
 import RegistrarMascota from './features/pets/RegistrarMascota';
 import DatosMascota from './features/pets/DatosMascota';
@@ -63,6 +64,12 @@ const AppRoutes = ({ isLoggedIn, setIsLoggedIn }) => {
         <Route path="servicios/modificar_servicio/:id" element={<ModificarServicio />} isLoggedIn={isLoggedIn} />
         <Route path="/dashboard_adopciones" element={<DashboardPersonal />} isLoggedIn={isLoggedIn} />
       </Routes>
+      
+      {/* Burbuja de chat móvil */}
+      <MobileChatBubble 
+        userId={JSON.parse(localStorage.getItem('user'))?.id}
+        isLoggedIn={isLoggedIn}
+      />
     </>
   );
 };

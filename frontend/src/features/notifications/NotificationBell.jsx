@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { buildApiUrl } from '../../config/api';
 import { FaBell } from 'react-icons/fa';
 
 const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose, onOpenChat }) => {
@@ -46,7 +47,7 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose, onOpenChat }) 
 
     const fetchPostulations = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/adoptions/notifications/${user.id}`);
+        const res = await axios.get(buildApiUrl(`/adoptions/notifications/${user.id}`));
         const mapped = res.data.map(item => ({
           petition_id: `postulation-${item.petition_id}`,
           type: "postulation",
@@ -72,7 +73,7 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose, onOpenChat }) 
 
     const fetchMatches = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/adoptions/notifications/match/${user.id}`);
+        const res = await axios.get(buildApiUrl(`/adoptions/notifications/match/${user.id}`));
         const mapped = res.data
           .filter(item => Number(item.interested_user_id) === Number(user.id))
           .map(item => ({
@@ -104,6 +105,7 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose, onOpenChat }) 
     fetchPostulations();
     fetchMatches();
 
+    // Polling rápido para todos los dispositivos (Cloudflare no tiene límites)
     const interval1 = setInterval(fetchPostulations, 5000);
     const interval2 = setInterval(fetchMatches, 5000);
 
@@ -137,7 +139,7 @@ const NotificationBell = ({ isLoggedIn, isOpen, onClick, onClose, onOpenChat }) 
       // Para matches, abrir el chat panel y buscar el chat específico
       try {
         // Buscar el chat que coincida con interestedUser, petName
-        const chatRes = await axios.get(`http://localhost:8000/chat/find`, {
+        const chatRes = await axios.get(buildApiUrl(`/chat/find`), {
           params: {
             interested_user_id: notification.interestedUserId,
             pet_name: notification.petName

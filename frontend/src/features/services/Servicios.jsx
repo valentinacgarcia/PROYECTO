@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../../config/api';
 import './Servicios.css';
 
 const ListaServicios = ({ title, servicios, detalleRuta, botonTexto, botonClick }) => {
@@ -47,7 +48,7 @@ const PanelServicios = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) return setLoading(false);
 
-    fetch(`http://localhost:8000/services/user/${user.id}`)
+    fetch(buildApiUrl(`/services/user/${user.id}`))
       .then(res => res.json())
       .then(result => {
         console.log('Resultado fetch servicios:', result); 

@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { buildApiUrl } from '../../config/api';
 import styles from './PanelServicios.module.css';
 import { useNavigate } from 'react-router-dom';
+import './PanelServicios.css';
 
 // --- Constantes y Datos de Configuración ---
 const CARDS_PER_PAGE = 12;
-const API_ENDPOINT = 'http://localhost:8000/services/list-all';
+const API_ENDPOINT = buildApiUrl('/services/list-all');
 
 const SERVICE_CATEGORIES = [
   { value: 'paseo', label: 'Paseo de Mascotas' },
@@ -30,7 +32,7 @@ const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sá
 const ServiceCard = ({ service, onClick }) => (
   <div className={styles.card} onClick={onClick} style={{ cursor: 'pointer' }}>
     <img 
-      src={service.photos?.[0] || 'https://via.placeholder.com/300x200?text=Servicio'} 
+      src={service.photos && service.photos.length > 0 ? service.photos[0] : 'https://via.placeholder.com/300x200?text=Servicio'} 
       alt={service.serviceName} 
       className={styles.cardImage}
     />
@@ -77,6 +79,8 @@ const ServicePanel = () => {
     priceType: [],
     availabilityDays: [],
   });
+
+  const [showFilters, setShowFilters] = useState(false); // Estado para menú móvil
   
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -391,7 +395,94 @@ const ServicePanel = () => {
 
   return (
     <div className={styles.panelContainer}>
-      <header className={styles.header}>
+      {/* Botón flotante de filtros para móvil */}
+      <button 
+        className="filters-toggle-btn"
+        onClick={() => setShowFilters(true)}
+      >
+        🔍 Filtros
+      </button>
+
+      {/* Overlay para móvil */}
+      {showFilters && (
+        <div 
+          className="filters-overlay"
+          onClick={() => setShowFilters(false)}
+        ></div>
+      )}
+
+      {/* Drawer de filtros para móvil */}
+      <div className={`filters-drawer ${showFilters ? 'open' : ''}`}>
+        <div className="filters-header">
+          <h3>Filtros</h3>
+          <button 
+            className="close-filters"
+            onClick={() => setShowFilters(false)}
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="filters-content">
+          <div className="filter-section">
+            <h3>Categoría</h3>
+            <select value={filters.category} onChange={(e) => handleFilterChange('category', e.target.value)} >
+              <option value="">Todas</option>
+              {SERVICE_CATEGORIES.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-section">
+            <h3>Precio (ARS)</h3>
+            <div className="price-range">
+              <input type="number" name="priceRange.min" placeholder="Mín" value={filters.priceRange.min} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+              <span>-</span>
+              <input type="number" name="priceRange.max" placeholder="Máx" value={filters.priceRange.max} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+            </div>
+          </div>
+          
+          <div className="filter-section">
+            <h3>Modalidad</h3>
+            {MODALITIES.map(mod => (
+              <label key={mod}>
+                <input type="checkbox" checked={filters.modality.includes(mod)} onChange={() => handleFilterChange('modality', mod)} />
+                <span>{mod}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="filter-section">
+            <h3>Tipo de Tarifa</h3>
+            {PRICE_TYPES.map(pt => (
+              <label key={pt.value}>
+                <input type="checkbox" checked={filters.priceType.includes(pt.value)} onChange={() => handleFilterChange('priceType', pt.value)} />
+                <span>{pt.label}</span>
+              </label>
+            ))}
+          </div>
+          
+          <div className="filter-section">
+            <h3>Días Disponibles</h3>
+            {DAYS_OF_WEEK.map(day => (
+              <label key={day}>
+                <input type="checkbox" checked={filters.availabilityDays.includes(day)} onChange={() => handleFilterChange('availabilityDays', day)} />
+                <span>{day}</span>
+              </label>
+            ))}
+          </div>
+
+          <button 
+            className="apply-filters-btn"
+            onClick={() => setShowFilters(false)}
+          >
+            Aplicar Filtros
+          </button>
+        </div>
+      </div>
+
+      <header className={`${styles.header} header`}>
         <h1>Encuentra los mejores servicios</h1>
         <p>Busca entre paseadores, veterinarias, adiestradores y más profesionales cerca tuyo.</p>
         <div className={styles.searchBar}>
@@ -412,8 +503,8 @@ const ServicePanel = () => {
         </div>
       </header>
       
-      <div className={styles.mainContent}>
-        <aside className={styles.sidebar}>
+      <div className={`${styles.mainContent} main-content`}>
+        <aside className={`${styles.sidebar} sidebar`}>
           {/* --- Título de la sidebar --- */}
           <div className={styles.findMatchCard}>
             <h3>¡Encontrá el servicio ideal!</h3>

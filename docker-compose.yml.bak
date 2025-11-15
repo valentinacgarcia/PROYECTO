@@ -1,0 +1,142 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: symfony-backend
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - ./backend:/var/www/backend
+      - /var/www/backend/vendor   # mantiene el vendor interno al contenedor
+      - symfony-cache:/var/www/backend/symfony/var/cache/images
+      - symfony-uploads:/var/www/backend/symfony/var/uploads/temp
+    ports:
+      - "0.0.0.0:8000:8000"
+    environment:
+      DATABASE_URL: mysql://user:userpassword@mysql:3306/dbname
+      APP_ENV: dev
+      MINIO_ENDPOINT: http://172.26.238.9:9000
+      MINIO_PUBLIC_ENDPOINT: https://without-shelf-studios-guild.trycloudflare.com
+      MINIO_KEY: petmatch
+      MINIO_SECRET: petmatch
+      MINIO_BUCKET: mascotas
+      MINIO_INTERNAL_URL: http://minio:9000/mascotas
+      CORS_ALLOW_ORIGIN: '^https?://(localhost|127\.0\.0\.1|loca\.lt|trycloudflare\.com)(:[0-9]+)?$'
+      TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+      TRUSTED_HOSTS: '^without-shelf-studios-guild\.trycloudflare\.com$'
+      APP_URL: https://without-shelf-studios-guild.trycloudflare.com
+    depends_on:
+      - mysql
+      - minio
+    networks:
+      - app-network
+    command: php -S 0.0.0.0:8000 -t symfony/public symfony/public/index.php
+
+  # Servicio de sincronización automática
+  sync-daemon:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: petmatch-sync-daemon
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - ./backend:/var/www/backend
+      - /var/www/backend/vendor
+      - symfony-cache:/var/www/backend/symfony/var/cache/images
+      - symfony-uploads:/var/www/backend/symfony/var/uploads/temp
+    environment:
+      DATABASE_URL: mysql://user:userpassword@mysql:3306/dbname
+      APP_ENV: dev
+      MINIO_ENDPOINT: http://172.26.238.9:9000
+      MINIO_PUBLIC_ENDPOINT: https://without-shelf-studios-guild.trycloudflare.com
+      MINIO_KEY: petmatch
+      MINIO_SECRET: petmatch
+      MINIO_BUCKET: mascotas
+      MINIO_INTERNAL_URL: http://minio:9000/mascotas
+    depends_on:
+      - mysql
+      - minio
+    networks:
+      - app-network
+    command: /var/www/backend/symfony/scripts/start-cron.sh
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: react-frontend
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - REACT_APP_API_URL=https://without-shelf-studios-guild.trycloudflare.com
+
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: dbname
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+      MYSQL_ROOT_HOST: '%'
+    command: '--default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: petmatch
+      MINIO_ROOT_PASSWORD: petmatch
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+      - ./minio/policies:/policies
+    networks:
+      - app-network
+
+  minio-init:
+    image: minio/mc
+    container_name: minio-init
+    depends_on:
+      - minio
+    volumes:
+      - ./minio/init.sh:/init.sh
+      - ./minio/policies:/policies
+    networks:
+      - app-network
+    entrypoint: /bin/sh
+    command: -c "chmod +x /init.sh && /init.sh"
+
+volumes:
+  mysql-data:
+  minio-data:
+  symfony-cache:    # Cache persistente de imágenes
+  symfony-uploads:  # Subidas temporales desde celular
+
+networks:
+  app-network:
+    driver: bridge

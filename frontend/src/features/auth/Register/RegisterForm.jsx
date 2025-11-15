@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './RegisterForm.css'; 
 import logo from '../../../assets/logo.png';
+import { buildApiUrl } from '../../../config/api';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -49,7 +50,7 @@ const RegisterForm = () => {
 
     setFormError("");
 
-    axios.post('http://localhost:8000/user/create', {
+    axios.post(buildApiUrl('/user/create'), {
       name: formData.nombre,
       email: formData.email,
       password: formData.contraseña,

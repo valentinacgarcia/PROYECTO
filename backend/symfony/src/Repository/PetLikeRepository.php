@@ -53,8 +53,10 @@ class PetLikeRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('pl')
             ->join('pl.pet', 'p')
-            ->where('p.owner = :owner')
+            ->where('pl.ownerUser = :owner') // ✅ Solo solicitudes donde el owner_user_id coincida con el dueño
+            ->andWhere('(pl.status != :pending OR p.owner = :owner)') // ✅ Para pendientes: solo si la mascota aún le pertenece
             ->setParameter('owner', $owner)
+            ->setParameter('pending', 'pending')
             ->orderBy('pl.createdAt', 'DESC')
             ->getQuery()
             ->getResult();

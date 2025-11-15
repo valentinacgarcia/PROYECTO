@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './LoginForm.css';
+import { buildApiUrl } from '../../../config/api';
 import logo from '../../../assets/logo.png';
 
 const LoginForm = ({ onLogin }) => {
@@ -39,7 +40,7 @@ const LoginForm = ({ onLogin }) => {
     setFormError('');
 
     try {
-      const response = await axios.post('http://localhost:8000/user/sesion', {
+      const response = await axios.post(buildApiUrl('/user/sesion'), {
         email: formData.email,
         password: formData.contraseña, // importante: backend espera "password"
       });
