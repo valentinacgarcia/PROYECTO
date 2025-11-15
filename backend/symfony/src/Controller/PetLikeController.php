@@ -274,7 +274,7 @@ public function updateStatus(
         $petName = $adoption->getPet()->getName();
 
         $body = sprintf(
-            "¡Felicitaciones %s! \n\nTu solicitud para adoptar a %s ha sido aprobada. Ya podés iniciar una conversación con su dueño para coordinar la adopción 🐾.\n\nEl equipo de PetMatch ❤️",
+            "¡Felicitaciones %s! \n\nTu solicitud para adoptar a %s ha sido aprobada. Ya podés iniciar una conversación con su dueño para coordinar la adopción y sacarte dudas! 🐾🐾.\n\n!Muchas gracias! \n\n Atte. El equipo de PETMATCH ❤️",
             $interestedName,
             $petName
         );
