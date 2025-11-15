@@ -14,6 +14,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Enum\RequestStatus;
 use App\Repository\ChatRepository;
+use App\Service\EmailService;
+
 
 
 #[Route('/adoptions')]
@@ -214,52 +216,82 @@ class PetLikeController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route('/status/{id}', name: 'update_adoption_status', methods: ['PUT'])]
-    public function updateStatus(
-        int $id, 
-        Request $request, 
-        PetLikeRepository $repo, 
-        EntityManagerInterface $em,
-        ChatRepository $chatRepo
-    )
-    {
-        $adoption = $repo->find($id);
-        if (!$adoption) return $this->json(['error' => 'Postulación no encontrada'], 404);
+#[Route('/status/{id}', name: 'update_adoption_status', methods: ['PUT'])]
+public function updateStatus(
+    int $id,
+    Request $request,
+    PetLikeRepository $repo,
+    EntityManagerInterface $em,
+    ChatRepository $chatRepo,
+    EmailService $emailService
+) {
+    $adoption = $repo->find($id);
+    if (!$adoption) {
+        return $this->json(['error' => 'Postulación no encontrada'], 404);
+    }
 
-        $data = json_decode($request->getContent(), true);
-        $status = $data['status'] ?? null;
-        if (!in_array($status, ['approved', 'rejected'])) return $this->json(['error' => 'Estado inválido'], 400);
+    $data = json_decode($request->getContent(), true);
+    $status = $data['status'] ?? null;
 
-        $adoption->setStatus($status === 'approved' ? RequestStatus::APPROVED->value : RequestStatus::REJECTED->value);
-        $em->flush();
+    if (!in_array($status, ['approved', 'rejected'])) {
+        return $this->json(['error' => 'Estado inválido'], 400);
+    }
 
-        // ✅ Si se aprueba, crear chat automáticamente
-        if ($status === 'approved') {
-            $ownerUser = $adoption->getPet()->getOwner();
-            $interestedUser = $adoption->getInterestedUser();
+    $adoption->setStatus(
+        $status === 'approved'
+            ? RequestStatus::APPROVED->value
+            : RequestStatus::REJECTED->value
+    );
+    $em->flush();
 
-            // Evitar duplicados: verificar si ya existe chat entre estos dos usuarios
-            $existingChat = $chatRepo->findOneBy([
-                'ownerUser' => $ownerUser,
-                'interestedUser' => $interestedUser,
-                'petName' => $adoption->getPet()->getName()
-            ]);
+    // ✅ Si se aprueba, crear chat automáticamente y enviar correo
+    if ($status === 'approved') {
+        $ownerUser = $adoption->getPet()->getOwner();
+        $interestedUser = $adoption->getInterestedUser();
 
-            if (!$existingChat) {
-                $chat = new Chat();
-                $chat->setOwnerUser($ownerUser);
-                $chat->setInterestedUser($interestedUser);
-                $chat->setPetName($adoption->getPet()->getName());
-                $chat->setPetId($adoption->getPet()->getId());
-                $chat->setCreatedAt(new \DateTime());
+        // Evitar duplicados: verificar si ya existe chat entre estos dos usuarios
+        $existingChat = $chatRepo->findOneBy([
+            'ownerUser' => $ownerUser,
+            'interestedUser' => $interestedUser,
+            'petName' => $adoption->getPet()->getName(),
+        ]);
 
-                $em->persist($chat);
-                $em->flush();
-            }
+        if (!$existingChat) {
+            $chat = new Chat();
+            $chat->setOwnerUser($ownerUser);
+            $chat->setInterestedUser($interestedUser);
+            $chat->setPetName($adoption->getPet()->getName());
+            $chat->setPetId($adoption->getPet()->getId());
+            $chat->setCreatedAt(new \DateTime());
+
+            $em->persist($chat);
+            $em->flush();
         }
 
-        return $this->json(['success' => true, 'status' => $adoption->getStatus()]);
+        // Enviar notificación al usuario interesado
+        $interestedEmail = $interestedUser->getEmail();
+        $interestedName = $interestedUser->getName();
+        $petName = $adoption->getPet()->getName();
+
+        $body = sprintf(
+            "¡Felicitaciones %s! \n\nTu solicitud para adoptar a %s ha sido aprobada. Ya podés iniciar una conversación con su dueño para coordinar la adopción y sacarte dudas! 🐾🐾.\n\n!Muchas gracias! \n\n Atte. El equipo de PETMATCH ❤️",
+            $interestedName,
+            $petName
+        );
+
+        $emailService->sendCustomEmail(
+            $interestedEmail,
+            "¡Tenés un match con $petName!",
+            $body
+        );
     }
+
+    return $this->json([
+        'success' => true,
+        'status' => $adoption->getStatus(),
+    ]);
+}
+
 
     #[Route('/chat/find', name: 'find_chat', methods: ['GET'])]
     public function findChat(Request $request, ChatRepository $chatRepo): JsonResponse

@@ -15,7 +15,7 @@ const ListaServicios = ({ title, servicios, detalleRuta, botonTexto, botonClick 
       ) : (
         <div className="lista-servicios">
           {servicios.map(servicio => (
-            <div key={servicio.id} className="tarjeta-servicio" onClick={() => navigate(`${detalleRuta}/${servicio.id}`)}>
+            <div key={servicio.id} className="tarjeta-servicio" onClick={() => navigate(`modificar_servicio/${servicio.id}`)}>
               <img
                 src={servicio.photos && servicio.photos.length > 0 ? servicio.photos[0] : '/placeholder.png'}
                 alt={servicio.serviceName}
@@ -51,7 +51,7 @@ const PanelServicios = () => {
     fetch(buildApiUrl(`/services/user/${user.id}`))
       .then(res => res.json())
       .then(result => {
-        console.log('Resultado fetch servicios:', result); // log para depuración
+        console.log('Resultado fetch servicios:', result); 
         if (result.success) {
           setServicios(result.data);
         } else {

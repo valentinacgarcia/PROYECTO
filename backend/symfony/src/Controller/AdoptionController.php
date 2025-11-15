@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\EmailService;
 
 #[Route('/adoption')]
 class AdoptionController extends AbstractController
@@ -141,43 +142,70 @@ class AdoptionController extends AbstractController
      * El usuario interesado confirma la adopción
      */
     #[Route('/confirm/{adoptionId}', name: 'adoption_confirm', methods: ['POST'])]
-    public function confirmAdoption(int $adoptionId, Request $request): JsonResponse
-    {
-        $adoption = $this->adoptionRepository->find($adoptionId);
-        if (!$adoption) {
-            return $this->json(['error' => 'Adoption not found'], 404);
-        }
-
-        $data = json_decode($request->getContent(), true);
-
-        // Verificar que el usuario actual sea el interesado
-        $currentUser = $data['interested_id'] ?? null;
-        if (!$currentUser || $currentUser !== $adoption->getUser()->getId()) {
-            return $this->json(['error' => 'Only the interested user can confirm adoption'], 403);
-        }
-
-        // Verificar que esté en estado pending
-        if (!$adoption->isPending()) {
-            return $this->json(['error' => 'Adoption is not in pending state'], 400);
-        }
-
-        // pasar a waiting 
-        $adoption->markAsWaiting();
-        $this->em->flush();
-
-        return $this->json([
-            'success' => true,
-            'message' => 'Adoption confirmed successfully!',
-        ]);
+public function confirmAdoption(
+    int $adoptionId,
+    Request $request,
+    EmailService $emailService
+): JsonResponse {
+    $adoption = $this->adoptionRepository->find($adoptionId);
+    if (!$adoption) {
+        return $this->json(['error' => 'Adoption not found'], 404);
     }
+
+    $data = json_decode($request->getContent(), true);
+
+    // Verificar que el usuario actual sea el interesado
+    $currentUser = $data['interested_id'] ?? null;
+    if (!$currentUser || $currentUser !== $adoption->getUser()->getId()) {
+        return $this->json(['error' => 'Only the interested user can confirm adoption'], 403);
+    }
+
+    // Verificar que esté en estado pending
+    if (!$adoption->isPending()) {
+        return $this->json(['error' => 'Adoption is not in pending state'], 400);
+    }
+
+    // pasar a waiting 
+    $adoption->markAsWaiting();
+    $this->em->flush();
+
+    // MANDA MAILS
+    $interested = $adoption->getUser();            // el que quiere adoptar
+    $owner = $adoption->getPet()->getOwner();      // el dueño de la mascota
+    $petName = $adoption->getPet()->getName();
+
+    // Mail al interesado
+    $emailService->sendAdoptionConfirmationToInterested(
+        $interested->getEmail(),
+        $interested->getName(),
+        $petName
+    );
+
+    // Mail al dueño
+    $emailService->sendAdoptionConfirmationToOwner(
+        $owner->getEmail(),
+        $owner->getName(),
+        $petName,
+        $interested->getName()
+    );
+
+    return $this->json([
+        'success' => true,
+        'message' => 'Adoption confirmed successfully!',
+    ]);
+}
+
 
     /**
      * POST /adoption/confirm/reception/{adoptionId}
      * El usuario interesado confirma la recepcion
      */
     #[Route('/confirm/reception/{adoptionId}', name: 'adoption_confirm_reception', methods: ['POST'])]
-    public function confirmReception(int $adoptionId, Request $request): JsonResponse
-    {
+    public function confirmReception(
+        int $adoptionId,
+        Request $request,
+        EmailService $emailService
+    ): JsonResponse {
         $adoption = $this->adoptionRepository->find($adoptionId);
         if (!$adoption) {
             return $this->json(['error' => 'Adoption not found'], 404);
@@ -196,16 +224,31 @@ class AdoptionController extends AbstractController
             return $this->json(['error' => 'Adoption is not in waiting state'], 400);
         }
 
+        // Guardar dueño original ANTES del cambio y asi poder mandar el mail
+        $originalOwner = $adoption->getPet()->getOwner();
+
         // pasar a completed 
         $adoption->markAsCompleted();
         $adoption->getPet()->setOwner($adoption->getUser());
         $adoption->getPet()->setIsAdopted(false);
         $this->em->flush();
 
+        //MAIL DE CONFIRMACION
+
+        $interested = $adoption->getUser();           // adoptante
+        $petName = $adoption->getPet()->getName();
+
+        $emailService->sendConfirmationArrival(
+            $originalOwner->getEmail(),
+            $originalOwner->getName(),
+            $petName,
+            $interested->getName()
+        );
+
         return $this->json([
             'success' => true,
             'message' => 'Reception confirmed successfully!',
-            'adoption_date' => $adoption->getAdoptionDate()?->format('Y-m-d H:i:s')        ]);
+            'adoption_date' => $adoption->getAdoptionDate()?->format('Y-m-d H:i:s')
+        ]);
     }
-
 }

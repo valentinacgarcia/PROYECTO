@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { buildApiUrl } from '../../config/api';
 import styles from './PanelServicios.module.css';
+import { useNavigate } from 'react-router-dom';
 import './PanelServicios.css';
 
 // --- Constantes y Datos de Configuración ---
@@ -28,8 +29,8 @@ const PRICE_TYPES = [
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 // --- Componentes Hijos ---
-const ServiceCard = ({ service }) => (
-  <div className={styles.card}>
+const ServiceCard = ({ service, onClick }) => (
+  <div className={styles.card} onClick={onClick} style={{ cursor: 'pointer' }}>
     <img 
       src={service.photos && service.photos.length > 0 ? service.photos[0] : 'https://via.placeholder.com/300x200?text=Servicio'} 
       alt={service.serviceName} 
@@ -69,7 +70,8 @@ const ServicePanel = () => {
   const [viewMode, setViewMode] = useState('cards'); // 'cards' o 'map'
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  
+  const navigate = useNavigate();
+
   const [filters, setFilters] = useState({
     category: '',
     modality: [],
@@ -563,8 +565,13 @@ const ServicePanel = () => {
           {error && <p className={styles.error}>{error}</p>}
           {viewMode === 'cards' ? (
             <div className={styles.grid}>
-              {loading && Array.from({ length: CARDS_PER_PAGE }).map((_, i) => <CardSkeleton key={i} />)}
-              {!loading && !error && services.map(service => <ServiceCard key={service.id} service={service} />)}
+              {!loading && !error && services.map(service => (
+                <ServiceCard 
+                  key={service.id} 
+                  service={service} 
+                  onClick={() => navigate(`/servicios/${service.id}`)} 
+                />
+              ))}
             </div>
           ) : (
             <div className={styles.mapView}>

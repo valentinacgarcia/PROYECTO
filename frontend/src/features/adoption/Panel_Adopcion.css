@@ -389,7 +389,7 @@ h1 {
   align-items: center;
   gap: 8px;
   transition: transform 0.18s, box-shadow 0.18s, background 0.3s;
-  z-index: 1000;
+  z-index: 20;
 }
 
 .recommendations-btn:hover {
