@@ -54,12 +54,21 @@ const DarEnAdopcion = ({ mascotasRegistradas }) => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) throw new Error("Usuario no encontrado");
 
+      if (!ubicacion.trim()) {
+        alert("Por favor, ingresa la ubicación de la mascota.");
+        return;
+      }
+
       const res = await fetch(buildApiUrl(`/pet/forAdoption/${mascotaSeleccionada}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ for_adoption: true })
+        body: JSON.stringify({ 
+          for_adoption: true,
+          location: ubicacion.trim(),
+          description: descripcion.trim() || null
+        })
       });
 
       const data = await res.json();

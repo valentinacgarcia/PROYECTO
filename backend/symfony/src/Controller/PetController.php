@@ -101,8 +101,24 @@ class PetController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $pet = $petRepository->find($petId);
-        if($data['for_adoption'] ==True){
+        
+        if (!$pet) {
+            return $this->json(['error' => 'Mascota no encontrada'], 404);
+        }
+        
+        if($data['for_adoption'] == true){
             $pet->setIsAdopted(true);
+            
+            // Actualizar ubicación si se proporciona
+            if (isset($data['location']) && !empty($data['location'])) {
+                $pet->setLocation($data['location']);
+            }
+            
+            // Actualizar descripción si se proporciona
+            if (isset($data['description']) && !empty($data['description'])) {
+                $pet->setDescription($data['description']);
+            }
+            
             $em->flush();
             return $this->json(['message' => 'Pet marked for adoption']);
         }else{

@@ -162,6 +162,84 @@
   padding: 5px !important;
 }
 
+/* Estilos para cuando el usuario no está logueado */
+.dashboard-blurred {
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.dashboard-login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: all;
+}
+
+.dashboard-login-message {
+  background-color: white;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in;
+}
+
+.dashboard-login-message h3 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.dashboard-login-message p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.dashboard-login-button {
+  background-color: #53a57d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.dashboard-login-button:hover {
+  background-color: #458a6a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(83, 165, 125, 0.3);
+}
+
+.dashboard-login-button:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Responsivo para pantallas pequeñas */
 @media (max-width: 900px) {
   .charts-row {
@@ -169,5 +247,18 @@
   }
   .chart-large, .chart-small-column, .engagement-card {
     min-width: 100%;
+  }
+  
+  .dashboard-login-message {
+    padding: 30px 20px;
+    margin: 20px;
+  }
+  
+  .dashboard-login-message h3 {
+    font-size: 20px;
+  }
+  
+  .dashboard-login-message p {
+    font-size: 14px;
   }
 }

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart, Bar,
   XAxis, YAxis, Tooltip,
@@ -9,6 +10,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 import "./DashboardPersonal.css";
+import { buildApiUrl } from "../../config/api";
 
 
 const Heatmap = ({ points }) => {
@@ -17,13 +19,40 @@ const Heatmap = ({ points }) => {
   useEffect(() => {
     if (!map || !points?.length) return;
 
-    const heatLayer = L.heatLayer(
-      points.map(p => [p.lat, p.lon, p.intensidad]),
-      { radius: 25, blur: 20, maxZoom: 17 }
-    ).addTo(map);
+    // Convertir puntos a formato [lat, lon, intensidad]
+    const heatPoints = points.map(p => {
+      const lat = parseFloat(p.lat);
+      const lon = parseFloat(p.lon);
+      const intensidad = parseFloat(p.intensidad) || 1;
+      return [lat, lon, intensidad];
+    });
+
+    // Crear capa de heatmap con configuración más visible
+    const heatLayer = L.heatLayer(heatPoints, {
+      radius: 30,
+      blur: 25,
+      maxZoom: 17,
+      minOpacity: 0.3,
+      max: 1.0,
+      gradient: {
+        0.0: 'blue',
+        0.5: 'cyan',
+        0.7: 'lime',
+        0.9: 'yellow',
+        1.0: 'red'
+      }
+    }).addTo(map);
+
+    // Ajustar el mapa para mostrar todos los puntos
+    if (heatPoints.length > 0) {
+      const bounds = heatPoints.map(p => [p[0], p[1]]);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
 
     return () => {
-      map.removeLayer(heatLayer);
+      if (map.hasLayer(heatLayer)) {
+        map.removeLayer(heatLayer);
+      }
     };
   }, [map, points]);
 
@@ -31,33 +60,118 @@ const Heatmap = ({ points }) => {
 };
 
 const DashboardPersonal = () => {
+  const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mesDesde, setMesDesde] = useState("Ene");
   const [mesHasta, setMesHasta] = useState("Oct");
   const [stats, setStats] = useState(null);
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const currentUserIdRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
 
-
-    // ACA IRIA EL ENDPOINT 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = async (forceReload = false) => {
       try {
-        const response = await fetch("/api/dashboard/personal"); 
-        if (!response.ok) throw new Error("Error al obtener datos del dashboard");
+        // Obtener el usuario del localStorage
+        const userStr = localStorage.getItem('user');
+        
+        if (!userStr) {
+          setIsLoggedIn(false);
+          setStats(mockData);
+          currentUserIdRef.current = null;
+          setLoading(false);
+          return;
+        }
+
+        let user;
+        try {
+          user = JSON.parse(userStr);
+        } catch (parseError) {
+          setIsLoggedIn(false);
+          setStats(mockData);
+          currentUserIdRef.current = null;
+          setLoading(false);
+          return;
+        }
+
+        if (!user || !user.id) {
+          setIsLoggedIn(false);
+          setStats(mockData);
+          currentUserIdRef.current = null;
+          setLoading(false);
+          return;
+        }
+
+        // Usuario válido encontrado
+        setIsLoggedIn(true);
+
+        // Si el usuario no cambió y no es una recarga forzada, no recargar
+        if (!forceReload && currentUserIdRef.current === user.id) {
+          return;
+        }
+
+        currentUserIdRef.current = user.id;
+        setLoading(true);
+
+        // Construir la URL del endpoint con el userId
+        const url = buildApiUrl(`/dashboard/personal/${user.id}`);
+        
+        const response = await fetch(url); 
+        
+        if (!response.ok) {
+          throw new Error(`Error al obtener datos del dashboard: ${response.status}`);
+        }
+        
         const data = await response.json();
         setStats(data);
       } catch (error) {
-        console.error("Error cargando datos del dashboard:", error);
+        // En caso de error, verificar si es porque no está logueado
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+          setIsLoggedIn(false);
+        }
+        // Usar datos mock como fallback
         setStats(mockData);
+        currentUserIdRef.current = null;
       } finally {
         setLoading(false);
       }
     };
-    fetchDashboardData();
-    
+
+    // Cargar datos iniciales
+    fetchDashboardData(true);
+
+    // Listener para cambios en localStorage (cuando el usuario cierra sesión o inicia sesión)
+    const handleStorageChange = (e) => {
+      if (e.key === 'user' || e.key === null) {
+        fetchDashboardData(true);
+      }
+    };
+
+    // Escuchar cambios en localStorage (funciona cuando se cambia desde otra pestaña/ventana)
+    window.addEventListener('storage', handleStorageChange);
+
+    // También verificar periódicamente si el usuario cambió (para cambios en la misma pestaña)
+    const intervalId = setInterval(() => {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || null;
+      
+      // Si el usuario cambió (login/logout)
+      if (userId !== currentUserIdRef.current) {
+        currentUserIdRef.current = userId;
+        // Actualizar estado de login
+        setIsLoggedIn(!!userId);
+        fetchDashboardData(true);
+      }
+    }, 1000); // Verificar cada segundo
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
+    };
   }, []);
   
 
@@ -117,9 +231,25 @@ const DashboardPersonal = () => {
     return <p style={{ textAlign: "center" }}>Cargando dashboard...</p>;
   }
 
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
   return (
-    <div className="dashboard-personal-container">
-      <h2 className="dashboard-title">Mis Mascotas en Adopción</h2>
+    <>
+      {!isLoggedIn && (
+        <div className="dashboard-login-overlay">
+          <div className="dashboard-login-message">
+            <h3>Inicia sesión para ver tus estadísticas</h3>
+            <p>Necesitas estar logueado para acceder a tu dashboard personal de adopciones.</p>
+            <button onClick={handleLoginClick} className="dashboard-login-button">
+              Iniciar Sesión
+            </button>
+          </div>
+        </div>
+      )}
+      <div className={`dashboard-personal-container ${!isLoggedIn ? 'dashboard-blurred' : ''}`}>
+        <h2 className="dashboard-title">Mis Mascotas en Adopción</h2>
 
       {/*Filtro de meses */}
       <div className="filtro-mes">
@@ -251,20 +381,27 @@ const DashboardPersonal = () => {
         {/* Mapa de calor */}
         <div className="chart-large">
           <h3>Zonas con Mayor Cantidad de Adopciones</h3>
-          <MapContainer
-            center={[-31.42, -64.19]}
-            zoom={13}
-            style={{ height: "300px", width: "100%", borderRadius: "12px" }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
-            />
-            <Heatmap points={data.zonasAdopcion} />
-          </MapContainer>
+          {data.zonasAdopcion && data.zonasAdopcion.length > 0 ? (
+            <MapContainer
+              center={[-31.39, -64.20]}
+              zoom={12}
+              style={{ height: "300px", width: "100%", borderRadius: "12px" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="© OpenStreetMap contributors"
+              />
+              <Heatmap points={data.zonasAdopcion} />
+            </MapContainer>
+          ) : (
+            <div style={{ height: "300px", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>
+              No hay zonas de adopción para mostrar
+            </div>
+          )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
