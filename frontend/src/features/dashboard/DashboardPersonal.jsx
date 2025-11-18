@@ -67,6 +67,7 @@ const DashboardPersonal = () => {
   const [mesHasta, setMesHasta] = useState("Oct");
   const [stats, setStats] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasPetsInAdoption, setHasPetsInAdoption] = useState(true);
   const currentUserIdRef = useRef(null);
 
   useEffect(() => {
@@ -126,6 +127,7 @@ const DashboardPersonal = () => {
         
         const data = await response.json();
         setStats(data);
+        setHasPetsInAdoption(data.hasPetsInAdoption !== false); // Por defecto true si no viene el campo
       } catch (error) {
         // En caso de error, verificar si es porque no está logueado
         const userStr = localStorage.getItem('user');
@@ -235,6 +237,8 @@ const DashboardPersonal = () => {
     navigate('/login');
   };
 
+  const showNoPetsMessage = isLoggedIn && !hasPetsInAdoption;
+
   return (
     <>
       {!isLoggedIn && (
@@ -248,7 +252,18 @@ const DashboardPersonal = () => {
           </div>
         </div>
       )}
-      <div className={`dashboard-personal-container ${!isLoggedIn ? 'dashboard-blurred' : ''}`}>
+      {showNoPetsMessage && (
+        <div className="dashboard-login-overlay">
+          <div className="dashboard-login-message">
+            <h3>No tienes mascotas dadas en adopción</h3>
+            <p>Para ver estadísticas de adopciones, necesitas haber dado al menos una mascota en adopción.</p>
+            <button onClick={() => navigate('/adoption')} className="dashboard-login-button">
+              Ver Mascotas en Adopción
+            </button>
+          </div>
+        </div>
+      )}
+      <div className={`dashboard-personal-container ${(!isLoggedIn || showNoPetsMessage) ? 'dashboard-blurred' : ''}`}>
         <h2 className="dashboard-title">Mis Mascotas en Adopción</h2>
 
       {/*Filtro de meses */}
