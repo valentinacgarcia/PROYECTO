@@ -324,10 +324,6 @@ const DashboardPersonal = () => {
           <p>{data.ultimaMascota.name}</p>
           <small>{data.ultimaMascota.fecha}</small>
         </div>
-        <div className="stat-card">
-          <h3>% Adopciones Exitosas</h3>
-          <p>{((data.adoptadas / data.total) * 100).toFixed(0)}%</p>
-        </div>
       </div>
 
       {/* Métricas adicionales */}
