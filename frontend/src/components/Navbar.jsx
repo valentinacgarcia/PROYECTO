@@ -27,6 +27,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
   const handleHomeClick = () => navigate('/home');
   const handleMisSolicitudes = () => { setActiveDropdown(null); navigate('/postulaciones'); };
   const handleClickAdoptar = () => navigate('/panel_adopcion');
+  const handleDashboard = () => { setActiveDropdown(null); navigate('/dashboard_adopciones'); };
 
   // Funciones para menú móvil
   const toggleMobileMenu = () => {
@@ -167,6 +168,8 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                   <span>Favoritos</span>
                   <hr className="dropdown-separator" />
                   <span onClick={handleRegistrarServicios}>Mis Servicios</span>
+                  <hr className="dropdown-separator" />
+                  <span onClick={handleDashboard}>Reportes</span>
                   <hr className="dropdown-separator" />
                   <span onClick={handleLogout}>Cerrar sesión</span>
                   <span
