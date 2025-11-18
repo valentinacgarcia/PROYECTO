@@ -255,9 +255,14 @@ const PetMatch = () => {
                   onChange={e => handleSelectChange('raza', e)}
                 >
                   <option value="">Selecciona una raza</option>
-                  <option value="labrador">Labrador</option>
-                  <option value="bulldog">Bulldog</option>
-                  <option value="pastor">Pastor Alemán</option>
+                  <option value="Mestizo">Pastor Alemán</option>
+                  <option value="Labrador">Labrador</option>
+                  <option value="Bulldog">Bulldog</option>
+                  <option value="Caniche">Pastor Alemán</option>
+                  <option value="Shitzu">Pastor Alemán</option>
+                  <option value="Dachshund">Pastor Alemán</option>
+                  <option value="Boxer">Pastor Alemán</option>
+                  <option value="Otro">Pastor Alemán</option>
                 </select>
               </div>
 
