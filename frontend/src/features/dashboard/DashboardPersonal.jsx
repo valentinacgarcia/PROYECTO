@@ -117,7 +117,8 @@ const DashboardPersonal = () => {
         setLoading(true);
 
         // Construir la URL del endpoint con el userId
-        const url = buildApiUrl(`/dashboard/personal/${user.id}`);
+        // Incluir include_zones=true para cargar las zonas de adopción del mapa
+        const url = buildApiUrl(`/dashboard/personal/${user.id}?include_zones=true`);
         
         const response = await fetch(url); 
         
