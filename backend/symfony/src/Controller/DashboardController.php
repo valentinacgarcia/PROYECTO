@@ -49,12 +49,23 @@ class DashboardController extends AbstractController
             return $this->json(['error' => 'Usuario no encontrado'], 404);
         }
 
-        // Obtener todas las mascotas actuales del usuario
-        $petsActuales = $this->petRepository->findBy(['owner' => $user]);
+        // Obtener todas las mascotas actuales del usuario con eager loading
+        $petsActuales = $this->petRepository->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->setParameter('owner', $user)
+            ->getQuery()
+            ->getResult();
         
-        // Obtener mascotas que el usuario DIO en adopción usando PetLike
+        // Obtener mascotas que el usuario DIO en adopción usando PetLike con eager loading
         // PetLike.ownerUser = usuario indica que el usuario era el dueño original
-        $petLikes = $this->petLikeRepository->findBy(['ownerUser' => $user]);
+        $petLikes = $this->petLikeRepository->createQueryBuilder('pl')
+            ->select('pl', 'pet')
+            ->join('pl.pet', 'pet')
+            ->where('pl.ownerUser = :owner')
+            ->setParameter('owner', $user)
+            ->getQuery()
+            ->getResult();
+        
         $petIdsDadasEnAdopcion = [];
         foreach ($petLikes as $petLike) {
             $petId = $petLike->getPet()->getId();
@@ -69,7 +80,11 @@ class DashboardController extends AbstractController
         // Obtener todas las mascotas (actuales + las que dio en adopción)
         $todasLasMascotas = $petsActuales;
         if (!empty($petIdsDadasEnAdopcion)) {
-            $petsDadasEnAdopcion = $this->petRepository->findBy(['id' => $petIdsDadasEnAdopcion]);
+            $petsDadasEnAdopcion = $this->petRepository->createQueryBuilder('p')
+                ->where('p.id IN (:ids)')
+                ->setParameter('ids', $petIdsDadasEnAdopcion)
+                ->getQuery()
+                ->getResult();
             // Combinar, evitando duplicados
             $petIdsActuales = array_map(fn($p) => $p->getId(), $petsActuales);
             foreach ($petsDadasEnAdopcion as $pet) {
@@ -101,11 +116,18 @@ class DashboardController extends AbstractController
         $connection = $this->em->getConnection();
         $adoptionIds = $connection->fetchAllAssociative($sql, [$user->getId()]);
         
-        // Obtener las entidades Adoption usando los IDs encontrados
+        // Obtener las entidades Adoption usando los IDs encontrados con eager loading
         if (!empty($adoptionIds)) {
             $ids = array_column($adoptionIds, 'adoption_id');
             if (!empty($ids)) {
-                $adopcionesCompletadas = $this->adoptionRepository->findBy(['id' => $ids]);
+                $adopcionesCompletadas = $this->adoptionRepository->createQueryBuilder('a')
+                    ->select('a', 'pet', 'user')
+                    ->join('a.pet', 'pet')
+                    ->join('a.user', 'user')
+                    ->where('a.id IN (:ids)')
+                    ->setParameter('ids', $ids)
+                    ->getQuery()
+                    ->getResult();
             }
         }
         
@@ -134,17 +156,18 @@ class DashboardController extends AbstractController
 
         // Tasas de éxito
         $tasaExitoGlobal = $this->getGlobalSuccessRate();
-        $tasaExitoPropia = $this->getUserSuccessRate($user, $pets, $adopcionesCompletadas);
+        $tasaExitoPropia = $this->getUserSuccessRate($user, $pets, $adopcionesCompletadas, $petLikes);
 
         // Engagement rate
-        $engagementRate = $this->getEngagementRate($pets, $adopcionesCompletadas);
+        $engagementRate = $this->getEngagementRate($pets, $adopcionesCompletadas, $petLikes);
 
         // Duración promedio
         $duracionPromedio = $this->getAverageDuration($pets, $adopcionesCompletadas);
 
-        // Zonas de adopción
-        // Solo mostrar si el usuario tiene mascotas dadas en adopción
-        $zonasAdopcion = $hasPetsInAdoption 
+        // Zonas de adopción (solo calcular si se solicita explícitamente para mejorar rendimiento)
+        // La geocodificación puede ser muy lenta, así que se hace opcional
+        $includeZones = isset($_GET['include_zones']) && $_GET['include_zones'] === 'true';
+        $zonasAdopcion = ($hasPetsInAdoption && $includeZones)
             ? $this->getAdoptionZones($pets, $adopcionesCompletadas, $petsActuales)
             : [];
 
@@ -405,10 +428,9 @@ class DashboardController extends AbstractController
      * Calcula: (mascotas adoptadas / total de mascotas que estuvieron en adopción) * 100
      * Incluye mascotas actuales y mascotas que el usuario dio en adopción
      */
-    private function getUserSuccessRate($user, array $pets, array $adopcionesCompletadas): float
+    private function getUserSuccessRate($user, array $pets, array $adopcionesCompletadas, array $petLikes): float
     {
-        // Obtener todas las mascotas que el usuario puso en adopción (usando PetLike)
-        $petLikes = $this->petLikeRepository->findBy(['ownerUser' => $user]);
+        // Usar los PetLikes ya obtenidos (evitar consulta duplicada)
         $petIdsEnAdopcion = [];
         foreach ($petLikes as $petLike) {
             $petId = $petLike->getPet()->getId();
@@ -450,9 +472,8 @@ class DashboardController extends AbstractController
      * Engagement rate: (adopciones completadas / total de likes recibidos) * 100
      * Incluye mascotas actuales y mascotas que el usuario dio en adopción
      */
-    private function getEngagementRate(array $pets, array $adopcionesCompletadas): float
+    private function getEngagementRate(array $pets, array $adopcionesCompletadas, array $petLikes): float
     {
-        $totalLikes = 0;
         $petIdsConAdopcion = [];
 
         // Obtener IDs de mascotas con adopciones completadas
@@ -463,13 +484,18 @@ class DashboardController extends AbstractController
             }
         }
 
-        // Contar likes recibidos solo para mascotas con adopciones completadas
-        foreach ($pets as $pet) {
-            if (in_array($pet->getId(), $petIdsConAdopcion)) {
-                $likes = $this->petLikeRepository->findBy(['pet' => $pet]);
-                $totalLikes += count($likes);
-            }
+        if (empty($petIdsConAdopcion)) {
+            return 0;
         }
+
+        // Contar likes recibidos solo para mascotas con adopciones completadas
+        // Usar una sola consulta en lugar de múltiples findBy dentro del loop
+        $totalLikes = $this->petLikeRepository->createQueryBuilder('pl')
+            ->select('COUNT(pl.id)')
+            ->where('pl.pet IN (:petIds)')
+            ->setParameter('petIds', $petIdsConAdopcion)
+            ->getQuery()
+            ->getSingleScalarResult();
 
         $adopcionesCompletadasCount = count($petIdsConAdopcion);
 
@@ -564,6 +590,11 @@ class DashboardController extends AbstractController
      * Agrega la ubicación de una mascota a las zonas de adopción
      * Geocodifica la dirección si es necesario
      * Usa found_location (lugar donde se encontró la mascota) para el mapa de calor
+     * 
+     * NOTA: La geocodificación puede ser lenta. Para mejor rendimiento, considerar:
+     * - Cachear resultados de geocodificación
+     * - Hacer la geocodificación de forma asíncrona
+     * - O hacer las zonas de adopción opcionales/retardadas
      */
     private function addPetLocationToZones(Pet $pet, array &$zonas): void
     {
@@ -575,7 +606,7 @@ class DashboardController extends AbstractController
             return;
         }
 
-        // Intentar geocodificar la dirección
+        // Intentar geocodificar la dirección (puede ser lento si hay muchas mascotas)
         try {
             $geocodeResult = $this->geocodingService->geocode($location);
             
@@ -604,6 +635,7 @@ class DashboardController extends AbstractController
             if (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'dev') {
                 error_log("Error geocodificando: {$location} - " . $e->getMessage());
             }
+            // Si falla la geocodificación, simplemente no agregar al mapa (no bloquear el dashboard)
         }
     }
 }
