@@ -164,12 +164,9 @@ class DashboardController extends AbstractController
         // Duración promedio
         $duracionPromedio = $this->getAverageDuration($pets, $adopcionesCompletadas);
 
-        // Zonas de adopción (solo calcular si se solicita explícitamente para mejorar rendimiento)
-        // La geocodificación puede ser muy lenta, así que se hace opcional
-        $includeZones = isset($_GET['include_zones']) && $_GET['include_zones'] === 'true';
-        $zonasAdopcion = ($hasPetsInAdoption && $includeZones)
-            ? $this->getAdoptionZones($pets, $adopcionesCompletadas, $petsActuales)
-            : [];
+        // Zonas de adopción NO se cargan aquí para mejorar rendimiento
+        // Se cargan en un endpoint separado de forma asíncrona
+        $zonasAdopcion = [];
 
         $data = [
             'total' => $total,
@@ -231,6 +228,102 @@ class DashboardController extends AbstractController
         }
         
         return $this->json($data);
+    }
+
+    #[Route('/personal/{userId}/zones', name: 'dashboard_personal_zones', methods: ['GET'])]
+    public function getPersonalDashboardZones(int $userId): JsonResponse
+    {
+        $user = $this->userRepository->find($userId);
+        if (!$user) {
+            return $this->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        // Obtener todas las mascotas actuales del usuario
+        $petsActuales = $this->petRepository->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->setParameter('owner', $user)
+            ->getQuery()
+            ->getResult();
+        
+        // Obtener mascotas que el usuario DIO en adopción usando PetLike
+        $petLikes = $this->petLikeRepository->createQueryBuilder('pl')
+            ->select('pl', 'pet')
+            ->join('pl.pet', 'pet')
+            ->where('pl.ownerUser = :owner')
+            ->setParameter('owner', $user)
+            ->getQuery()
+            ->getResult();
+        
+        $petIdsDadasEnAdopcion = [];
+        foreach ($petLikes as $petLike) {
+            $petId = $petLike->getPet()->getId();
+            if (!in_array($petId, $petIdsDadasEnAdopcion)) {
+                $petIdsDadasEnAdopcion[] = $petId;
+            }
+        }
+        
+        // Verificar si el usuario tiene mascotas dadas en adopción
+        $hasPetsInAdoption = !empty($petIdsDadasEnAdopcion);
+        
+        // Obtener todas las mascotas (actuales + las que dio en adopción)
+        $todasLasMascotas = $petsActuales;
+        if (!empty($petIdsDadasEnAdopcion)) {
+            $petsDadasEnAdopcion = $this->petRepository->createQueryBuilder('p')
+                ->where('p.id IN (:ids)')
+                ->setParameter('ids', $petIdsDadasEnAdopcion)
+                ->getQuery()
+                ->getResult();
+            $petIdsActuales = array_map(fn($p) => $p->getId(), $petsActuales);
+            foreach ($petsDadasEnAdopcion as $pet) {
+                if (!in_array($pet->getId(), $petIdsActuales)) {
+                    $todasLasMascotas[] = $pet;
+                }
+            }
+        }
+        
+        $pets = $todasLasMascotas;
+        
+        // Obtener adopciones completadas
+        $sql = "
+            SELECT a.id AS adoption_id
+            FROM adoptions a
+            JOIN pet_like pl
+                ON pl.pet_id = a.pet_id
+                AND pl.interested_user_id = a.user_id
+                AND pl.status = 'APPROVED'
+            JOIN pets p
+                ON p.id = a.pet_id
+            WHERE pl.owner_user_id = ?
+              AND a.adoption_date IS NOT NULL
+        ";
+        
+        $connection = $this->em->getConnection();
+        $adoptionIds = $connection->fetchAllAssociative($sql, [$user->getId()]);
+        
+        $adopcionesCompletadas = [];
+        if (!empty($adoptionIds)) {
+            $ids = array_column($adoptionIds, 'adoption_id');
+            if (!empty($ids)) {
+                $adopcionesCompletadas = $this->adoptionRepository->createQueryBuilder('a')
+                    ->select('a', 'pet', 'user')
+                    ->join('a.pet', 'pet')
+                    ->join('a.user', 'user')
+                    ->where('a.id IN (:ids)')
+                    ->setParameter('ids', $ids)
+                    ->getQuery()
+                    ->getResult();
+            }
+        }
+        
+        // Calcular zonas de adopción
+        $zonasAdopcion = $hasPetsInAdoption 
+            ? $this->getAdoptionZones($pets, $adopcionesCompletadas, $petsActuales)
+            : [];
+        
+        return $this->json([
+            'zonasAdopcion' => $zonasAdopcion,
+            'hasPetsInAdoption' => $hasPetsInAdoption,
+        ]);
     }
 
     /**

@@ -68,7 +68,29 @@ const DashboardPersonal = () => {
   const [stats, setStats] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasPetsInAdoption, setHasPetsInAdoption] = useState(true);
+  const [zonesLoading, setZonesLoading] = useState(false);
   const currentUserIdRef = useRef(null);
+
+  // Función para cargar zonas de adopción de forma asíncrona
+  const fetchZonesAsync = async (userId) => {
+    try {
+      const zonesUrl = buildApiUrl(`/dashboard/personal/${userId}/zones`);
+      const zonesResponse = await fetch(zonesUrl);
+      
+      if (zonesResponse.ok) {
+        const zonesData = await zonesResponse.json();
+        // Actualizar las zonas en el estado sin recargar todo el dashboard
+        setStats(prevStats => ({
+          ...prevStats,
+          zonasAdopcion: zonesData.zonasAdopcion || []
+        }));
+      }
+    } catch (error) {
+      console.error('Error al cargar zonas de adopción:', error);
+    } finally {
+      setZonesLoading(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -116,9 +138,8 @@ const DashboardPersonal = () => {
         currentUserIdRef.current = user.id;
         setLoading(true);
 
-        // Construir la URL del endpoint con el userId
-        // Incluir include_zones=true para cargar las zonas de adopción del mapa
-        const url = buildApiUrl(`/dashboard/personal/${user.id}?include_zones=true`);
+        // Construir la URL del endpoint con el userId (sin zonas para carga rápida)
+        const url = buildApiUrl(`/dashboard/personal/${user.id}`);
         
         const response = await fetch(url); 
         
@@ -128,6 +149,12 @@ const DashboardPersonal = () => {
         
         const data = await response.json();
         setStats(data);
+        
+        // Cargar zonas de adopción de forma asíncrona después de que el dashboard principal se carga
+        if (data.hasPetsInAdoption) {
+          setZonesLoading(true);
+          fetchZonesAsync(user.id);
+        }
         setHasPetsInAdoption(data.hasPetsInAdoption !== false); // Por defecto true si no viene el campo
       } catch (error) {
         // En caso de error, verificar si es porque no está logueado
@@ -397,7 +424,11 @@ const DashboardPersonal = () => {
         {/* Mapa de calor */}
         <div className="chart-large">
           <h3>Zonas con mayor cantidad de mascotas encontradas</h3>
-          {data.zonasAdopcion && data.zonasAdopcion.length > 0 ? (
+          {zonesLoading ? (
+            <div style={{ height: "300px", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>
+              Cargando mapa...
+            </div>
+          ) : data.zonasAdopcion && data.zonasAdopcion.length > 0 ? (
             <MapContainer
               center={[-31.39, -64.20]}
               zoom={12}
