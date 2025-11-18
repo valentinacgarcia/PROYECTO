@@ -380,7 +380,7 @@ const DashboardPersonal = () => {
 
         {/* Mapa de calor */}
         <div className="chart-large">
-          <h3>Zonas con Mayor Cantidad de Adopciones</h3>
+          <h3>Zonas con mayor cantidad de mascotas encontradas</h3>
           {data.zonasAdopcion && data.zonasAdopcion.length > 0 ? (
             <MapContainer
               center={[-31.39, -64.20]}
