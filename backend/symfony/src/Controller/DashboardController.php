@@ -695,12 +695,14 @@ class DashboardController extends AbstractController
     /**
      * Agrega la ubicación de una mascota a las zonas de adopción
      * Geocodifica la dirección si es necesario
+     * Usa found_location (lugar donde se encontró la mascota) para el mapa de calor
      */
     private function addPetLocationToZones(Pet $pet, array &$zonas): void
     {
-        $location = $pet->getLocation();
+        // Usar found_location (lugar donde se encontró la mascota) para el mapa de calor
+        $location = $pet->getFoundLocation();
         
-        // Si no hay dirección, no podemos geocodificar
+        // Si no hay found_location, no agregar al mapa
         if (empty($location)) {
             return;
         }

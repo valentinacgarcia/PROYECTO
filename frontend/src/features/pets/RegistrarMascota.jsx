@@ -23,6 +23,7 @@ const RegistroMascota = () => {
     castrado: '',
     vacunasAlDia: '',
     compatibilidad: [],
+    lugarEncontrado: '',
   });
 
   const [error, setError] = useState('');
@@ -138,6 +139,7 @@ const RegistroMascota = () => {
     data.append('compatibility', JSON.stringify(formData.compatibilidad));
     data.append('description', formData.descripcion);
     data.append('location', ''); 
+    data.append('found_location', formData.lugarEncontrado || '');
 
     formData.fotos.forEach((foto) => data.append('photos[]', foto));
 
@@ -310,6 +312,15 @@ const RegistroMascota = () => {
                 </span>
               ))}
             </div>
+
+            <label>Lugar donde encontraste la mascota</label>
+            <input
+              type="text"
+              name="lugarEncontrado"
+              value={formData.lugarEncontrado || ''}
+              onChange={handleInputChange}
+              placeholder="Ej: Parque Sarmiento, Calle San Martín 500"
+            />
 
             <label>Descripción</label>
             <textarea

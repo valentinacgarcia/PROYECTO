@@ -31,6 +31,7 @@ const DatosMascota = () => {
         castrado: '',
         vacunasAlDia: '',
         compatibilidad: [],
+        lugarEncontrado: '',
     });
 
     // Listas de razas según tipo
@@ -62,6 +63,7 @@ const DatosMascota = () => {
                     castrado: data.sterilized || '',
                     vacunasAlDia: data.vaccinated || '',
                     compatibilidad: data.compatibility || [],
+                    lugarEncontrado: data.found_location || '',
                 });
             })
             .catch((err) => console.error('Error al cargar datos de la mascota:', err));
@@ -144,6 +146,7 @@ const DatosMascota = () => {
                 castrado: mascota.sterilized || '',
                 vacunasAlDia: mascota.vaccinated || '',
                 compatibilidad: mascota.compatibility || [],
+                lugarEncontrado: mascota.found_location || '',
             });
         }
         setError('');
@@ -210,6 +213,7 @@ const DatosMascota = () => {
             vaccinated: formData.vacunasAlDia,
             compatibility: formData.compatibilidad,
             description: formData.descripcion,
+            found_location: formData.lugarEncontrado || '',
             rescue_date: formData.esFechaRescate ? formData.fechaRescate : null,
             birth_date: !formData.esFechaRescate ? formData.fechaNacimiento : null,
         };
@@ -433,6 +437,19 @@ const DatosMascota = () => {
                                 />
                             ) : (
                                 <textarea value={mascota.description || 'Sin descripción'} disabled />
+                            )}
+
+                            <label>Lugar donde encontraste la mascota:</label>
+                            {editMode ? (
+                                <input
+                                    type="text"
+                                    name="lugarEncontrado"
+                                    value={formData.lugarEncontrado}
+                                    onChange={handleInputChange}
+                                    placeholder="Ej: Parque Sarmiento, Calle San Martín 500"
+                                />
+                            ) : (
+                                <input type="text" value={mascota.found_location || 'No informado'} disabled />
                             )}
 
                             <label>Castrado/a:</label>

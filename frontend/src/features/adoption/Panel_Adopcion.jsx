@@ -247,20 +247,6 @@ const PetMatch = () => {
                 </div>
               </div>
 
-              {/* Filtro de región */}
-              <div className="filter-section">
-                <h3>Región</h3>
-                <select
-                  value={filters.region[0] || ''}
-                  onChange={e => handleSelectChange('region', e)}
-                >
-                  <option value="">Selecciona una región</option>
-                  <option value="norte">Norte</option>
-                  <option value="sur">Sur</option>
-                  <option value="centro">Centro</option>
-                </select>
-              </div>
-
               {/* Filtro de raza */}
               <div className="filter-section">
                 <h3>Raza</h3>
@@ -515,19 +501,6 @@ const PetMatch = () => {
                 <span>Gato</span>
               </div>
             </div>
-          </div>
-
-          <div className="filter-section">
-            <h3>Región</h3>
-            <select
-              value={filters.region[0] || ''}
-              onChange={e => handleSelectChange('region', e)}
-            >
-              <option value="">Selecciona una región</option>
-              <option value="norte">Norte</option>
-              <option value="sur">Sur</option>
-              <option value="centro">Centro</option>
-            </select>
           </div>
 
           <div className="filter-section">

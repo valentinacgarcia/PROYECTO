@@ -61,6 +61,9 @@ class Pet
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $found_location = null;
+
     #[ORM\Column]
     private ?bool $is_adopted = false;
 
@@ -130,6 +133,9 @@ class Pet
 
     public function getLocation(): ?string { return $this->location; }
     public function setLocation(?string $location): static { $this->location = $location; return $this; }
+
+    public function getFoundLocation(): ?string { return $this->found_location; }
+    public function setFoundLocation(?string $found_location): static { $this->found_location = $found_location; return $this; }
 
     public function isAdopted(): ?bool { return $this->is_adopted; }
     public function setIsAdopted(bool $is_adopted): static { $this->is_adopted = $is_adopted; return $this; }

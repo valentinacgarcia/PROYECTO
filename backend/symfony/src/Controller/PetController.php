@@ -72,6 +72,7 @@ class PetController extends AbstractController
             ->setCompatibility(json_decode($request->get('compatibility'), true) ?: [])
             ->setDescription($request->get('description') ?: '')
             ->setLocation($request->get('location') ?: '')
+            ->setFoundLocation($request->get('found_location') ?: '')
             ->setIsAdopted(false);
 
         $em->persist($pet);
@@ -112,6 +113,11 @@ class PetController extends AbstractController
             // Actualizar ubicación si se proporciona
             if (isset($data['location']) && !empty($data['location'])) {
                 $pet->setLocation($data['location']);
+            }
+            
+            // Actualizar lugar donde se encontró la mascota si se proporciona
+            if (isset($data['found_location']) && !empty($data['found_location'])) {
+                $pet->setFoundLocation($data['found_location']);
             }
             
             // Actualizar descripción si se proporciona
@@ -155,7 +161,8 @@ class PetController extends AbstractController
             ->setVaccinated($data['vaccinated'] ?? $pet->getVaccinated())
             ->setCompatibility($data['compatibility'] ?? $pet->getCompatibility())
             ->setDescription($data['description'] ?? $pet->getDescription())
-            ->setLocation($data['location'] ?? $pet->getLocation());
+            ->setLocation($data['location'] ?? $pet->getLocation())
+            ->setFoundLocation($data['found_location'] ?? $pet->getFoundLocation());
 
         // 1. Eliminar fotos
         if (!empty($data['remove_photo_ids'])) {
@@ -334,6 +341,7 @@ class PetController extends AbstractController
             'compatibility' => $pet->getCompatibility() ?: [], // ✅ SIN normalizeString
             'description' => $this->normalizeString($pet->getDescription()),
             'location' => $this->normalizeString($pet->getLocation()),
+            'found_location' => $this->normalizeString($pet->getFoundLocation()),
             'is_adopted' => $pet->isAdopted(),
             'created_at' => $pet->getCreatedAt()->format('Y-m-d H:i:s'),
             'owner_id' => $pet->getOwner()?->getId(),
